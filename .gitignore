@@ -1,0 +1,72 @@
+# CMake
+/CMakeFiles
+/CMakeCache.txt
+/CMakeScripts
+/CMakeTmp
+/CMakeOutput.log
+/CMakeDoxyfile.in
+
+# Compiled files
+/CMakeFiles
+/CMakeCache.txt
+/CMakeScripts
+/CMakeTmp
+/CMakeOutput.log
+/CMakeDoxyfile.in
+/CMakeData
+/Makefile
+/cmake_install.cmake
+/CMakeFiles
+/*.cmake
+
+# Executables
+/build
+/bin
+/out
+
+# Visual Studio Code specific files
+.vscode
+
+# Boost build artifacts
+/boost_*/
+
+# SQLite build artifacts
+/sqlite_orm_build
+
+# IDE specific files
+/.idea
+/.vscode
+
+# Ignore compiled files, debugging files, and user settings for GCC and Clang
+*.swp
+*.swo
+*.swn
+*.swo
+*.swp
+*.swn
+*.log
+*.json
+
+# Ignore compiled files, debugging files, and user settings for Visual Studio
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ignore compiled files, debugging files, and user settings for Xcode
+*.xcworkspace
+*.xcodeproj
+
+# Ignore compiled files, debugging files, and user settings for CMake
+CMakeFiles/
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+CMakeTmp/
+CMakeOutput.log
+CMakeDoxyfile.in
+CMakeData
+Makefile
+cmake_install.cmake
+CMakeFiles/
+*.cmake
