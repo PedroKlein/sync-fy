@@ -1,25 +1,17 @@
+#include <asio.hpp>
 #include <iostream>
-#include <boost/asio.hpp>
 
-using boost::asio::ip::tcp;
+void print(const asio::error_code& /*e*/) {
+    std::cout << "Hello, world!" << std::endl;
+}
 
 int main() {
-    try {
-        boost::asio::io_context io_context;
+    asio::io_context io;
 
-        tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 8080));
+    asio::steady_timer t(io, asio::chrono::seconds(5));
+    t.async_wait(&print);
 
-        for (;;) {
-            tcp::socket socket(io_context);
-            acceptor.accept(socket);
-
-            std::string message = "Hello, World!\n";
-            boost::system::error_code ignored_error;
-            boost::asio::write(socket, boost::asio::buffer(message), ignored_error);
-        }
-    } catch (std::exception& e) {
-        std::cerr << e.what() << std::endl;
-    }
+    io.run();
 
     return 0;
 }
