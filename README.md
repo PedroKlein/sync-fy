@@ -30,6 +30,8 @@ After ensuring that the requirements are met, follow these steps:
 4. Run `./build/Release/client/client` to run the client app.
 ## Recommended Tools
 
+### Gitmoji
+
 We recommend using `gitmoji-cli` for commit messages. It's a simple CLI that helps you to use emojis on your commit messages. If you don't have it installed, you can install it with the following command:
 
 ```bash
@@ -51,4 +53,11 @@ git commit
 
 Remember, the use of `gitmoji-cli` is not mandatory, but it helps to make the commit history clear and easy to understand.
 
-Please ensure you have met all the requirements and followed the setup instructions before starting development. Happy coding!
+### VS Code
+If using vs code, run the following command to install the recommended extensions:
+
+```bash
+code --install-extension ms-vscode.cpptools-extension-pack ms-vscode.cmake-tools seatonjiang.gitmoji-vscode 
+```
+Or simply press `Ctrl+Shift+P` and type `Show Recommended Extensions`
+
