@@ -29,30 +29,38 @@ private:
     
 
     // funcs
-    struct sockaddr_in newSocketAddress(hostent *serviceAddress, int port);
+    struct sockaddr_in newSocketAddress(struct hostent *serviceAddress, int port);
 public:
-    Socket(hostent *serviceAddress, int port);
+    Socket(char *serviceName, char* servicePort);
     ~Socket();
-    void* Start(void* args);
+    static void* Start(void* args);
 };
 
 // Public Methods
-Socket::Socket(hostent *serviceAddress, int port)
+Socket::Socket(char *serviceName, char* servicePort)
 {
+    struct hostent *serviceAddress = gethostbyname(serviceName);
+    if (serviceAddress == NULL) {
+        std::cerr << "ERR: could not get host with name " << serviceAddress << std::endl;
+        exit(errno);
+    }
+
+    int port = atoi(servicePort);
+
     this->mainSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (this->mainSocket == -1){
-        std::cerr << "ERR: failed to create a socket\n\t" << strerror(errno) << std::endl;
+        std::cerr << "ERR: failed to create a socket\n\t|=> " << strerror(errno) << std::endl;
         exit(errno);
     }
 
     this->socketAddress = newSocketAddress(serviceAddress, port);
-
-    if (connect(this->mainSocket, (struct sockaddr *)&this->socketAddress, sizeof(this->socketAddress)) != 0){
-        std::cerr << "ERR: failed to connect to socket server\n\t" << strerror(errno) << std::endl;
+    int err = connect(this->mainSocket, (struct sockaddr *)&this->socketAddress, sizeof(this->socketAddress));
+    if (err == -1){
+        std::cerr << "ERR: failed to connect to socket server\n\t|=> " << strerror(errno) << std::endl;
         exit(errno);
     }
 
-    std::clog << "LOG: successfully connected to server " << sprintf("%s:%i", serviceAddress->h_name, socketAddress.sin_port) << std::endl;
+    std::clog << "LOG: successfully connected to server " << serviceAddress->h_name << ":" << socketAddress.sin_port << std::endl;
 }
 
 Socket::~Socket()
@@ -75,12 +83,15 @@ void* Socket::Start(void* args) {
 }
 
 // Private Methods
-struct sockaddr_in Socket::newSocketAddress(hostent *serviceAddress, int port) 
+struct sockaddr_in Socket::newSocketAddress(struct hostent *serviceAddress, int port) 
 {
     struct sockaddr_in address; 
 
     address.sin_family = AF_INET;
-	address.sin_port = htons((uint16_t) port ? port > DEFAULT_PORT : DEFAULT_PORT);
+    if (port <= 0)
+	    address.sin_port = htons((uint16_t) DEFAULT_PORT);
+    else 
+        address.sin_port = htons((uint16_t) port);
     address.sin_addr = *((struct in_addr *)serviceAddress->h_addr);
 	bzero(&(address.sin_zero), 8);
 

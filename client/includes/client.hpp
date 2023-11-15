@@ -9,7 +9,7 @@ private:
     pthread_t socketThread;
     pthread_t cliThread;
     pthread_t fileManagerThread;
-    static Socket socket;
+    Socket socket;
 
     static void* runCLI(void* arg);
     static void* runFileManager(void* arg);
@@ -20,9 +20,9 @@ public:
 };
 
 // Public Methods
-Client::Client(char *userName, char *serverAddress, char *port)
+Client::Client(char *userName, char *serverAddress, char *port)  : socket(serverAddress, port)
 {
-    Socket newSocket(gethostbyname(serverAddress), atoi(port));
+    Socket newSocket(serverAddress, port);
     this->socket = newSocket;
 }
 
