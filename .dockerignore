@@ -1,4 +1,5 @@
 build
 CMakeUserPresets.json
 .DS_Store
-.dockerfile.2c33e157ceda98c51f12
+.dockerfile
+docker-compose.yaml

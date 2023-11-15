@@ -6,8 +6,8 @@ services:
       dockerfile: Dockerfile
     stdin_open: true
     tty: true
-    # volumes:
-    #   - ./client:/sync-fy/client
-    #   - ./server:/sync-fy/server
-    #   - ./common:/sync-fy/common
-    #   - ./scripts:/sync-fy/scripts
+    volumes:
+      - ./client:/sync-fy/client
+      - ./server:/sync-fy/server
+      - ./common:/sync-fy/common
+      - ./scripts:/sync-fy/scripts
