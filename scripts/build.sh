@@ -1,0 +1,1 @@
+cmake --build /sync-fy/build/Release --target all

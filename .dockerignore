@@ -1,0 +1,10 @@
+build
+.vscode
+.git
+.gitignore
+README.md
+CMakeUserPresets.json
+.DS_Store
+dockerfile
+docker-compose.yaml
+.dockerignore
