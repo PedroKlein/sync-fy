@@ -17,7 +17,7 @@ auto initStorage()
 {
     return make_storage("example.sqlite",
                         make_table("persons",
-                                   make_column("id", &Person::id, autoincrement(), primary_key()),
+                                   make_column("id", &Person::id,primary_key().autoincrement()),
                                    make_column("name", &Person::name),
                                    make_column("age", &Person::age)));
 }
