@@ -65,3 +65,5 @@ CMakeFiles/
 *.cmake
 
 CMakeUserPresets.json
+
+.DS_Store
