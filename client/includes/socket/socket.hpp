@@ -53,6 +53,8 @@ Socket::Socket(char *serviceName, char* servicePort)
         exit(errno);
     }
 
+    std::clog << "DEBUG: mainSocket: " << this->mainSocket << std::endl;
+
     this->socketAddress = newSocketAddress(serviceAddress, port);
     int err = connect(this->mainSocket, (struct sockaddr *)&this->socketAddress, sizeof(this->socketAddress));
     if (err == -1){
@@ -69,16 +71,42 @@ Socket::~Socket()
 
 void* Socket::Start(void* args) {
     
+    Socket* socket = static_cast<Socket*>(args);
+    std::clog << "DEBUG:socket " << socket->mainSocket << std::endl;
+    // while (true) {
 
+    //     // Check if there is a message to be send 
 
-    while (true) {
+    //     // Check if there is a message to be received 
+    // }
 
-        // Check if there is a message to be send 
+    char buffer[256];
+    int n, sockfd = socket->mainSocket;
+    while(1){
+        printf("Enter the message: ");
+        bzero(buffer, 256);
+        fgets(buffer, 256, stdin);
 
-        // Check if there is a message to be received 
+	    /* write in the socket */
+	    n = write(sockfd, buffer, strlen(buffer));
+        if (n < 0) 
+	    	printf("ERROR writing to socket\n");
 
+        bzero(buffer,256);
+
+        std::cout << "DEBUG: after write()" << std::endl;
+    
+	    /* read from the socket */
+        n = read(sockfd, buffer, 256);
+        if (n < 0) 
+	    	printf("ERROR reading from socket\n");
+
+        std::cout << "DEBUG: after read()" << std::endl;
+
+        printf("%s\n",buffer);
     }
 
+    close(socket->mainSocket);
     pthread_exit(NULL);
 }
 

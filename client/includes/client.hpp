@@ -32,7 +32,7 @@ Client::~Client()
 
 void Client::Start() {
     std::clog << "LOG: starting client" << std::endl;
-    if (pthread_create(&this->socketThread, NULL, this->socket.Start, this) != 0){
+    if (pthread_create(&this->socketThread, NULL, this->socket.Start, &this->socket) != 0){
         std::cerr << "ERR: failed to create socket thread\n\t" << strerror(errno) << std::endl;
         exit(errno);
     }
