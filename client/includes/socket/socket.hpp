@@ -19,11 +19,13 @@
 #define QUEUE_SIZE 10
 #define BUFFER_SIZE 256
 
+int globalSocket;
+
 class Socket
 {
 private:
     // Socket vars
-    int mainSocket;
+    int mainSocket = 0;
     struct sockaddr_in socketAddress; 
 
     
@@ -39,6 +41,8 @@ public:
 // Public Methods
 Socket::Socket(char *serviceName, char* servicePort)
 {
+    if (this->mainSocket != 0)
+        close(this->mainSocket);
     struct hostent *serviceAddress = gethostbyname(serviceName);
     if (serviceAddress == NULL) {
         std::cerr << "ERR: could not get host with name " << serviceAddress << std::endl;
@@ -53,8 +57,7 @@ Socket::Socket(char *serviceName, char* servicePort)
         exit(errno);
     }
 
-    std::clog << "DEBUG: mainSocket: " << this->mainSocket << std::endl;
-
+    globalSocket = this->mainSocket;
     this->socketAddress = newSocketAddress(serviceAddress, port);
     int err = connect(this->mainSocket, (struct sockaddr *)&this->socketAddress, sizeof(this->socketAddress));
     if (err == -1){
@@ -71,42 +74,37 @@ Socket::~Socket()
 
 void* Socket::Start(void* args) {
     
-    Socket* socket = static_cast<Socket*>(args);
-    std::clog << "DEBUG:socket " << socket->mainSocket << std::endl;
-    // while (true) {
+    char buffer[BUFFER_SIZE];
+    int n;
+    Socket *socket = static_cast<Socket *>(args);
 
-    //     // Check if there is a message to be send 
-
-    //     // Check if there is a message to be received 
-    // }
-
-    char buffer[256];
-    int n, sockfd = socket->mainSocket;
-    while(1){
+    while (1)
+    {
         printf("Enter the message: ");
-        bzero(buffer, 256);
-        fgets(buffer, 256, stdin);
+        bzero(buffer, BUFFER_SIZE);
+        fgets(buffer, BUFFER_SIZE, stdin);
 
-	    /* write in the socket */
-	    n = write(sockfd, buffer, strlen(buffer));
-        if (n < 0) 
-	    	printf("ERROR writing to socket\n");
+        /* write in the socket */
+        n = write(globalSocket, buffer, strlen(buffer));
+        if (n < 0){
+            printf("ERROR writing from socket\n\t%s\n", strerror(errno));
+            break;
+        }
 
-        bzero(buffer,256);
+        bzero(buffer, BUFFER_SIZE);
 
-        std::cout << "DEBUG: after write()" << std::endl;
-    
-	    /* read from the socket */
-        n = read(sockfd, buffer, 256);
-        if (n < 0) 
-	    	printf("ERROR reading from socket\n");
+        std::clog << "\t|>DEBUG: after write" << std::endl;
 
-        std::cout << "DEBUG: after read()" << std::endl;
+        /* read from the socket */
+        n = read(globalSocket, buffer, BUFFER_SIZE);
+        if (n < 0) {
+            printf("ERROR reading from socket\n\t%s\n", strerror(errno));
+            break;
+        }
 
-        printf("%s\n",buffer);
+        printf("%s\n", buffer);
     }
 
-    close(socket->mainSocket);
     pthread_exit(NULL);
 }
 
