@@ -2,4 +2,6 @@ add_executable(server
     main.cpp
 )
 
-# target_link_libraries(server PRIVATE asio::asio)
+add_dependencies( server common_lib)
+
+target_link_libraries(server PRIVATE common_lib)
