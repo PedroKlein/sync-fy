@@ -16,91 +16,135 @@
 #include <errno.h>
 
 #define DEFAULT_PORT 8765
-#define QUEUE_SIZE 10
+#define QUEUE_SIZE 5
+#define BUFFER_SIZE 256
+
+typedef struct Connection {
+    int socket;
+    pthread_t thread;
+} Connection;
 
 class Socket
 {
-private:
-    // Socket vars
-    int mainSocket;
-    struct sockaddr_in socketAddress; 
-    std::vector<int> openSockets[QUEUE_SIZE];
-    std::vector<pthread_t> socketThreads;
-    std::vector<struct sockaddr_int> clientAddress; 
-
-    // funcs
-    struct sockaddr_in newSocketAddress();
-    void waitConnections();
-    static void* runNewConnection(void* arg); // Static function for thread creation
 public:
-    Socket();
+    Socket(int port);
     ~Socket();
+    void StartListening();
+
+private:
+    // Server 
+    int serverSocket;
+    socklen_t clientLength; 
+    struct sockaddr_in serverAddress, clientAddress;
+
+    static void* handleClient(void *arg);
+    static void receiveData(int clientSocket);
+
+    struct sockaddr_in newSocketAddress(int port);
+
+    // Connections / Clients
+    std::vector<Connection> clientConnections;
 };
 
-Socket::Socket()
+Socket::Socket(int port)
 {
-    this->mainSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (this->mainSocket == -1)
+    // Socket creation
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket == -1){
         std::cerr << "ERR: failed to create a socket\n\t" << strerror(errno) << std::endl;
+        exit(errno);
+    }
 
-    this->socketAddress = newSocketAddress();
+    // Setting up server address 
+    serverAddress = newSocketAddress(port);
 
-    if (bind(this->mainSocket, (struct sockaddr *)&this->socketAddress, sizeof(this->socketAddress)) != 0)
+    // Binding create socket 
+    if (bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) != 0){
         std::cerr << "ERR: failed to bind socket\n\t" << strerror(errno) << std::endl;
+        exit(errno);
+    }
 
-    this->waitConnections();
+    // Listening for incoming connections
+    listen(serverSocket, QUEUE_SIZE);
+    std::cout << "Server listening on port " << port << "..." << std::endl;
+
+    clientLength = sizeof(clientAddress);
 }
 
 Socket::~Socket()
 {
+    close(serverSocket);
 }
 
-struct sockaddr_in Socket::newSocketAddress() 
-{
-    struct sockaddr_in address; 
-
-    address.sin_family = AF_INET;
-	address.sin_port = htons(DEFAULT_PORT);
-    address.sin_addr.s_addr = INADDR_ANY;
-	bzero(&(address.sin_zero), 8);
-
-    return address;
-}
-
-// ChatGPT fez essa func sla
-void* Socket::runNewConnection(void* arg)
-{
-    Socket* instance = static_cast<Socket*>(arg); // Cast back to the class instance
-    // Code to handle the new connection, protected by mutex if needed
-    // For example:
-    // pthread_mutex_lock(&(instance->mutex));
-    // Perform actions with shared resources
-    // pthread_mutex_unlock(&(instance->mutex));
-    return NULL;
-}
-
-void Socket::waitConnections() 
-{
-    if (listen(this->mainSocket, QUEUE_SIZE) != 0);
-        std::cerr << "ERR: failed to listen\n\t" << strerror(errno) << std::endl;
-
-    while (true)
-    {
-        socklen_t clilen = sizeof(struct sockaddr_in);
-        int newsockfd; 
-        if ((newsockfd = accept(this->mainSocket, (struct sockaddr *) &clientAddress, &clilen)) == -1) 
-            std::cerr << "ERR: failed to accept connection\n\t" << strerror(errno) << std::endl;
-
-        // Create a new thread for each connection
-        pthread_t thread;
-        if (pthread_create(&thread, NULL, runNewConnection, this) != 0)
-        {
-            std::cerr << "ERR: failed to create thread\n\t" << strerror(errno) << std::endl;
-            continue; // Continue to accept new connections even if thread creation fails
+void Socket::StartListening() {
+    Connection connection;
+    while (true) {
+        // Accept a client connection
+        connection.socket = accept(serverSocket, (struct sockaddr *) &clientAddress, &clientLength);
+        if (connection.socket < 0) {
+            std::cerr << "Error on accept." << std::endl;
+            exit(EXIT_FAILURE);
         }
-        socketThreads.push_back(thread);
+
+        std::cout << "Client {" << connection.socket << "} connected." << std::endl;
+
+        // Create a new thread to handle the client
+        if (pthread_create(&connection.thread, NULL, handleClient, (void *)&connection.socket) != 0) {
+            std::cerr << "Error creating thread." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        clientConnections.push_back(connection);
     }
 }
+
+
+/*
+    === Private Funcs ===
+*/
+
+void* Socket::handleClient(void* arg) {
+    int clientSocket = *((int *) arg);
+    // Maybe a loop for receiving and sending data here,
+    // or we should create another thread just for sending data to the clients
+    receiveData(clientSocket);
+    
+    close(clientSocket);
+    pthread_exit(NULL);
+}
+
+void Socket::receiveData(int clientSocket) {
+    char buffer[BUFFER_SIZE];
+    while(true) {
+        bzero(buffer, BUFFER_SIZE);
+        read(clientSocket, buffer, BUFFER_SIZE);
+
+        std::cout << "Received Data from client " << clientSocket << "\nData: " << buffer << std::endl; 
+        // // Deserialize received data
+        // MyData receivedData;
+        // std::istringstream iss(buffer);
+        // {
+        //     cereal::JSONInputArchive archive(iss);
+        //     archive(receivedData);
+        // }
+
+        // std::cout << "Received Data from client: id = " << receivedData.id << ", message = " << receivedData.message << std::endl;
+    }
+}
+
+struct sockaddr_in Socket::newSocketAddress(int port) 
+{
+    struct sockaddr_in serverAddress; 
+
+    // Set up server address struct
+    bzero((char *) &serverAddress, sizeof(serverAddress));
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
+    serverAddress.sin_port = htons(port);
+
+    return serverAddress;
+}
+
 
 
 
