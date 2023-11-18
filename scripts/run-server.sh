@@ -1,1 +1,1 @@
-/sync-fy/build/Release/server/server
+/workspaces/sync-fy/build/Release/server/server

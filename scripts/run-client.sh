@@ -1,1 +1,1 @@
-/sync-fy/build/Release/client/client
+/workspaces/sync-fy/build/Release/client/client
