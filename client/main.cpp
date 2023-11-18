@@ -11,8 +11,11 @@ int main(int argc, char* argv[]) {
         exit(errno);
     }
 
-    Client client(argv[1], argv[2], argv[3]);
-    client.Start();
+    // Client client(argv[1], argv[2], argv[3]);
+    // client.Start();
+
+    Socket socket(argv[2], atoi(argv[3]));
+    socket.SendData("hello world");
 
     return 0;
 }

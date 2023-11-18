@@ -117,9 +117,9 @@ void Socket::receiveData(int clientSocket) {
     char buffer[BUFFER_SIZE];
     while(true) {
         bzero(buffer, BUFFER_SIZE);
-        read(clientSocket, buffer, BUFFER_SIZE);
-
-        std::cout << "Received Data from client " << clientSocket << "\nData: " << buffer << std::endl; 
+        ssize_t readBytes = read(clientSocket, buffer, BUFFER_SIZE);
+        if (readBytes > 0)
+            std::cout << "Received Data from client " << clientSocket << "\nData: " << buffer << std::endl; 
         // // Deserialize received data
         // MyData receivedData;
         // std::istringstream iss(buffer);
