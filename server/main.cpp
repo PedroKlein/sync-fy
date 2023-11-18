@@ -1,30 +1,56 @@
+#include <iostream>
 #include <thread>
-#include <vector>
-#include "models/User.h"
+
 #include "database/Database.h"
+
+#ifdef __linux__
+#include <pthread.h>
+#endif
 
 int main()
 {
-    const int numThreads = 4;
-
-    // Create a vector of threads
-    std::vector<std::thread> threads(numThreads);
-
-    for (int i = 0; i < numThreads; ++i)
+    try
     {
-        threads[i] = std::thread([i]
-                                 {
-            // Create a new ThreadSafeDatabase instance for this thread
-            Database db();
- 
-            // Insert a new user into the database
-            User user("user" + std::to_string(i));
-            db.insertUser(user); });
+        SQLiteDB db("example.db");
+        db.createTable();
+
+        const int threadCount = 3;
+        const int recordCount = 5;
+
+        std::vector<std::thread> threads;
+
+        // Thread 1: Insert records
+        threads.emplace_back([&db, recordCount]() {
+            std::cout << "Thread1_Record" << std::endl;
+            db.insertRecord("Thread1_Record", 100);
+        });
+
+        // Thread 2: Update records
+        threads.emplace_back([&db, recordCount]() {
+            std::cout << "Thread2_Updated" << std::endl;
+            db.updateRecord(1, "Thread2_Updated", 200);
+        });
+
+        // Thread 3: Delete records
+        // threads.emplace_back([&db, recordCount]() {
+        //     std::cout << "Thread3_Deleted" << std::endl;
+        //     db.deleteRecord(1);
+        // });
+
+        // Wait for all threads to finish
+        for (auto &thread : threads)
+        {
+            thread.join();
+        }
+
+        // Display the final state of the records
+        std::cout << "\nFinal records:\n" << std::endl;
+        db.selectAllRecords();
     }
-    // Wait for all threads to finish
-    for (auto &thread : threads)
+    catch (const std::exception &e)
     {
-        thread.join();
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
     }
 
     return 0;

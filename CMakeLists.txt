@@ -4,7 +4,7 @@ project(SyncFy)
 set(CMAKE_CXX_STANDARD 23)
 
 find_package(jsoncpp REQUIRED)
-find_package(SqliteOrm REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 
 add_subdirectory(common)
