@@ -67,3 +67,8 @@ CMakeFiles/
 CMakeUserPresets.json
 
 .DS_Store
+badclient
+badclient.c
+badserver
+badserver.c
+.vscode/c_cpp_properties.json
