@@ -32,10 +32,12 @@ int main()
         });
 
         // Thread 3: Delete records
-        // threads.emplace_back([&db, recordCount]() {
-        //     std::cout << "Thread3_Deleted" << std::endl;
-        //     db.deleteRecord(1);
-        // });
+        threads.emplace_back([&db, recordCount]() {
+            std::cout << "Thread3_Deleted" << std::endl;
+            db.deleteRecord(1);
+        });
+
+        std::cout << "\nAAAA:\n" << std::endl;
 
         // Wait for all threads to finish
         for (auto &thread : threads)

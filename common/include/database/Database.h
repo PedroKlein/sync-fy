@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#define DATABASE_POOL_SIZE 5
+#define DATABASE_POOL_SIZE 10
 
 class SQLiteDB
 {
@@ -99,7 +99,6 @@ class SQLiteDB
         if (!connectionPool.empty())
         {
             sqlite3 *db = connectionPool.back();
-            std::cout << db << std::endl;
             connectionPool.pop_back();
             return db;
         }
@@ -115,28 +114,19 @@ class SQLiteDB
         connectionPool.push_back(db);
     }
 
-    void executeQuery(sqlite3 *db, const std::string &query)
+    void executeQuery(sqlite3 *db, const std::string &query, sqlite3_callback callback = nullptr, void *data = nullptr)
     {
         char *errMsg = nullptr;
-        int result = sqlite3_exec(db, query.c_str(), nullptr, nullptr, &errMsg);
+        sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &errMsg);
+        int result = sqlite3_exec(db, query.c_str(), callback, data, &errMsg);
 
         if (result != SQLITE_OK)
         {
-            // Handle error
+            sqlite3_exec(db, "ROLLBACK", nullptr, nullptr, nullptr);
             throw std::runtime_error("Error executing query: " + std::string(errMsg));
         }
-    }
 
-    void executeQuery(sqlite3 *db, const std::string &query, sqlite3_callback callback)
-    {
-        char *errMsg = nullptr;
-        int result = sqlite3_exec(db, query.c_str(), callback, nullptr, &errMsg);
-
-        if (result != SQLITE_OK)
-        {
-            // Handle error
-            throw std::runtime_error("Error executing query: " + std::string(errMsg));
-        }
+        sqlite3_exec(db, "COMMIT", nullptr, nullptr, nullptr);
     }
 
     void executeScriptFromFile(const std::string &filename)
