@@ -28,13 +28,16 @@ public:
     ~Socket();
     void SendData(const /*MyData*/ char* userName);
 
-    static void* Start(void* args);
+    void StartReceivePingThread();
 private:
     int clientSocket;
     struct sockaddr_in serverAddress;
     struct hostent *server;
 
     void connectToServer();
+
+    pthread_t receivePingThread;
+    static void* receivePing(void* arg);
 };
 
 // Public Methods
@@ -97,6 +100,13 @@ void Socket::SendData(const /*MyData*/ char* userName) {
     }
 }
 
+void Socket::StartReceivePingThread() {
+    if (pthread_create(&receivePingThread, nullptr, &receivePing, this) != 0) {
+        std::cerr << "Error creating receive ping thread." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
 // Private Methods
 void Socket::connectToServer() {
     int err = connect(clientSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
@@ -106,6 +116,30 @@ void Socket::connectToServer() {
     }
 
     std::clog << "LOG: successfully connected to server " << serverAddress.sin_addr.s_addr << ":" << serverAddress.sin_port << std::endl;
+}
+
+
+void* Socket::receivePing(void* arg) {
+    Socket* socketInstance = static_cast<Socket*>(arg);
+
+    char buffer[BUFFER_SIZE];
+    while (true) {
+        bzero(buffer, BUFFER_SIZE);
+        ssize_t readBytes = read(socketInstance->clientSocket, buffer, BUFFER_SIZE);
+        if (readBytes > 0) {
+            // Handle the received ping message, e.g., print it
+            std::cout << "Received Ping: " << buffer << std::endl;
+        } else if (readBytes == 0) {
+            // Connection closed by the server, handle accordingly
+            std::cerr << "Connection closed by the server." << std::endl;
+            break;
+        } else {
+            // Handle error if needed
+            std::cerr << "Error receiving ping message." << std::endl;
+        }
+    }
+
+    pthread_exit(nullptr);
 }
 
 #endif
