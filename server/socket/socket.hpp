@@ -14,6 +14,7 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 #include <errno.h>
+#include <jsoncpp/json/json.h>
 
 #define DEFAULT_PORT 8765
 #define QUEUE_SIZE 5
@@ -114,21 +115,22 @@ void* Socket::handleClient(void* arg) {
 }
 
 void Socket::receiveData(int clientSocket) {
-    char buffer[BUFFER_SIZE];
+    char buffer[BUFSIZ];
     while(true) {
-        bzero(buffer, BUFFER_SIZE);
-        ssize_t readBytes = read(clientSocket, buffer, BUFFER_SIZE);
-        if (readBytes > 0)
+        bzero(buffer, BUFSIZ);
+        ssize_t readBytes = read(clientSocket, buffer, BUFSIZ);
+        if (readBytes > 0){
             std::cout << "Received Data from client " << clientSocket << "\nData: " << buffer << std::endl; 
-        // // Deserialize received data
-        // MyData receivedData;
-        // std::istringstream iss(buffer);
-        // {
-        //     cereal::JSONInputArchive archive(iss);
-        //     archive(receivedData);
-        // }
+        
+            // Reconstructing Json Object
+            std::string receivedJsonStr(buffer, readBytes);
+            Json::CharReaderBuilder reader;
+            Json::Value jsonObject;
+            std::istringstream jsonStringStream(receivedJsonStr);
+            Json::parseFromStream(reader, jsonStringStream, &jsonObject, nullptr);
+            std::cout << "Json obj:" << "\n\tuser: " << jsonObject["user"] << "\n\tmsg: " << jsonObject["msg"] << std::endl; 
+        }
 
-        // std::cout << "Received Data from client: id = " << receivedData.id << ", message = " << receivedData.message << std::endl;
     }
 }
 

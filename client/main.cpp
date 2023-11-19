@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     // client.Start();
 
     Socket socket(argv[2], atoi(argv[3]));
-    socket.SendData("hello world");
+    socket.SendData(argv[1]);
 
     return 0;
 }

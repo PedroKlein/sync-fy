@@ -14,6 +14,8 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 #include <errno.h>
+#include <sstream>
+#include <jsoncpp/json/json.h>
 
 #define DEFAULT_PORT 4000
 #define QUEUE_SIZE 10
@@ -24,7 +26,7 @@ class Socket
 public:
     Socket(char *serverAddress, int port);
     ~Socket();
-    void SendData(const /*MyData*/ char* data);
+    void SendData(const /*MyData*/ char* userName);
 
     static void* Start(void* args);
 private:
@@ -69,31 +71,30 @@ Socket::~Socket()
     close(clientSocket);
 }
 
-void Socket::SendData(const /*MyData*/ char* data) {
+void Socket::SendData(const /*MyData*/ char* userName) {
 
-    char buffer[BUFFER_SIZE];
-    
+    // char buffer[BUFSIZ];
+    char msg[BUFFER_SIZE];
     while(true) {
         printf("Enter the message: ");
-        bzero(buffer, BUFFER_SIZE);
-        fgets(buffer, BUFFER_SIZE, stdin);
+        // bzero(buffer, BUFFER_SIZE);
+        bzero(msg, BUFFER_SIZE);
+        fgets(msg, BUFFER_SIZE, stdin);
+
+        Json::Value jsonObject;
+        jsonObject["user"] = userName;
+        jsonObject["msg"] = msg;
+
+        std::ostringstream jsonStringStream;
+        jsonStringStream << jsonObject;
+        // buffer = jsonStringStream.str();
 
 	    /* write in the socket */
-	    ssize_t n = write(clientSocket, buffer, strlen(buffer));
+	    ssize_t n = write(clientSocket, &jsonStringStream.str()[0], strlen(&(jsonStringStream.str())[0]));
         if (n < 0) 
 	    	printf("ERROR writing to socket\n");
     
     }
-    // // Prepare data to be sent
-    // std::ostringstream oss;
-    // {
-    //     cereal::JSONOutputArchive archive(oss);
-    //     archive(data);
-    // }
-
-    // // Send data to the server
-    // write(clientSocket, oss.str().c_str(), oss.str().length());
-    // std::cout << "Data sent to server." << std::endl;
 }
 
 // Private Methods
