@@ -7,4 +7,3 @@ find_package(jsoncpp REQUIRED)
 
 add_subdirectory(server)
 add_subdirectory(client)
-add_subdirectory(common)
