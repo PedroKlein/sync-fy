@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 find_package(jsoncpp REQUIRED)
 find_package(SqliteOrm REQUIRED)
-find_package(cereal REQUIRED)
+find_package(jsoncpp REQUIRED)
 
 add_subdirectory(server)
 add_subdirectory(client)
