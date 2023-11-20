@@ -2,4 +2,4 @@ add_executable(server
     main.cpp
 )
 
-# target_link_libraries(server PRIVATE asio::asio)
+target_link_libraries(server jsoncpp pthread)

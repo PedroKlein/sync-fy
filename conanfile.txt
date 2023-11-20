@@ -1,5 +1,5 @@
 [requires]
-sqlite_orm/1.8.2
+sqlite3/3.44.0
 jsoncpp/1.9.5
 
 [generators]

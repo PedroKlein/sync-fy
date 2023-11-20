@@ -1,7 +1,9 @@
-#include <iostream>
+#include "socket/socket.hpp"
 
 int main()
 {
-    std::cout << "Hello, world!" << std::endl;
+    Socket socket(DEFAULT_PORT);
+    socket.StartPingThread();
+    socket.StartListening();
     return 0;
 }

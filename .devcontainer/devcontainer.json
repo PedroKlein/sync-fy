@@ -23,31 +23,12 @@
         "seatonjiang.gitmoji-vscode",
         "ms-azuretools.vscode-docker",
         "dracula-theme.theme-dracula",
-        "GitHub.copilot"
+        "GitHub.copilot",
+        "qwtel.sqlite-viewer"
       ],
       "settings": {
         "editor.tabSize": 4,
-        "terminal.integrated.defaultProfile.linux": "zsh",
-        "terminal.integrated.profiles.linux": {
-          "bash": {
-            "path": "bash",
-            "icon": "terminal-bash"
-          },
-          "zsh": {
-            "path": "zsh"
-          },
-          "fish": {
-            "path": "fish"
-          },
-          "tmux": {
-            "path": "tmux",
-            "icon": "terminal-tmux"
-          },
-          "pwsh": {
-            "path": "pwsh",
-            "icon": "terminal-powershell"
-          }
-        }
+        "C_Cpp.clang_format_fallbackStyle": "Microsoft"
       }
     }
   }

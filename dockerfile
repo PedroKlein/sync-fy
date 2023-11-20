@@ -8,7 +8,7 @@ USER root
 
 RUN conan profile detect
 
-RUN apt-get update && apt-get install -y gdb
+RUN apt-get update && apt-get install -y gdb libjsoncpp-dev
 
 RUN apt-get remove -y cmake
 
