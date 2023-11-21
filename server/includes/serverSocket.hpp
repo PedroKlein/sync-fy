@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <jsoncpp/json/json.h>
 #include <socket/tcpSocket.hpp>
 
@@ -11,10 +12,12 @@ typedef struct Connection
     pthread_t thread;
 } Connection;
 
+using OnConnectionCallback = std::function<void(int)>;
+
 class ServerSocket : public TCPSocket
 {
   public:
-    ServerSocket(int port);
+    ServerSocket(int port, OnConnectionCallback onClientConnectCallback);
     ~ServerSocket();
     void StartListening();
 
@@ -22,11 +25,10 @@ class ServerSocket : public TCPSocket
     socklen_t clientLength;
     struct sockaddr_in serverAddress, clientAddress;
 
-    static void *handleClient(void *arg);
-    static void receiveData(int clientSocket);
-
     struct sockaddr_in newSocketAddress(int port);
 
     // Connections / Clients
     std::vector<Connection> clientConnections;
+
+    OnConnectionCallback onClientConnectCallback;
 };

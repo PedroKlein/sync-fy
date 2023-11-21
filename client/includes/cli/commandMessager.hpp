@@ -6,6 +6,7 @@ class CommandMessager : public MessageHandler
 {
   public:
     CommandMessager(const TCPSocket &socket);
+    CommandMessager(const TCPSocket &socket, const std::string username);
 
   protected:
     void handleJsonMessage(MessageHeader header) override;

@@ -1,6 +1,7 @@
 #include "serverSocket.hpp"
 
-ServerSocket::ServerSocket(int port) : TCPSocket()
+ServerSocket::ServerSocket(int port, OnConnectionCallback onClientConnectCallback)
+    : TCPSocket(), onClientConnectCallback(onClientConnectCallback)
 {
     // Setting up server address
     serverAddress = newSocketAddress(port);
@@ -39,49 +40,51 @@ void ServerSocket::StartListening()
         std::cout << "Client {" << connection.socket << "} connected." << std::endl;
 
         // Create a new thread to handle the client
-        if (pthread_create(&connection.thread, NULL, handleClient, (void *)&connection.socket) != 0)
-        {
-            std::cerr << "Error creating thread." << std::endl;
-            exit(EXIT_FAILURE);
-        }
+        // if (pthread_create(&connection.thread, NULL, handleClient, (void *)&connection.socket) != 0)
+        // {
+        //     std::cerr << "Error creating thread." << std::endl;
+        //     exit(EXIT_FAILURE);
+        // }
+
+        onClientConnectCallback(connection.socket);
 
         clientConnections.push_back(connection);
     }
 }
 
-void *ServerSocket::handleClient(void *arg)
-{
-    int clientSocket = *((int *)arg);
-    // Maybe a loop for receiving and sending data here,
-    // or we should create another thread just for sending data to the clients
-    receiveData(clientSocket);
+// void *ServerSocket::handleClient(void *arg)
+// {
+//     int clientSocket = *((int *)arg);
+//     // Maybe a loop for receiving and sending data here,
+//     // or we should create another thread just for sending data to the clients
+//     receiveData(clientSocket);
 
-    close(clientSocket);
-    pthread_exit(NULL);
-}
+//     close(clientSocket);
+//     pthread_exit(NULL);
+// }
 
-void ServerSocket::receiveData(int clientSocket)
-{
-    char buffer[BUFSIZ];
-    while (true)
-    {
-        bzero(buffer, BUFSIZ);
-        ssize_t readBytes = read(clientSocket, buffer, BUFSIZ);
-        if (readBytes > 0)
-        {
-            std::cout << "Received Data from client " << clientSocket << "\nData: " << buffer << std::endl;
+// void ServerSocket::receiveData(int clientSocket)
+// {
+//     char buffer[BUFSIZ];
+//     while (true)
+//     {
+//         bzero(buffer, BUFSIZ);
+//         ssize_t readBytes = read(clientSocket, buffer, BUFSIZ);
+//         if (readBytes > 0)
+//         {
+//             std::cout << "Received Data from client " << clientSocket << "\nData: " << buffer << std::endl;
 
-            // Reconstructing Json Object
-            std::string receivedJsonStr(buffer, readBytes);
-            Json::CharReaderBuilder reader;
-            Json::Value jsonObject;
-            std::istringstream jsonStringStream(receivedJsonStr);
-            Json::parseFromStream(reader, jsonStringStream, &jsonObject, nullptr);
-            std::cout << "Json obj:"
-                      << "\n\tuser: " << jsonObject["user"] << "\n\tmsg: " << jsonObject["msg"] << std::endl;
-        }
-    }
-}
+//             // Reconstructing Json Object
+//             std::string receivedJsonStr(buffer, readBytes);
+//             Json::CharReaderBuilder reader;
+//             Json::Value jsonObject;
+//             std::istringstream jsonStringStream(receivedJsonStr);
+//             Json::parseFromStream(reader, jsonStringStream, &jsonObject, nullptr);
+//             std::cout << "Json obj:"
+//                       << "\n\tuser: " << jsonObject["user"] << "\n\tmsg: " << jsonObject["msg"] << std::endl;
+//         }
+//     }
+// }
 
 struct sockaddr_in ServerSocket::newSocketAddress(int port)
 {

@@ -12,6 +12,10 @@ class MessageHandler
     {
     }
 
+    MessageHandler(const TCPSocket &socket, const std::string username) : socket(socket), username(username)
+    {
+    }
+
     void sendMessage(const BaseModel &model) const
     {
         auto message = buildJsonMessage(model.toJson(), model.getType());
@@ -24,27 +28,46 @@ class MessageHandler
         socket.send(message);
     }
 
-    void receiveMessage()
+    void receiveMessage(bool shouldMonitor = true)
     {
-        auto headerBytes = socket.receive(MESSAGE_HEADER_SIZE);
-        MessageHeader header = MessageHeader::deserialize(headerBytes);
-
-        switch (header.headerType)
+        bool recievedMessage = false;
+        while (shouldMonitor || !recievedMessage)
         {
-        case HeaderType::JSON_HEADER:
-            handleJsonMessage(header);
-            break;
-        case HeaderType::RAW_DATA_HEADER:
-            handleRawMessage(header);
-            break;
-        default:
-            throw std::runtime_error("Invalid header");
-            break;
+            auto headerBytes = socket.receive(MESSAGE_HEADER_SIZE);
+            if (headerBytes.size() > 0)
+            {
+                recievedMessage = true;
+                MessageHeader header = MessageHeader::deserialize(headerBytes);
+                switch (header.headerType)
+                {
+                case HeaderType::JSON_HEADER:
+                    handleJsonMessage(header);
+                    break;
+                case HeaderType::RAW_DATA_HEADER:
+                    handleRawMessage(header);
+                    break;
+                default:
+                    throw std::runtime_error("Invalid header");
+                    break;
+                }
+            }
         }
+    }
+
+    void setUsername(const std::string username)
+    {
+        this->username = username;
+    }
+
+    std::string getUsername() const
+    {
+        return username;
     }
 
   protected:
     const TCPSocket &socket;
+
+    std::string username;
 
     virtual void handleJsonMessage(MessageHeader header) = 0;
 

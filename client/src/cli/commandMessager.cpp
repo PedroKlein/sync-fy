@@ -4,6 +4,10 @@ CommandMessager::CommandMessager(const TCPSocket &socket) : MessageHandler(socke
 {
 }
 
+CommandMessager::CommandMessager(const TCPSocket &socket, const std::string username) : MessageHandler(socket, username)
+{
+}
+
 void CommandMessager::handleJsonMessage(MessageHeader header)
 {
     auto bytes = socket.receive(header.dataSize);

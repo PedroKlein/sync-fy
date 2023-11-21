@@ -18,6 +18,10 @@
 class TCPSocket
 {
   public:
+    TCPSocket(int socketId) : socketId(socketId)
+    {
+    }
+
     TCPSocket()
     {
         if (socketId != 0)
@@ -43,8 +47,8 @@ class TCPSocket
 
     std::vector<char> receive(size_t size) const
     {
-        std::vector<char> buffer(size);
-        ssize_t received = recv(socketId, buffer.data(), size, 0);
+        std::vector<char> buffer(size, 0);
+        ssize_t received = read(socketId, buffer.data(), size);
         buffer.resize(received);
         return buffer;
     }

@@ -16,17 +16,28 @@ int main(int argc, char *argv[])
     //     exit(errno);
     // }
 
+    std::string username;
+
+    if (argv[1])
+    {
+        username = argv[1];
+    }
+    else
+    {
+        username = "test";
+    }
+
     ClientSocket commandSocket("localhost", COMMAND_PORT);
     ClientSocket serverDataSocket("localhost", SERVER_DATA_PORT);
     ClientSocket clientDataSocket("localhost", CLIENT_DATA_PORT);
 
-    CommandMessager commandMessager(commandSocket);
+    CommandMessager commandMessager(commandSocket, username);
 
     CommandHandler handler(commandMessager);
     CLI cli(handler);
     cli.start();
 
-    sleep(10);
+    sleep(100);
 
     return 0;
 }
