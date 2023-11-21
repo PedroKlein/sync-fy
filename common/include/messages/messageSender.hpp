@@ -1,4 +1,5 @@
 #include "messageTypes.hpp"
+#include "models/baseModel.h"
 #include "socket/tcpSocket.hpp"
 #include <iostream>
 
@@ -9,9 +10,9 @@ class MessageSender
     {
     }
 
-    void sendMessage(MessageType type, const std::string &data)
+    void sendMessage(MessageType type, const BaseModel &model)
     {
-        auto message = buildMessage(data, type);
+        auto message = buildMessage(model.toJson(), type);
         socket.send(message);
     }
 
