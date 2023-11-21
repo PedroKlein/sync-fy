@@ -1,7 +1,7 @@
 file(GLOB SOURCES "src/*.cpp")
 
 add_executable(client 
-    src/socket.cpp 
+    src/clientSocket.cpp 
     src/commandHandler.cpp 
     src/clientCommandHandler.cpp 
     src/cli.cpp 

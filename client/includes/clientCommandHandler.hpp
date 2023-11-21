@@ -1,17 +1,17 @@
 #pragma once
 
+#include "clientSocket.hpp"
 #include "commandHandler.hpp"
-#include "socket.hpp"
 
 class ClientCommandHandler : public CommandHandler
 {
   public:
-    ClientCommandHandler(const Socket &socket);
+    ClientCommandHandler(const ClientSocket &socket);
 
     void start();
     void stop();
     void restart();
 
   private:
-    const Socket &socket;
+    const ClientSocket &socket;
 };

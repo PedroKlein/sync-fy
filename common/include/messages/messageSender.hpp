@@ -1,27 +1,28 @@
 #include "messageTypes.hpp"
+#include "socket/tcpSocket.hpp"
 #include <iostream>
 
 class MessageSender
 {
   public:
-    MessageSender(int socket) : socket(socket)
+    MessageSender(const TCPSocket &socket) : socket(socket)
     {
     }
 
     void sendMessage(MessageType type, const std::string &data)
     {
-        std::string message = buildMessage(data, type);
-        send(socket, message.c_str(), message.size(), 0);
+        auto message = buildMessage(data, type);
+        socket.send(message);
     }
 
     void sendRawMessage(const std::vector<std::byte> &data, uint32_t step, uint32_t total)
     {
-        std::string message = buildRawDataMessage(data, step, total);
-        send(socket, message.c_str(), message.size(), 0);
+        auto message = buildRawDataMessage(data, step, total);
+        socket.send(message);
     }
 
   protected:
-    int socket;
+    const TCPSocket &socket;
 
   private:
     // Header fotmat: H <size> <id>\n<data>

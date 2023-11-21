@@ -1,11 +1,11 @@
-#include "socket/socket.hpp"
+#include "socket/serverSocket.hpp"
 #include <constants.hpp>
 
 int main()
 {
-    Socket commandSocket(COMMAND_PORT);
-    Socket serverDataSocket(SERVER_DATA_PORT);
-    Socket clientDataSocket(CLIENT_DATA_PORT);
+    ServerSocket commandSocket(COMMAND_PORT);
+    ServerSocket serverDataSocket(SERVER_DATA_PORT);
+    ServerSocket clientDataSocket(CLIENT_DATA_PORT);
 
     commandSocket.StartListening();
     serverDataSocket.StartListening();

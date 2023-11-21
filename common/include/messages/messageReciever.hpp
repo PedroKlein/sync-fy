@@ -1,13 +1,13 @@
 #include "messageTypes.hpp"
+#include "socket/tcpSocket.hpp"
 #include <string>
-#include <sys/socket.h>
 #include <unistd.h>
 
 class MessageReceiver
 {
 
   public:
-    MessageReceiver(int sockfd) : sockfd(sockfd)
+    MessageReceiver(const TCPSocket &socket) : socket(socket)
     {
     }
 
@@ -20,6 +20,7 @@ class MessageReceiver
         {
         case 'H':
             uint32_t size;
+            socket.receiveData(reinterpret_cast<char *>(&size), sizeof(size));
             recv(sockfd, reinterpret_cast<char *>(&size), sizeof(size), 0);
 
             uint8_t type;
@@ -48,62 +49,63 @@ class MessageReceiver
             break;
         }
 
-        if (header[0] != 'H')
-        {
-            // Handle invalid message
-            return;
-        }
+        // if (header[0] != 'H')
+        // {
+        //     // Handle invalid message
+        //     return;
+        // }
 
-        uint32_t size;
-        recv(sockfd, reinterpret_cast<char *>(&size), sizeof(size), 0);
+        // uint32_t size;
+        // recv(sockfd, reinterpret_cast<char *>(&size), sizeof(size), 0);
 
-        uint8_t type;
-        recv(sockfd, reinterpret_cast<char *>(&type), sizeof(type), 0);
+        // uint8_t type;
+        // recv(sockfd, reinterpret_cast<char *>(&type), sizeof(type), 0);
 
-        char *message = new char[size + 1];
-        recv(sockfd, message, size, 0);
-        message[size] = '\0';
+        // char *message = new char[size + 1];
+        // recv(sockfd, message, size, 0);
+        // message[size] = '\0';
 
-        handleMessage(static_cast<MessageType>(type), std::string(message));
+        // handleMessage(static_cast<MessageType>(type), std::string(message));
 
-        delete[] message;
+        // delete[] message;
     }
 
   private:
-    int sockfd;
+    const TCPSocket &socket;
 
-    std::string readMessage()
-    {
-        char header[10]; // Header size: 'H' + ' ' + 4 bytes (size) + ' ' + 1 byte (id) + '\n'
-        recv(socket, header, sizeof(header), 0);
+    // std::string readMessage()
+    // {
+    //     char header[10]; // Header size: 'H' + ' ' + 4 bytes (size) + ' ' + 1 byte (id) + '\n'
+    //     recv(socket, header, sizeof(header), 0);
 
-        uint32_t messageSize = 0;
-        for (int i = 0; i < 4; ++i)
-        {
-            messageSize = (messageSize << 8) | (header[i + 2] & 0xFF); // Extract size from header
-        }
+    //     uint32_t messageSize = 0;
+    //     for (int i = 0; i < 4; ++i)
+    //     {
+    //         messageSize = (messageSize << 8) | (header[i + 2] & 0xFF); // Extract size from header
+    //     }
 
-        std::vector<char> messageData(messageSize);
-        recv(socket, messageData.data(), messageSize, 0); // Receive message data
+    //     std::vector<char> messageData(messageSize);
+    //     recv(socket, messageData.data(), messageSize, 0); // Receive message data
 
-        return std::string(messageData.begin(), messageData.end());
-    }
+    //     return std::string(messageData.begin(), messageData.end());
+    // }
 
-    std::vector<std::byte> readRawMessage()
-    {
-        char
-            header[14]; // Header size: 'F' + ' ' + 4 bytes (size) + ' ' + 4 bytes (step) + ' ' + 4 bytes (total) + '\n'
-        recv(socket, header, sizeof(header), 0);
+    // std::vector<std::byte> readRawMessage()
+    // {
+    //     char
+    //         header[14]; // Header size: 'F' + ' ' + 4 bytes (size) + ' ' + 4 bytes (step) + ' ' + 4 bytes (total) +
+    //         '\n'
+    //     recv(socket, header, sizeof(header), 0);
 
-        uint32_t dataSize = 0;
-        for (int i = 0; i < 4; ++i)
-        {
-            dataSize = (dataSize << 8) | (header[i + 2] & 0xFF); // Extract size from header
-        }
+    //     uint32_t dataSize = 0;
+    //     for (int i = 0; i < 4; ++i)
+    //     {
+    //         dataSize = (dataSize << 8) | (header[i + 2] & 0xFF); // Extract size from header
+    //     }
 
-        std::vector<std::byte> data(dataSize);
-        recv(socket, data.data(), dataSize, 0); // Receive raw data
+    //     std::vector<std::byte> data(dataSize);
+    //     recv(socket, data.data(), dataSize, 0); // Receive raw data
 
-        return data;
-    }
+    //     return data;
+    // }
 };

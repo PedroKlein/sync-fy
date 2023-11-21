@@ -1,20 +1,7 @@
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <vector>
-
-#include <errno.h>
 #include <jsoncpp/json/json.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sstream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <socket/tcpSocket.hpp>
 
 #define QUEUE_SIZE 5
 
@@ -24,27 +11,19 @@ typedef struct Connection
     pthread_t thread;
 } Connection;
 
-class Socket
+class ServerSocket : public TCPSocket
 {
   public:
-    Socket(int port);
-    ~Socket();
+    ServerSocket(int port);
+    ~ServerSocket();
     void StartListening();
-    void StartPingThread();
 
   private:
-    // Server
-    int serverSocket;
     socklen_t clientLength;
     struct sockaddr_in serverAddress, clientAddress;
 
     static void *handleClient(void *arg);
     static void receiveData(int clientSocket);
-
-    // Flag to control the ping thread
-    bool pingThreadRunning;
-    pthread_t pingThread;
-    static void *pingClients(void *arg);
 
     struct sockaddr_in newSocketAddress(int port);
 
@@ -52,45 +31,36 @@ class Socket
     std::vector<Connection> clientConnections;
 };
 
-Socket::Socket(int port)
+ServerSocket::ServerSocket(int port) : TCPSocket()
 {
-    // Socket creation
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket == -1)
-    {
-        std::cerr << "ERR: failed to create a socket\n\t" << strerror(errno) << std::endl;
-        exit(errno);
-    }
-
     // Setting up server address
     serverAddress = newSocketAddress(port);
 
     // Binding create socket
-    if (bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) != 0)
+    if (bind(socketId, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) != 0)
     {
         std::cerr << "ERR: failed to bind socket\n\t" << strerror(errno) << std::endl;
         exit(errno);
     }
 
     // Listening for incoming connections
-    listen(serverSocket, QUEUE_SIZE);
+    listen(socketId, QUEUE_SIZE);
     std::cout << "Server listening on port " << port << "..." << std::endl;
 
     clientLength = sizeof(clientAddress);
 }
 
-Socket::~Socket()
+ServerSocket::~ServerSocket()
 {
-    close(serverSocket);
 }
 
-void Socket::StartListening()
+void ServerSocket::StartListening()
 {
     Connection connection;
     while (true)
     {
         // Accept a client connection
-        connection.socket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientLength);
+        connection.socket = accept(socketId, (struct sockaddr *)&clientAddress, &clientLength);
         if (connection.socket < 0)
         {
             std::cerr << "Error on accept." << std::endl;
@@ -110,21 +80,7 @@ void Socket::StartListening()
     }
 }
 
-void Socket::StartPingThread()
-{
-    pingThreadRunning = true;
-    if (pthread_create(&pingThread, nullptr, &Socket::pingClients, this) != 0)
-    {
-        std::cerr << "Error creating ping thread." << std::endl;
-        exit(EXIT_FAILURE);
-    }
-}
-
-/*
-    === Private Funcs ===
-*/
-
-void *Socket::handleClient(void *arg)
+void *ServerSocket::handleClient(void *arg)
 {
     int clientSocket = *((int *)arg);
     // Maybe a loop for receiving and sending data here,
@@ -135,7 +91,7 @@ void *Socket::handleClient(void *arg)
     pthread_exit(NULL);
 }
 
-void Socket::receiveData(int clientSocket)
+void ServerSocket::receiveData(int clientSocket)
 {
     char buffer[BUFSIZ];
     while (true)
@@ -158,7 +114,7 @@ void Socket::receiveData(int clientSocket)
     }
 }
 
-struct sockaddr_in Socket::newSocketAddress(int port)
+struct sockaddr_in ServerSocket::newSocketAddress(int port)
 {
     struct sockaddr_in serverAddress;
 
@@ -169,38 +125,4 @@ struct sockaddr_in Socket::newSocketAddress(int port)
     serverAddress.sin_port = htons(port);
 
     return serverAddress;
-}
-
-void *Socket::pingClients(void *arg)
-{
-    Socket *socketInstance = static_cast<Socket *>(arg);
-
-    Json::Value data;
-    data["toUsr"] = "";
-    data["msg"] = "ping";
-
-    while (socketInstance->pingThreadRunning)
-    {
-        // Send ping message to each connected client
-        for (auto &connection : socketInstance->clientConnections)
-        {
-            data["toUsr"] = connection.socket;
-            std::ostringstream jsonStringStream;
-            jsonStringStream << data;
-
-            std::string pingMessage = jsonStringStream.str();
-
-            ssize_t sentBytes = send(connection.socket, pingMessage.c_str(), pingMessage.length(), 0);
-            if (sentBytes == -1)
-            {
-                // Handle error if needed
-                std::cerr << "Error sending ping to client " << connection.socket << std::endl;
-            }
-        }
-
-        // Sleep for a while before sending the next ping
-        sleep(5); // Adjust the interval as needed
-    }
-
-    pthread_exit(nullptr);
 }
