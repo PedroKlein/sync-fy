@@ -25,7 +25,6 @@ class Socket
   public:
     Socket(char *serverAddress, int port);
     ~Socket();
-    void SendData(std::string username) const;
 
     void StartReceivePingThread();
 
