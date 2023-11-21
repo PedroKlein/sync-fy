@@ -1,5 +1,3 @@
-file(GLOB SOURCES "src/*.cpp")
-
 add_executable(client 
     src/clientSocket.cpp 
     src/commandHandler.cpp 

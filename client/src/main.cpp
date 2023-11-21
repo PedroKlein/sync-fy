@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "cli.hpp"
-#include "client.hpp"
 #include "clientCommandHandler.hpp"
 #include "clientSocket.hpp"
 #include <constants.hpp>

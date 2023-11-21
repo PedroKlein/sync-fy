@@ -1,1 +1,0 @@
-cmake --build /workspaces/sync-fy/build/Release --target all
