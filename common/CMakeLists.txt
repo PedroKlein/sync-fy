@@ -4,7 +4,11 @@ project(Common)
 add_library(common_lib
     include/database/Database.h
     include/datetime/DateTime.h
-    include/models/User.h
+    include/models/deleteFile.hpp
+    include/models/initSendFile.hpp
+    include/models/listFiles.hpp
+    include/models/login.hpp
+    include/socket/tcpSocket.hpp
     include/constants.hpp
 )
 

@@ -1,4 +1,4 @@
-#include "cli.hpp"
+#include "cli/cli.hpp"
 
 CLI::CLI(const CommandHandler &handler) : isRunning(false), commandHandler(handler)
 {

@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "cli.hpp"
-#include "clientCommandHandler.hpp"
+#include "cli/cli.hpp"
+#include "cli/clientCommandHandler.hpp"
 #include "clientSocket.hpp"
 #include <constants.hpp>
 

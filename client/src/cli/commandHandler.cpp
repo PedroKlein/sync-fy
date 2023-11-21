@@ -1,4 +1,4 @@
-#include "commandHandler.hpp"
+#include "cli/commandHandler.hpp"
 
 void CommandHandler::executeCommand(const std::string &command) const
 {

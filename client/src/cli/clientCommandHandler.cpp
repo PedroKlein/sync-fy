@@ -1,6 +1,6 @@
-#include "clientCommandHandler.hpp"
+#include "cli/clientCommandHandler.hpp"
 
-ClientCommandHandler::ClientCommandHandler(const ClientSocket &socket) : socket(socket)
+ClientCommandHandler::ClientCommandHandler(const CLIMessageHandler &cliMessage) : socket(socket)
 {
     registerCommand("start", std::bind(&ClientCommandHandler::start, this));
     registerCommand("stop", std::bind(&ClientCommandHandler::stop, this));

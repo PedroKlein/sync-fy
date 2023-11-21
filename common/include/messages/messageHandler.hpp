@@ -3,10 +3,10 @@
 #include "socket/tcpSocket.hpp"
 #include <iostream>
 
-class MessageSender
+class MessageHandler
 {
   public:
-    MessageSender(const TCPSocket &socket) : socket(socket)
+    MessageHandler(const TCPSocket &socket) : socket(socket)
     {
     }
 
@@ -16,14 +16,37 @@ class MessageSender
         socket.send(message);
     }
 
-    void sendRawMessage(const std::vector<std::byte> &data, uint32_t step, uint32_t total)
+    void sendRawMessage(const std::vector<std::byte> &data)
     {
-        auto message = buildRawDataMessage(data, step, total);
+        auto message = buildRawDataMessage(data);
         socket.send(message);
+    }
+
+    void receiveMessage()
+    {
+        auto headerBytes = socket.receive(MESSAGE_HEADER_SIZE);
+        MessageHeader header = MessageHeader::deserialize(headerBytes);
+
+        switch (header.headerType)
+        {
+        case HeaderType.JSON_HEADER:
+            handleJsonMessage(header);
+            break;
+        case HeaderType.RAW_DATA_HEADER:
+            handleRawMessage(header);
+            break;
+        default:
+            throw std::runtime_error("Invalid header");
+            break;
+        }
     }
 
   protected:
     const TCPSocket &socket;
+
+    virtual void handleJsonMessage(MessageHeader header) = 0;
+
+    virtual void handleRawMessage(MessageHeader header) = 0;
 
   private:
     std::vector<char> buildJsonMessage(const std::string &message, const MessageType id)
@@ -37,9 +60,9 @@ class MessageSender
         return bytes;
     }
 
-    std::vector<char> buildRawDataMessage(const std::vector<std::byte> &data, uint32_t step, uint32_t total)
+    std::vector<char> buildRawDataMessage(const std::vector<std::byte> &data)
     {
-        MessageHeader header(HeaderType::JSON_HEADER, id, message.size());
+        MessageHeader header(HeaderType::JSON_HEADER, MessageType.SEND_RAW, data.size());
         std::vector<char> bytes = header.serialize();
 
         // Add raw data
