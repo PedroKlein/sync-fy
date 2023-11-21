@@ -5,6 +5,7 @@ add_library(common_lib
     include/database/Database.h
     include/datetime/DateTime.h
     include/models/User.h
+    include/constants.hpp
 )
 
 # Add include directories for the common library

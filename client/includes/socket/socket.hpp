@@ -1,21 +1,20 @@
-#ifndef SERVER_SOCKET_HPP
-#define SERVER_SOCKET_HPP
+#pragma once
 
 #include <iostream>
-#include <vector>
 #include <string>
+#include <vector>
 
+#include <errno.h>
+#include <jsoncpp/json/json.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h> 
-#include <errno.h>
-#include <sstream>
-#include <jsoncpp/json/json.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define DEFAULT_PORT 4000
 #define QUEUE_SIZE 10
@@ -23,13 +22,14 @@
 
 class Socket
 {
-public:
+  public:
     Socket(char *serverAddress, int port);
     ~Socket();
-    void SendData(const /*MyData*/ char* userName);
+    void SendData(std::string username) const;
 
     void StartReceivePingThread();
-private:
+
+  private:
     int clientSocket;
     struct sockaddr_in serverAddress;
     struct hostent *server;
@@ -37,7 +37,7 @@ private:
     void connectToServer();
 
     pthread_t receivePingThread;
-    static void* receivePing(void* arg);
+    static void *receivePing(void *arg);
 };
 
 // Public Methods
@@ -47,23 +47,25 @@ Socket::Socket(char *serverAddress, int port)
         close(clientSocket);
 
     server = gethostbyname(serverAddress);
-    if (server  == NULL) {
+    if (server == NULL)
+    {
         std::cerr << "ERR: could not get host with name " << server << std::endl;
         exit(errno);
     }
 
     clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (clientSocket == -1){
+    if (clientSocket == -1)
+    {
         std::cerr << "ERR: failed to create a socket\n\t|=> " << strerror(errno) << std::endl;
         exit(errno);
     }
 
-    bzero((char *) &this->serverAddress, sizeof(this->serverAddress));
+    bzero((char *)&this->serverAddress, sizeof(this->serverAddress));
     this->serverAddress.sin_family = AF_INET;
-    bcopy((char *) server->h_addr, (char *) &this->serverAddress.sin_addr.s_addr, server->h_length);
+    bcopy((char *)server->h_addr, (char *)&this->serverAddress.sin_addr.s_addr, server->h_length);
     if (port < 1000)
         this->serverAddress.sin_port = htons(DEFAULT_PORT);
-    else 
+    else
         this->serverAddress.sin_port = htons(port);
 
     connectToServer();
@@ -74,11 +76,13 @@ Socket::~Socket()
     close(clientSocket);
 }
 
-void Socket::SendData(const /*MyData*/ char* userName) {
+void Socket::SendData(std::string userName) const
+{
 
     // char buffer[BUFSIZ];
     char msg[BUFFER_SIZE];
-    while(true) {
+    while (true)
+    {
         printf("Enter the message: ");
         // bzero(buffer, BUFFER_SIZE);
         bzero(msg, BUFFER_SIZE);
@@ -92,48 +96,58 @@ void Socket::SendData(const /*MyData*/ char* userName) {
         jsonStringStream << jsonObject;
         // buffer = jsonStringStream.str();
 
-	    /* write in the socket */
-	    ssize_t n = write(clientSocket, &jsonStringStream.str()[0], strlen(&(jsonStringStream.str())[0]));
-        if (n < 0) 
-	    	printf("ERROR writing to socket\n");
-    
+        /* write in the socket */
+        ssize_t n = write(clientSocket, &jsonStringStream.str()[0], strlen(&(jsonStringStream.str())[0]));
+        if (n < 0)
+            printf("ERROR writing to socket\n");
     }
 }
 
-void Socket::StartReceivePingThread() {
-    if (pthread_create(&receivePingThread, nullptr, &receivePing, this) != 0) {
+void Socket::StartReceivePingThread()
+{
+    if (pthread_create(&receivePingThread, nullptr, &receivePing, this) != 0)
+    {
         std::cerr << "Error creating receive ping thread." << std::endl;
         exit(EXIT_FAILURE);
     }
 }
 
 // Private Methods
-void Socket::connectToServer() {
+void Socket::connectToServer()
+{
     int err = connect(clientSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
-    if (err == -1){
+    if (err == -1)
+    {
         std::cerr << "ERR: failed to connect to socket server\n\t|=> " << strerror(errno) << std::endl;
         exit(errno);
     }
 
-    std::clog << "LOG: successfully connected to server " << serverAddress.sin_addr.s_addr << ":" << serverAddress.sin_port << std::endl;
+    std::clog << "LOG: successfully connected to server " << serverAddress.sin_addr.s_addr << ":"
+              << serverAddress.sin_port << std::endl;
 }
 
-
-void* Socket::receivePing(void* arg) {
-    Socket* socketInstance = static_cast<Socket*>(arg);
+void *Socket::receivePing(void *arg)
+{
+    Socket *socketInstance = static_cast<Socket *>(arg);
 
     char buffer[BUFFER_SIZE];
-    while (true) {
+    while (true)
+    {
         bzero(buffer, BUFFER_SIZE);
         ssize_t readBytes = read(socketInstance->clientSocket, buffer, BUFFER_SIZE);
-        if (readBytes > 0) {
+        if (readBytes > 0)
+        {
             // Handle the received ping message, e.g., print it
             std::cout << "Received Ping: " << buffer << std::endl;
-        } else if (readBytes == 0) {
+        }
+        else if (readBytes == 0)
+        {
             // Connection closed by the server, handle accordingly
             std::cerr << "Connection closed by the server." << std::endl;
             break;
-        } else {
+        }
+        else
+        {
             // Handle error if needed
             std::cerr << "Error receiving ping message." << std::endl;
         }
@@ -141,5 +155,3 @@ void* Socket::receivePing(void* arg) {
 
     pthread_exit(nullptr);
 }
-
-#endif

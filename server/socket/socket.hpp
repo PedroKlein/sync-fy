@@ -1,5 +1,4 @@
-#ifndef SERVER_SOCKET_HPP
-#define SERVER_SOCKET_HPP
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -17,9 +16,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define DEFAULT_PORT 8765
 #define QUEUE_SIZE 5
-#define BUFFER_SIZE 256
 
 typedef struct Connection
 {
@@ -207,5 +204,3 @@ void *Socket::pingClients(void *arg)
 
     pthread_exit(nullptr);
 }
-
-#endif

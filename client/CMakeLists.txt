@@ -2,4 +2,4 @@ add_executable(client
     main.cpp
 )
 
-target_link_libraries(client jsoncpp pthread)
+target_link_libraries(client jsoncpp pthread common_lib)
