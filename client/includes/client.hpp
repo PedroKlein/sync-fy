@@ -1,7 +1,6 @@
-#ifndef CLIENT_HPP
-#define CLIENT_HPP
+#pragma once
 
-#include "socket/socket.hpp"
+#include "socket.hpp"
 
 // class Client
 // {
@@ -52,12 +51,10 @@
 //     pthread_join(this->fileManagerThread, NULL);
 // }
 
-
-// // Private Methods 
+// // Private Methods
 // void* Client::runCLI(void *args) {
 
-//     // Create CLI class 
-
+//     // Create CLI class
 
 //     pthread_exit(NULL);
 // }
@@ -68,5 +65,3 @@
 
 //     pthread_exit(NULL);
 // }
-
-#endif

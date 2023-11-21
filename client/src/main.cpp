@@ -1,9 +1,9 @@
 #include <iostream>
 
-#include "includes/cli/cli.hpp"
-#include "includes/cli/clientCommandHandler.hpp"
-#include "includes/client.hpp"
-#include "includes/socket/socket.hpp"
+#include "cli.hpp"
+#include "client.hpp"
+#include "clientCommandHandler.hpp"
+#include "socket.hpp"
 #include <constants.hpp>
 
 int main(int argc, char *argv[])
@@ -30,6 +30,8 @@ int main(int argc, char *argv[])
     ClientCommandHandler handler(commandSocket);
     CLI cli(handler);
     cli.start();
+
+    sleep(10);
 
     return 0;
 }

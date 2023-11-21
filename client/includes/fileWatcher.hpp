@@ -1,23 +1,23 @@
-#ifndef FILEWATCHER_HPP
-#define FILEWATCHER_HPP
+#pragma once
 
 #include <iostream>
-#include <vector>
 #include <string>
+#include <vector>
 
 class FileWatcher
 {
-private:
+  private:
     std::string syncDir;
     std::vector<std::string> files;
-public:
-    FileWatcher(char* syncDir);
+
+  public:
+    FileWatcher(char *syncDir);
     ~FileWatcher();
 
-    static void* Watch(void* arg);
+    static void *Watch(void *arg);
 };
 
-FileWatcher::FileWatcher(char* syncDir)
+FileWatcher::FileWatcher(char *syncDir)
 {
     this->syncDir = syncDir;
 }
@@ -25,10 +25,3 @@ FileWatcher::FileWatcher(char* syncDir)
 FileWatcher::~FileWatcher()
 {
 }
-
-
-
-
-
-
-#endif
