@@ -1,7 +1,17 @@
+
+#pragma once
 class Login : public BaseModel
 {
   public:
     std::string username;
+
+    Login() : BaseModel(MessageType::LOGIN)
+    {
+    }
+
+    Login(const std::string &username) : BaseModel(MessageType::LOGIN), username(username)
+    {
+    }
 
     std::string toJson() const override
     {

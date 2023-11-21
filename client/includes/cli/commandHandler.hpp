@@ -1,20 +1,16 @@
 #pragma once
 
-#include <functional>
-#include <iostream>
-#include <map>
-#include <string>
+#include "commandMessager.hpp"
 
 class CommandHandler
 {
   public:
-    using Command = std::function<void()>;
+    CommandHandler(const CommandMessager &messager);
 
-    void executeCommand(const std::string &command) const;
-
-  protected:
-    void registerCommand(const std::string &command, Command func);
+    void executeCommand(std::string command, const std::vector<std::string> &parameters = {}) const;
 
   private:
-    std::map<std::string, Command> commands;
+    const CommandMessager &messager;
+
+    void start(const std::string &parameter) const;
 };

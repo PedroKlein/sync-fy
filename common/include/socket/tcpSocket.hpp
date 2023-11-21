@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -39,7 +41,7 @@ class TCPSocket
         ::send(socketId, data.data(), data.size(), 0);
     }
 
-    std::vector<char> receive(size_t size)
+    std::vector<char> receive(size_t size) const
     {
         std::vector<char> buffer(size);
         ssize_t received = recv(socketId, buffer.data(), size, 0);

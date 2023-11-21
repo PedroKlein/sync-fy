@@ -1,5 +1,7 @@
+#pragma once
+
 #include "messageTypes.hpp"
-#include "models/baseModel.h"
+#include "models/baseModel.hpp"
 #include "socket/tcpSocket.hpp"
 #include <iostream>
 
@@ -10,9 +12,9 @@ class MessageHandler
     {
     }
 
-    void sendMessage(MessageType type, const BaseModel &model)
+    void sendMessage(const BaseModel &model) const
     {
-        auto message = buildJsonMessage(model.toJson(), type);
+        auto message = buildJsonMessage(model.toJson(), model.getType());
         socket.send(message);
     }
 
@@ -29,10 +31,10 @@ class MessageHandler
 
         switch (header.headerType)
         {
-        case HeaderType.JSON_HEADER:
+        case HeaderType::JSON_HEADER:
             handleJsonMessage(header);
             break;
-        case HeaderType.RAW_DATA_HEADER:
+        case HeaderType::RAW_DATA_HEADER:
             handleRawMessage(header);
             break;
         default:
@@ -49,7 +51,7 @@ class MessageHandler
     virtual void handleRawMessage(MessageHeader header) = 0;
 
   private:
-    std::vector<char> buildJsonMessage(const std::string &message, const MessageType id)
+    std::vector<char> buildJsonMessage(const std::string &message, const MessageType id) const
     {
         MessageHeader header(HeaderType::JSON_HEADER, id, message.size());
         std::vector<char> bytes = header.serialize();
@@ -62,7 +64,7 @@ class MessageHandler
 
     std::vector<char> buildRawDataMessage(const std::vector<std::byte> &data)
     {
-        MessageHeader header(HeaderType::JSON_HEADER, MessageType.SEND_RAW, data.size());
+        MessageHeader header(HeaderType::JSON_HEADER, MessageType::SEND_RAW, data.size());
         std::vector<char> bytes = header.serialize();
 
         // Add raw data
@@ -73,6 +75,4 @@ class MessageHandler
 
         return bytes;
     }
-
-    MessageHeader buildMessageHeader()
 };

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 
 struct FileData
@@ -11,6 +13,10 @@ struct FileData
 class ListFiles : public BaseModel
 {
   public:
+    ListFiles() : BaseModel(MessageType::LIST_FILES)
+    {
+    }
+
     std::vector<FileData> files;
 
     std::string toJson() const override

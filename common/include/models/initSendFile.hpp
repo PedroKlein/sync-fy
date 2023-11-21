@@ -1,7 +1,17 @@
+#pragma once
+
 class FileModel : public BaseModel
 {
   public:
     std::string filename;
+
+    FileModel(MessageType type) : BaseModel(type)
+    {
+    }
+
+    FileModel(MessageType type, const std::string &filename) : BaseModel(type), filename(filename)
+    {
+    }
 
     std::string toJson() const override
     {

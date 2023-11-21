@@ -1,7 +1,13 @@
+#pragma once
+
 class DeleteFile : public BaseModel
 {
   public:
     std::string filename;
+
+    DeleteFile() : BaseModel(MessageType::DELETE_FILE) {}
+
+    DeleteFile(const std::string &filename) : BaseModel(MessageType::DELETE_FILE), filename(filename) {}
 
     std::string toJson() const override
     {

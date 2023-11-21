@@ -1,3 +1,8 @@
+#pragma once
+
+#include <cstdint>
+#include <vector>
+
 #define MESSAGE_HEADER_SIZE 9
 
 enum MessageType
@@ -49,12 +54,12 @@ struct MessageHeader
         return bytes;
     }
 
-    static MessageHeader deserealize(std::vector<char> bytes)
+    static MessageHeader deserialize(std::vector<char> bytes)
     {
-        headerType = static_cast<HeaderType>(bytes[0]);
-        messageType = static_cast<MessageType>(bytes[2]);
+        HeaderType headerType = static_cast<HeaderType>(bytes[0]);
+        MessageType messageType = static_cast<MessageType>(bytes[2]);
 
-        dataSize = 0;
+        uint32_t dataSize = 0;
         for (int i = 0; i < 4; ++i)
         {
             dataSize = (dataSize << 8) | (bytes[i + 4] & 0xFF); // Extract size from header

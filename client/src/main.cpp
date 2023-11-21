@@ -1,32 +1,28 @@
 #include <iostream>
 
 #include "cli/cli.hpp"
-#include "cli/clientCommandHandler.hpp"
+#include "cli/commandHandler.hpp"
+#include "cli/commandMessager.hpp"
 #include "clientSocket.hpp"
 #include <constants.hpp>
 
 int main(int argc, char *argv[])
 {
 
-    if (argc < 3)
-    {
-        std::cerr << "ERR: not enough arguments were provided\n\t";
-        std::cerr << "|=> " << argv[0] << " <username> <server_address>" << std::endl;
-        exit(errno);
-    }
+    // if (argc < 3)
+    // {
+    //     std::cerr << "ERR: not enough arguments were provided\n\t";
+    //     std::cerr << "|=> " << argv[0] << " <username> <server_address>" << std::endl;
+    //     exit(errno);
+    // }
 
-    // // Client client(argv[1], argv[2], argv[3]);
-    // // client.Start();
+    ClientSocket commandSocket("localhost", COMMAND_PORT);
+    ClientSocket serverDataSocket("localhost", SERVER_DATA_PORT);
+    ClientSocket clientDataSocket("localhost", CLIENT_DATA_PORT);
 
-    // Socket socket(argv[2], atoi(argv[3]));
-    // socket.StartReceivePingThread();
-    // socket.SendData(argv[1]);
+    CommandMessager commandMessager(commandSocket);
 
-    ClientSocket commandSocket(argv[2], COMMAND_PORT);
-    ClientSocket serverDataSocket(argv[2], SERVER_DATA_PORT);
-    ClientSocket clientDataSocket(argv[2], CLIENT_DATA_PORT);
-
-    ClientCommandHandler handler(commandSocket);
+    CommandHandler handler(commandMessager);
     CLI cli(handler);
     cli.start();
 

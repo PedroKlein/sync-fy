@@ -1,19 +1,28 @@
 #include "cli/commandHandler.hpp"
+#include <models/login.hpp>
 
-void CommandHandler::executeCommand(const std::string &command) const
+CommandHandler::CommandHandler(const CommandMessager &messager) : messager(messager)
 {
-    if (commands.find(command) != commands.end())
+}
+
+void CommandHandler::executeCommand(std::string command, const std::vector<std::string> &parameters) const
+{
+    std::transform(command.begin(), command.end(), command.begin(), ::tolower); // Convert command to lowercase
+
+    if (command == "start")
     {
-        commands.at(command)();
+        start(parameters[0]);
     }
     else
     {
-        // Handle unknown command
-        std::cout << "Unknown command: " << command << std::endl;
+        std::cout << "Unknown command." << std::endl;
     }
 }
 
-void CommandHandler::registerCommand(const std::string &command, Command func)
+void CommandHandler::start(const std::string &parameter) const
 {
-    commands[command] = func;
+    std::cout << "Start command executed." << std::endl;
+    std::vector<char> message(std::begin("start"), std::end("start") - 1);
+    Login login("test");
+    messager.sendMessage(login);
 }
