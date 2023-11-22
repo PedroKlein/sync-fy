@@ -15,6 +15,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define SOCKET_CHUNK_SIZE 1024 * 4
+
 class TCPSocket
 {
   public:
@@ -40,17 +42,34 @@ class TCPSocket
         close(socketId);
     }
 
-    void send(const std::vector<char> &data) const
+    void send(const char *buffer, size_t size) const
     {
-        ::send(socketId, data.data(), data.size(), 0);
+        ssize_t i = 0;
+        while (i < size)
+        {
+            const int l = ::send(socketId, &buffer[i], std::min(static_cast<size_t>(SOCKET_CHUNK_SIZE), size - i), 0);
+            if (l < 0)
+            {
+                throw std::runtime_error("Failed to send data");
+            }
+            i += l;
+        }
+
+        std::cout << "Sent " << i << " bytes" << std::endl;
     }
 
-    std::vector<char> receive(size_t size) const
+    void receive(char *buffer, size_t size) const
     {
-        std::vector<char> buffer(size, 0);
-        ssize_t received = read(socketId, buffer.data(), size);
-        buffer.resize(received);
-        return buffer;
+        size_t i = 0;
+        while (i < size)
+        {
+            const int l = read(socketId, &buffer[i], std::min(static_cast<size_t>(SOCKET_CHUNK_SIZE), size - i));
+            if (l < 0)
+            {
+                std::runtime_error("Failed to receive data");
+            }
+            i += l;
+        }
     }
 
   protected:

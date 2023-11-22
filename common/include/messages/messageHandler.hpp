@@ -16,16 +16,22 @@ class MessageHandler
     {
     }
 
-    void sendMessage(const BaseModel &model) const
+    void sendJsonMessage(const BaseModel &model) const
     {
         auto message = buildJsonMessage(model.toJson(), model.getType());
-        socket.send(message);
+        socket.send(message.data(), message.size());
     }
+
+    // void sendAcknowledge() const
+    // {
+    //     auto message = buildAcknowledgeMessage();
+    //     socket.send(message.data(), message.size());
+    // }
 
     void sendRawMessage(const std::vector<std::byte> &data)
     {
         auto message = buildRawDataMessage(data);
-        socket.send(message);
+        socket.send(message.data(), message.size());
     }
 
     void receiveMessage(bool shouldMonitor = true)
@@ -33,7 +39,9 @@ class MessageHandler
         bool recievedMessage = false;
         while (shouldMonitor || !recievedMessage)
         {
-            auto headerBytes = socket.receive(MESSAGE_HEADER_SIZE);
+            std::vector<char> headerBytes(MESSAGE_HEADER_SIZE);
+            socket.receive(headerBytes.data(), MESSAGE_HEADER_SIZE);
+
             if (headerBytes.size() > 0)
             {
                 recievedMessage = true;
@@ -41,11 +49,14 @@ class MessageHandler
                 switch (header.headerType)
                 {
                 case HeaderType::JSON_HEADER:
-                    handleJsonMessage(header);
+                    recieveJsonMessage(header);
                     break;
                 case HeaderType::RAW_DATA_HEADER:
                     handleRawMessage(header);
                     break;
+                // case HeaderType::PURE_HEADER:
+                //     handlePureHeaderMessage(header);
+                //     break;
                 default:
                     throw std::runtime_error("Invalid header");
                     break;
@@ -69,11 +80,27 @@ class MessageHandler
 
     std::string username;
 
-    virtual void handleJsonMessage(MessageHeader header) = 0;
+    virtual void handleJsonMessage(MessageHeader header, const std::string &message) = 0;
 
     virtual void handleRawMessage(MessageHeader header) = 0;
 
+    // virtual void handlePureHeaderMessage(MessageHeader header) = 0;
+
   private:
+    void recieveJsonMessage(MessageHeader header)
+    {
+        std::vector<char> messageBytes(header.dataSize);
+        socket.receive(messageBytes.data(), header.dataSize);
+        std::string message(messageBytes.begin(), messageBytes.end());
+        handleJsonMessage(header, message);
+    }
+
+    // void recieveRawMessage(MessageHeader header)
+    // {
+    //     auto messageBytes = socket.receive(header.dataSize);
+    //     return messageBytes;
+    // }
+
     std::vector<char> buildJsonMessage(const std::string &message, const MessageType id) const
     {
         MessageHeader header(HeaderType::JSON_HEADER, id, message.size());
@@ -84,6 +111,14 @@ class MessageHandler
 
         return bytes;
     }
+
+    // std::vector<char> buildAcknowledgeMessage() const
+    // {
+    //     MessageHeader header(HeaderType::PURE_HEADER, MessageType::ACKNOWLEDGE, 0);
+    //     std::vector<char> bytes = header.serialize();
+
+    //     return bytes;
+    // }
 
     std::vector<char> buildRawDataMessage(const std::vector<std::byte> &data)
     {

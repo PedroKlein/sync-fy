@@ -8,16 +8,14 @@ CommandMessager::CommandMessager(const TCPSocket &socket, const std::string user
 {
 }
 
-void CommandMessager::handleJsonMessage(MessageHeader header)
+void CommandMessager::handleJsonMessage(MessageHeader header, const std::string &message)
 {
-    auto bytes = socket.receive(header.dataSize);
-    std::string message(bytes.begin(), bytes.end());
     std::cout << message << std::endl;
 }
 
 void CommandMessager::handleRawMessage(MessageHeader header)
 {
-    auto bytes = socket.receive(header.dataSize);
-    std::string message(bytes.begin(), bytes.end());
-    std::cout << message << std::endl;
+    // auto bytes = socket.receive(header.dataSize);
+    // std::string message(bytes.begin(), bytes.end());
+    // std::cout << message << std::endl;
 }

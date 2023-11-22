@@ -7,6 +7,7 @@
 
 enum MessageType
 {
+    ACKNOWLEDGE,
     INIT_SEND_FILE,
     SEND_RAW,
     LOGIN,
@@ -19,6 +20,7 @@ enum HeaderType
 {
     JSON_HEADER = 'J',
     RAW_DATA_HEADER = 'R',
+    PURE_HEADER = 'H',
 };
 
 struct MessageHeader

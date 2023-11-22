@@ -9,16 +9,11 @@ CommandMessageHandler::CommandMessageHandler(const TCPSocket &socket, const std:
 {
 }
 
-void CommandMessageHandler::handleJsonMessage(MessageHeader header)
+void CommandMessageHandler::handleJsonMessage(MessageHeader header, const std::string &message)
 {
-    std::vector<char> bytes;
-    std::string message;
-
     switch (header.messageType)
     {
     case MessageType::LOGIN:
-        bytes = socket.receive(header.dataSize);
-        message = std::string(bytes.begin(), bytes.end());
         std::cout << message << std::endl;
         break;
 
@@ -30,7 +25,7 @@ void CommandMessageHandler::handleJsonMessage(MessageHeader header)
 
 void CommandMessageHandler::handleRawMessage(MessageHeader header)
 {
-    auto bytes = socket.receive(header.dataSize);
-    std::string message(bytes.begin(), bytes.end());
-    std::cout << message << std::endl;
+    // auto bytes = socket.receive(header.dataSize);
+    // std::string message(bytes.begin(), bytes.end());
+    // std::cout << message << std::endl;
 }
