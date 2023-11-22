@@ -3,7 +3,9 @@
 #include <cstdint>
 #include <vector>
 
-#define MESSAGE_HEADER_SIZE 9
+namespace common
+{
+constexpr size_t MESSAGE_HEADER_SIZE = 9;
 
 enum MessageType
 {
@@ -70,3 +72,4 @@ struct MessageHeader
         return MessageHeader(headerType, messageType, dataSize);
     }
 };
+} // namespace common

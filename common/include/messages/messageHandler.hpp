@@ -5,6 +5,8 @@
 #include "socket/tcpSocket.hpp"
 #include <iostream>
 
+namespace common
+{
 class MessageHandler
 {
   public:
@@ -28,7 +30,7 @@ class MessageHandler
     //     socket.send(message.data(), message.size());
     // }
 
-    void sendRawMessage(const std::vector<std::byte> &data)
+    void sendRawMessage(const std::vector<char> &data)
     {
         auto message = buildRawDataMessage(data);
         socket.send(message.data(), message.size());
@@ -120,7 +122,7 @@ class MessageHandler
     //     return bytes;
     // }
 
-    std::vector<char> buildRawDataMessage(const std::vector<std::char> &data)
+    std::vector<char> buildRawDataMessage(const std::vector<char> &data)
     {
         MessageHeader header(HeaderType::RAW_DATA_HEADER, MessageType::SEND_RAW, data.size());
         std::vector<char> bytes = header.serialize();
@@ -131,3 +133,4 @@ class MessageHandler
         return bytes;
     }
 };
+} // namespace common

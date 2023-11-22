@@ -2,6 +2,8 @@
 
 #include <jsoncpp/json/json.h>
 
+namespace common
+{
 class BaseModel
 {
   public:
@@ -24,3 +26,4 @@ class BaseModel
     private:
     const MessageType type;
 };
+} // namespace common

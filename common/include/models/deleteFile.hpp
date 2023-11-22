@@ -1,5 +1,7 @@
 #pragma once
 
+namespace common
+{
 class DeleteFile : public BaseModel
 {
   public:
@@ -31,3 +33,4 @@ class DeleteFile : public BaseModel
         filename = root["filename"].asString();
     }
 };
+} // namespace common

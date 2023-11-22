@@ -1,16 +1,19 @@
 #pragma once
 
-#include "commandMessager.hpp"
+#include "messageHandler.hpp"
 
+namespace cli
+{
 class CommandHandler
 {
   public:
-    CommandHandler(const CommandMessager &messager);
+    CommandHandler(const MessageHandler &messager);
 
     void executeCommand(std::string command, const std::vector<std::string> &parameters = {}) const;
 
   private:
-    const CommandMessager &messager;
+    const MessageHandler &messager;
 
     void start(const std::string &parameter) const;
 };
+} // namespace cli

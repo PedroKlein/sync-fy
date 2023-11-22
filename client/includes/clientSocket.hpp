@@ -6,7 +6,7 @@
 #define QUEUE_SIZE 10
 #define BUFFER_SIZE 256
 
-class ClientSocket : public TCPSocket
+class ClientSocket : public common::TCPSocket
 {
   public:
     ClientSocket(const std::string &serverAddress, int port);

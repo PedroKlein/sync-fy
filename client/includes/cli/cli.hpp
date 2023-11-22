@@ -6,13 +6,15 @@
 #include <string>
 #include <thread>
 
+namespace cli
+{
 class CLI
 {
   public:
     CLI(const CommandHandler &handler);
     ~CLI();
 
-    void start();
+    std::thread *start();
     void stop();
 
   private:
@@ -22,3 +24,4 @@ class CLI
 
     void run();
 };
+} // namespace cli

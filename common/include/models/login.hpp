@@ -1,5 +1,8 @@
 
 #pragma once
+
+namespace common
+{
 class Login : public BaseModel
 {
   public:
@@ -35,3 +38,4 @@ class Login : public BaseModel
         username = root["username"].asString();
     }
 };
+} // namespace common

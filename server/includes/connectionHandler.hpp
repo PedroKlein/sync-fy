@@ -1,6 +1,6 @@
 #pragma once
 
-#include "commandMessageHandler.hpp"
+#include "command/messageHandler.hpp"
 #include <messages/messageHandler.hpp>
 #include <socket/tcpSocket.hpp>
 #include <thread>
@@ -12,8 +12,8 @@ class ConnectionHandler
     static void onCommandSocketConnection(int clientSocketId)
     {
         std::thread([clientSocketId]() {
-            TCPSocket clientSocket(clientSocketId);
-            CommandMessageHandler handler(clientSocket);
+            common::TCPSocket clientSocket(clientSocketId);
+            command::MessageHandler handler(clientSocket);
             handler.receiveMessage();
         }).detach();
     }

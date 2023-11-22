@@ -1,5 +1,7 @@
 #include "cli/cli.hpp"
 
+namespace cli
+{
 CLI::CLI(const CommandHandler &handler) : isRunning(false), commandHandler(handler)
 {
 }
@@ -9,10 +11,11 @@ CLI::~CLI()
     stop();
 }
 
-void CLI::start()
+std::thread *CLI::start()
 {
     isRunning = true;
     cliThread = std::thread(&CLI::run, this);
+    return &cliThread;
 }
 
 void CLI::stop()
@@ -35,3 +38,4 @@ void CLI::run()
         commandHandler.executeCommand(command);
     }
 }
+} // namespace cli

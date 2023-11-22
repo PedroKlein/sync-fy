@@ -15,7 +15,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define SOCKET_CHUNK_SIZE 1024 * 4
+namespace common
+{
+constexpr size_t DEFAULT_SOCKET_CHUNK_SIZE = 1024 * 4;
 
 class TCPSocket
 {
@@ -42,12 +44,12 @@ class TCPSocket
         close(socketId);
     }
 
-    void send(const char *buffer, size_t size) const
+    void send(const char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE) const
     {
         ssize_t i = 0;
         while (i < size)
         {
-            const int l = ::send(socketId, &buffer[i], std::min(static_cast<size_t>(SOCKET_CHUNK_SIZE), size - i), 0);
+            const int l = ::send(socketId, &buffer[i], std::min(chunkSize, size - i), 0);
             if (l < 0)
             {
                 throw std::runtime_error("Failed to send data");
@@ -58,12 +60,12 @@ class TCPSocket
         std::cout << "Sent " << i << " bytes" << std::endl;
     }
 
-    void receive(char *buffer, size_t size) const
+    void receive(char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE) const
     {
         size_t i = 0;
         while (i < size)
         {
-            const int l = read(socketId, &buffer[i], std::min(static_cast<size_t>(SOCKET_CHUNK_SIZE), size - i));
+            const int l = read(socketId, &buffer[i], std::min(chunkSize, size - i));
             if (l < 0)
             {
                 std::runtime_error("Failed to receive data");
@@ -75,3 +77,4 @@ class TCPSocket
   protected:
     int socketId;
 };
+} // namespace common

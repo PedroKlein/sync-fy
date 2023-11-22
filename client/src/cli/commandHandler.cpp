@@ -1,7 +1,9 @@
 #include "cli/commandHandler.hpp"
 #include <models/login.hpp>
 
-CommandHandler::CommandHandler(const CommandMessager &messager) : messager(messager)
+namespace cli
+{
+CommandHandler::CommandHandler(const cli::MessageHandler &messager) : messager(messager)
 {
 }
 
@@ -23,6 +25,7 @@ void CommandHandler::start(const std::string &parameter) const
 {
     std::cout << "Start command executed." << std::endl;
     std::vector<char> message(std::begin("start"), std::end("start") - 1);
-    Login login(messager.getUsername());
+    common::Login login(messager.getUsername());
     messager.sendJsonMessage(login);
 }
+} // namespace cli

@@ -2,6 +2,8 @@
 
 #include <vector>
 
+namespace common
+{
 struct FileData
 {
     std::string filename;
@@ -71,3 +73,4 @@ class ListFiles : public BaseModel
         return os;
     }
 };
+} // namespace common

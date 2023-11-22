@@ -2,7 +2,7 @@
 
 #include "cli/cli.hpp"
 #include "cli/commandHandler.hpp"
-#include "cli/commandMessager.hpp"
+#include "cli/messageHandler.hpp"
 #include "clientSocket.hpp"
 #include <constants.hpp>
 
@@ -27,17 +27,17 @@ int main(int argc, char *argv[])
         username = "test";
     }
 
-    ClientSocket commandSocket("localhost", COMMAND_PORT);
-    ClientSocket serverDataSocket("localhost", SERVER_DATA_PORT);
-    ClientSocket clientDataSocket("localhost", CLIENT_DATA_PORT);
+    ClientSocket commandSocket("localhost", common::COMMAND_PORT);
+    ClientSocket serverDataSocket("localhost", common::SERVER_DATA_PORT);
+    ClientSocket clientDataSocket("localhost", common::CLIENT_DATA_PORT);
 
-    CommandMessager commandMessager(commandSocket, username);
+    cli::MessageHandler commandMessager(commandSocket, username);
 
-    CommandHandler handler(commandMessager);
-    CLI cli(handler);
-    cli.start();
+    cli::CommandHandler handler(commandMessager);
+    cli::CLI cli(handler);
+    std::thread *cliThread = cli.start();
 
-    sleep(100);
+    cliThread->join();
 
     return 0;
 }

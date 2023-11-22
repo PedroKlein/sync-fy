@@ -14,7 +14,7 @@ typedef struct Connection
 
 using OnConnectionCallback = std::function<void(int)>;
 
-class ServerSocket : public TCPSocket
+class ServerSocket : public common::TCPSocket
 {
   public:
     ServerSocket(int port, OnConnectionCallback onClientConnectCallback);

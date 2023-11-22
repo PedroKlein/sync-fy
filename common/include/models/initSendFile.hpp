@@ -1,5 +1,7 @@
 #pragma once
 
+namespace common
+{
 class FileModel : public BaseModel
 {
   public:
@@ -35,3 +37,4 @@ class FileModel : public BaseModel
         filename = root["filename"].asString();
     }
 };
+} // namespace common

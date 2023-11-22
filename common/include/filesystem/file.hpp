@@ -3,11 +3,14 @@
 #include <string>
 #include <vector>
 
+namespace common
+{
 using OnChunkReadCallback = std::function<void(const std::vector<char> &)>;
 
 using OnChunkWriteCallback = std::function<std::vector<char>()>;
 
-#define DEFAULT_FILE_CHUNK_SIZE 1024 * 64
+constexpr size_t DEFAULT_FILE_CHUNK_SIZE = 1024 * 64;
+
 class File
 {
   public:
@@ -65,3 +68,4 @@ class File
         return buffer;
     }
 };
+} // namespace common

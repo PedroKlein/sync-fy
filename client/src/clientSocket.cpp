@@ -1,6 +1,6 @@
 #include "clientSocket.hpp"
 
-ClientSocket::ClientSocket(const std::string &serverAddress, int port) : TCPSocket()
+ClientSocket::ClientSocket(const std::string &serverAddress, int port) : common::TCPSocket()
 {
     server = gethostbyname(serverAddress.c_str());
     if (server == NULL)

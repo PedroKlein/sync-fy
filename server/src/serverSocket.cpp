@@ -1,7 +1,7 @@
 #include "serverSocket.hpp"
 
 ServerSocket::ServerSocket(int port, OnConnectionCallback onClientConnectCallback)
-    : TCPSocket(), onClientConnectCallback(onClientConnectCallback)
+    : common::TCPSocket(), onClientConnectCallback(onClientConnectCallback)
 {
     // Setting up server address
     serverAddress = newSocketAddress(port);

@@ -1,5 +1,5 @@
 add_executable(server
-    src/commandMessageHandler.cpp
+    src/command/messageHandler.cpp
     src/serverSocket.cpp
     src/main.cpp
 )
