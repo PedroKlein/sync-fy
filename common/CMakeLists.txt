@@ -2,6 +2,7 @@ project(Common)
 
 # Define a library target for the common code
 add_library(common_lib
+    include/filesystem/file.hpp
     include/database/Database.h
     include/datetime/DateTime.h
     include/models/deleteFile.hpp

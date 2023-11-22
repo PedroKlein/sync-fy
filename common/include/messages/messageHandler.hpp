@@ -120,16 +120,13 @@ class MessageHandler
     //     return bytes;
     // }
 
-    std::vector<char> buildRawDataMessage(const std::vector<std::byte> &data)
+    std::vector<char> buildRawDataMessage(const std::vector<std::char> &data)
     {
-        MessageHeader header(HeaderType::JSON_HEADER, MessageType::SEND_RAW, data.size());
+        MessageHeader header(HeaderType::RAW_DATA_HEADER, MessageType::SEND_RAW, data.size());
         std::vector<char> bytes = header.serialize();
 
-        // Add raw data
-        for (std::byte b : data)
-        {
-            bytes.push_back(static_cast<char>(b));
-        }
+        // Add message
+        bytes.insert(bytes.end(), data.begin(), data.end());
 
         return bytes;
     }
