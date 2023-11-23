@@ -8,12 +8,12 @@ class InitSendFile : public BaseModel
     std::string filename;
     size_t fileSize;
 
-    InitSendFile() : BaseModel(MessageType::INIT_RECEIVE_FILE)
+    InitSendFile() : BaseModel(MessageType::INIT_SEND_FILE)
     {
     }
 
     InitSendFile(const std::string &filename, size_t fileSize)
-        : BaseModel(MessageType::INIT_RECEIVE_FILE), filename(filename), fileSize(fileSize)
+        : BaseModel(MessageType::INIT_SEND_FILE), filename(filename), fileSize(fileSize)
     {
     }
 

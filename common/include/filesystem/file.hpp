@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <functional>
+#include <iostream>
 #include <string>
 #include <vector>
 namespace common
@@ -48,7 +49,8 @@ class File
     void readFile(OnChunkReadCallback callback, size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
     {
         size_t totalPackets = FileChunk::geTotalPackets(getSize(), chunkSize);
-        for (size_t i = 0; i < totalPackets; i++)
+        // index starts in 1 because packetNum starts in 1
+        for (size_t i = 1; i <= totalPackets; i++)
         {
             std::vector<char> chunkData = getChunkData(chunkSize);
             FileChunk chunk(chunkData, i, totalPackets);
@@ -56,10 +58,12 @@ class File
         }
     }
 
-    void writeFile(OnChunkWriteCallback callback, size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
+    void writeFile(OnChunkWriteCallback callback)
     {
+        std::cout << "Writing to file: " << path << std::endl;
+
         std::ofstream outFile(path, std::ios::binary);
-        if (!outFile)
+        if (!outFile.is_open())
         {
             throw std::runtime_error("Failed to open file for writing: " + path);
         }
@@ -67,11 +71,22 @@ class File
         while (true)
         {
             FileChunk chunk = callback();
+
+            if (chunk.data.empty())
+            {
+                throw std::runtime_error("Chunk data is empty");
+            }
+
             outFile.write(chunk.data.data(), chunk.data.size());
+
+            if (!outFile.good())
+            {
+                throw std::runtime_error("Failed to write to file: " + path);
+            }
 
             if (chunk.isLastChunk())
             {
-                break;
+                return;
             }
         }
     }

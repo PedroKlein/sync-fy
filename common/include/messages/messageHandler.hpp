@@ -68,13 +68,13 @@ class MessageHandler
         // TODO: Refactor this ifs
         if (header.messageType == MessageType::INIT_SEND_FILE)
         {
-            handlerInitSendFile(messageData, header);
+            handleInitSendFile(messageData, header);
             return;
         }
 
         if (header.messageType == MessageType::INIT_RECEIVE_FILE)
         {
-            hanldeInitReceiveFile(messageData, header);
+            handleInitReceiveFile(messageData, header);
             return;
         }
 
@@ -88,6 +88,18 @@ class MessageHandler
         while (true)
         {
             receiveMessage();
+        }
+    }
+
+    void receiveOK() const
+    {
+        auto header = receiveHeader();
+
+        std::cout << "Received OK message" << std::endl;
+
+        if (header.messageType != MessageType::OK)
+        {
+            throw std::runtime_error("Expected OK message");
         }
     }
 
@@ -164,26 +176,15 @@ class MessageHandler
         return common::MessageHeader::deserialize(headerBytes);
     }
 
-    void receiveOK() const
-    {
-        auto header = receiveHeader();
-
-        std::cout << "Received OK message" << std::endl;
-
-        if (header.messageType != MessageType::OK)
-        {
-            throw std::runtime_error("Expected OK message");
-        }
-    }
-
-    void hanldeInitReceiveFile(const std::vector<char> &data, common::MessageHeader header)
+    void handleInitReceiveFile(const std::vector<char> &data, common::MessageHeader header)
     {
         // filename = std::string(data.begin(), data.end());
         // std::cout << "Receiving file " << filename << std::endl;
         sendOK();
     }
 
-    void handlerInitSendFile(const std::vector<char> &data, common::MessageHeader header)
+    // TODO: This is not generic, file is always save in the root.
+    void handleInitSendFile(const std::vector<char> &data, common::MessageHeader header)
     {
         std::string message(data.begin(), data.end());
 
@@ -197,8 +198,7 @@ class MessageHandler
         file.writeFile([&]() -> common::FileChunk {
             auto message = receiveRaw();
             auto messageHeader = message.getMessageHeader();
-            const std::vector<char> &chunk = message.getData();
-            return common::FileChunk(chunk, messageHeader.packet, messageHeader.totalPackets);
+            return common::FileChunk(message.getData(), messageHeader.packet, messageHeader.totalPackets);
         });
 
         sendOK();

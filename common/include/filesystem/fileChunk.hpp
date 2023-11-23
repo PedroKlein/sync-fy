@@ -6,7 +6,7 @@ constexpr size_t DEFAULT_FILE_CHUNK_SIZE = 1024 * 64;
 
 struct FileChunk
 {
-    FileChunk(const std::vector<char> &data, const size_t numPacket, const size_t totalPackets)
+    FileChunk(const std::vector<char> data, const size_t numPacket, const size_t totalPackets)
         : numPacket(numPacket), totalPackets(totalPackets), data(data)
     {
     }
@@ -18,10 +18,10 @@ struct FileChunk
 
     bool isLastChunk() const
     {
-        return numPacket == totalPackets - 1;
+        return numPacket == totalPackets;
     }
 
-    const std::vector<char> &data;
+    const std::vector<char> data;
     const size_t numPacket;
     const size_t totalPackets;
 };

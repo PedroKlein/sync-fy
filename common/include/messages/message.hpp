@@ -50,7 +50,7 @@ class Message
         return header;
     }
 
-    const std::vector<char> &getData() const
+    const std::vector<char> getData() const
     {
         return data;
     }

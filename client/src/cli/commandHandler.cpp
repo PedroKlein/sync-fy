@@ -33,6 +33,8 @@ void CommandHandler::upload(const std::string &filepath) const
     messageHandler.sendInitUploadFileMessage(file.getName(), file.getSize());
 
     messageHandler.sendFileMessage(file);
+
+    messageHandler.receiveOK();
 }
 
 void CommandHandler::test() const
