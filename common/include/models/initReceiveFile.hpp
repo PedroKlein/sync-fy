@@ -21,7 +21,7 @@ class InitReceiveFile : public BaseModel
     {
         Json::Value root;
         root["filename"] = filename;
-        root["fileSize"] = fileSize;
+        root["fileSize"] = static_cast<Json::UInt64>(fileSize);
         Json::StreamWriterBuilder writer;
         std::string output = Json::writeString(writer, root);
         return output;

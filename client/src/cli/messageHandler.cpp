@@ -18,9 +18,9 @@ void MessageHandler::sendFileMessage(common::File &file) const
     size_t totalSent = 0;
     const size_t fileSize = file.getSize();
 
-    file.sendFile([&](const std::vector<char> &chunk) {
-        sendRawMessage(chunk);
-        totalSent += chunk.size();
+    file.readFile([&](const common::FileChunk &chunk) {
+        sendRawMessage(chunk.data, chunk.numPacket, chunk.totalPackets);
+        totalSent += chunk.data.size();
 
         float progress = static_cast<float>(totalSent) / fileSize * 100;
         std::cout << "Progress: " << progress << "%\n";

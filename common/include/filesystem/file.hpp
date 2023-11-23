@@ -1,18 +1,17 @@
 #pragma once
 
+#include "fileChunk.hpp"
 #include <filesystem>
 #include <fstream>
 #include <functional>
 #include <string>
 #include <vector>
-
 namespace common
 {
-using OnChunkReadCallback = std::function<void(const std::vector<char> &)>;
 
-using OnChunkWriteCallback = std::function<std::vector<char>()>;
+using OnChunkReadCallback = std::function<void(const FileChunk &)>;
 
-constexpr size_t DEFAULT_FILE_CHUNK_SIZE = 1024 * 64;
+using OnChunkWriteCallback = std::function<FileChunk()>;
 
 class File
 {
@@ -46,26 +45,34 @@ class File
         return (pos == std::string::npos) ? path : path.substr(pos + 1);
     }
 
-    void sendFile(OnChunkReadCallback callback, size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
+    void readFile(OnChunkReadCallback callback, size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
     {
-        while (!fileStream.eof())
+        size_t totalPackets = FileChunk::geTotalPackets(getSize(), chunkSize);
+        for (size_t i = 0; i < totalPackets; i++)
         {
-            std::vector<char> chunk = getChunk(chunkSize);
+            std::vector<char> chunkData = getChunkData(chunkSize);
+            FileChunk chunk(chunkData, i, totalPackets);
             callback(chunk);
         }
     }
 
-    void receiveFile(OnChunkWriteCallback callback, size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
+    void writeFile(OnChunkWriteCallback callback, size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
     {
         std::ofstream outFile(path, std::ios::binary);
+        if (!outFile)
+        {
+            throw std::runtime_error("Failed to open file for writing: " + path);
+        }
+
         while (true)
         {
-            std::vector<char> chunk = callback();
-            if (chunk.empty())
+            FileChunk chunk = callback();
+            outFile.write(chunk.data.data(), chunk.data.size());
+
+            if (chunk.isLastChunk())
             {
                 break;
             }
-            outFile.write(chunk.data(), chunk.size());
         }
     }
 
@@ -73,7 +80,7 @@ class File
     std::string path;
     std::ifstream fileStream;
 
-    const std::vector<char> getChunk(size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
+    const std::vector<char> getChunkData(size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
     {
         std::vector<char> buffer(chunkSize);
         fileStream.read(buffer.data(), chunkSize);

@@ -1,8 +1,11 @@
 #pragma once
 
+#include "filesystem/file.hpp"
 #include "message.hpp"
 #include "messageTypes.hpp"
 #include "models/baseModel.hpp"
+#include "models/initReceiveFile.hpp"
+#include "models/initSendFile.hpp"
 #include "models/login.hpp"
 #include "socket/tcpSocket.hpp"
 #include <iostream>
@@ -41,9 +44,9 @@ class MessageHandler
         sendMessage(exitMessage);
     }
 
-    void sendRawMessage(const std::vector<char> &data) const
+    void sendRawMessage(const std::vector<char> &data, size_t numPacket = 1, size_t totalPackets = 1) const
     {
-        Message message(common::MessageType::SEND_RAW, data);
+        Message message(common::MessageType::SEND_RAW, data, numPacket, totalPackets);
         sendMessage(message, false);
     }
 
@@ -61,6 +64,19 @@ class MessageHandler
 
         std::vector<char> messageData(header.dataSize);
         socket.receive(messageData.data(), header.dataSize);
+
+        // TODO: Refactor this ifs
+        if (header.messageType == MessageType::INIT_SEND_FILE)
+        {
+            handlerInitSendFile(messageData, header);
+            return;
+        }
+
+        if (header.messageType == MessageType::INIT_RECEIVE_FILE)
+        {
+            hanldeInitReceiveFile(messageData, header);
+            return;
+        }
 
         Message message(header, messageData);
         sendOK();
@@ -125,6 +141,21 @@ class MessageHandler
         sendOK();
     }
 
+    Message receiveRaw()
+    {
+        MessageHeader header = receiveHeader();
+
+        if (header.messageType != MessageType::SEND_RAW)
+        {
+            throw std::runtime_error("Expected raw message");
+        }
+
+        std::vector<char> messageData(header.dataSize);
+        socket.receive(messageData.data(), header.dataSize);
+
+        return Message(header, messageData);
+    }
+
     common::MessageHeader receiveHeader() const
     {
         std::vector<char> headerBytes(MESSAGE_HEADER_SIZE);
@@ -143,6 +174,34 @@ class MessageHandler
         {
             throw std::runtime_error("Expected OK message");
         }
+    }
+
+    void hanldeInitReceiveFile(const std::vector<char> &data, common::MessageHeader header)
+    {
+        // filename = std::string(data.begin(), data.end());
+        // std::cout << "Receiving file " << filename << std::endl;
+        sendOK();
+    }
+
+    void handlerInitSendFile(const std::vector<char> &data, common::MessageHeader header)
+    {
+        std::string message(data.begin(), data.end());
+
+        InitSendFile initSendFile;
+        initSendFile.fromJson(message);
+
+        sendOK();
+
+        File file = File::create(initSendFile.filename);
+
+        file.writeFile([&]() -> common::FileChunk {
+            auto message = receiveRaw();
+            auto messageHeader = message.getMessageHeader();
+            const std::vector<char> &chunk = message.getData();
+            return common::FileChunk(chunk, messageHeader.packet, messageHeader.totalPackets);
+        });
+
+        sendOK();
     }
 };
 } // namespace common
