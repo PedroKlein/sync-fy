@@ -7,13 +7,13 @@ void MessageHandler::handleMessage(const common::Message &message)
     std::cout << message << std::endl;
 }
 
-void MessageHandler::sendInitUploadFileMessage(const std::string &filename) const
+void MessageHandler::sendInitUploadFileMessage(const std::string &filename, size_t fileSize) const
 {
-    common::InitSendFile initSendFile(filename);
+    common::InitSendFile initSendFile(filename, fileSize);
     sendModelMessage(initSendFile);
 }
 
-void MessageHandler::sendFileMessage(common::File &file)
+void MessageHandler::sendFileMessage(common::File &file) const
 {
     size_t totalSent = 0;
     const size_t fileSize = file.getSize();
@@ -27,9 +27,9 @@ void MessageHandler::sendFileMessage(common::File &file)
     });
 }
 
-void MessageHandler::sendDownloadFileMessage(const std::string &filename) const
+void MessageHandler::sendInitDownloadFileMessage(const std::string &filename, size_t fileSize) const
 {
-    common::InitReceiveFile initReceiveFile(filename);
+    common::InitReceiveFile initReceiveFile(filename, fileSize);
     sendModelMessage(initReceiveFile);
 }
 

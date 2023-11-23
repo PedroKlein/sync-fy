@@ -6,7 +6,8 @@
 
 namespace common
 {
-constexpr size_t MESSAGE_HEADER_SIZE = 9;
+constexpr size_t MESSAGE_HEADER_SIZE =
+    sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t);
 
 enum MessageType
 {
@@ -34,9 +35,13 @@ struct MessageHeader
     HeaderType headerType;
     MessageType messageType;
     uint32_t dataSize;
+    uint32_t packet;
+    uint32_t totalPackets;
 
-    MessageHeader(HeaderType headerType, MessageType messageType, uint32_t dataSize)
-        : headerType(headerType), messageType(messageType), dataSize(dataSize)
+    MessageHeader(HeaderType headerType, MessageType messageType, uint32_t dataSize, uint32_t packet,
+                  uint32_t totalPackets)
+        : headerType(headerType), messageType(messageType), dataSize(dataSize), packet(packet),
+          totalPackets(totalPackets)
     {
     }
 
@@ -46,41 +51,69 @@ struct MessageHeader
 
         // Add header type
         bytes.push_back(headerType);
-        bytes.push_back(' ');
 
         // Add message type
         bytes.push_back(static_cast<uint8_t>(messageType));
-        bytes.push_back(' ');
 
         // Add data size as uint32_t
         for (int i = sizeof(dataSize) - 1; i >= 0; --i)
         {
             bytes.push_back((dataSize >> (i * 8)) & 0xFF);
         }
-        bytes.push_back('\n');
+
+        // Add packet num as uint32_t
+        for (int i = sizeof(packet) - 1; i >= 0; --i)
+        {
+            bytes.push_back((packet >> (i * 8)) & 0xFF);
+        }
+
+        // Add total packets as uint32_t
+        for (int i = sizeof(totalPackets) - 1; i >= 0; --i)
+        {
+            bytes.push_back((totalPackets >> (i * 8)) & 0xFF);
+        }
 
         return bytes;
     }
 
     static MessageHeader deserialize(std::vector<char> bytes)
     {
-        HeaderType headerType = static_cast<HeaderType>(bytes[0]);
-        MessageType messageType = static_cast<MessageType>(bytes[2]);
+        size_t offset = 0;
+        HeaderType headerType = static_cast<HeaderType>(bytes[offset]);
+        offset++;
+        MessageType messageType = static_cast<MessageType>(bytes[offset]);
+        offset++;
 
         uint32_t dataSize = 0;
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < sizeof(uint32_t); ++i)
         {
-            dataSize = (dataSize << 8) | (bytes[i + 4] & 0xFF); // Extract size from header
+            dataSize = (dataSize << 8) | (bytes[i + offset] & 0xFF); // Extract size from header
+        }
+        offset += sizeof(uint32_t);
+
+        uint32_t packet = 0;
+        for (int i = 0; i < sizeof(uint32_t); ++i)
+        {
+            packet = (packet << 8) | (bytes[i + offset] & 0xFF); // Extract packet from header
+        }
+        offset += sizeof(uint32_t);
+
+        uint32_t totalPackets = 0;
+        for (int i = 0; i < sizeof(uint32_t); ++i)
+        {
+            totalPackets = (totalPackets << 8) | (bytes[i + offset] & 0xFF); // Extract totalPackets from header
         }
 
-        return MessageHeader(headerType, messageType, dataSize);
+        return MessageHeader(headerType, messageType, dataSize, packet, totalPackets);
     }
 
     friend std::ostream &operator<<(std::ostream &os, const MessageHeader &header)
     {
         os << "Header Type: " << static_cast<char>(header.headerType) << "\n";
         os << "Message Type: " << static_cast<int>(header.messageType) << "\n";
-        os << "Data Size: " << header.dataSize;
+        os << "Data Size: " << header.dataSize << "\n";
+        os << "Packet: " << header.packet << "\n";
+        os << "Total Packets: " << header.totalPackets << "\n";
         return os;
     }
 };

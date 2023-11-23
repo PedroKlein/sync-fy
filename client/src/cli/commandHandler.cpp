@@ -15,6 +15,10 @@ void CommandHandler::executeCommand(std::string command, const std::vector<std::
     {
         upload(parameters[0]);
     }
+    else if (command == "test")
+    {
+        test();
+    }
     else
     {
         std::cout << "Unknown command." << std::endl;
@@ -26,8 +30,13 @@ void CommandHandler::upload(const std::string &filepath) const
     std::cout << "Upload command start." << std::endl;
     common::File file(filepath);
 
-    messageHandler.sendInitUploadFileMessage(file.getName());
+    messageHandler.sendInitUploadFileMessage(file.getName(), file.getSize());
 
     messageHandler.sendFileMessage(file);
+}
+
+void CommandHandler::test() const
+{
+    messageHandler.sendListServerFilesMessage();
 }
 } // namespace cli

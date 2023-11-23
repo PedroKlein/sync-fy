@@ -17,5 +17,6 @@ class CommandHandler
     const MessageHandler &messageHandler;
 
     void upload(const std::string &filepath) const;
+    void test() const;
 };
 } // namespace cli

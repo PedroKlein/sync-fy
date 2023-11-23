@@ -15,10 +15,11 @@ void MessageHandler::handleMessage(const common::Message &message)
 
     case common::HeaderType::RAW_DATA_HEADER: {
         std::cout << "RAW_DATA_HEADER" << std::endl;
+        int mockSize = 10431;
 
-        if (message.getMessageHeader().messageType == common::MessageType::SEND_RAW_DATA)
+        if (message.getMessageHeader().messageType == common::MessageType::SEND_RAW)
         {
-            common::File::create("test.txt").receiveFile([&]() -> std::vector<char> {
+            common::File::create("AAAAAAAAAAAAAAAAAAAA.txt").receiveFile([&]() -> std::vector<char> {
                 std::vector<char> chunk = message.getData();
                 return chunk;
             });

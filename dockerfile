@@ -14,7 +14,10 @@ RUN apt-get remove -y cmake
 
 RUN pip3 install cmake
 
-RUN conan install . --build=missing
+# for release version
+# RUN conan install . --build=missing
+
+RUN conan install . -s build_type=Debug --build=missing
 
 RUN cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./build/Release/generators/conan_toolchain.cmake -S. -B./build/Release -G "Unix Makefiles"
 

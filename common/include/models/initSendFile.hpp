@@ -38,7 +38,7 @@ class InitSendFile : public BaseModel
             throw std::runtime_error("Failed to parse JSON");
         }
         filename = root["filename"].asString();
-        fileSize = root["fileSize"].asString();
+        fileSize = root["fileSize"].asUInt();
     }
 };
 } // namespace common

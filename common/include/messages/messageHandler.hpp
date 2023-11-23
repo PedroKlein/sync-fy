@@ -15,6 +15,7 @@ class MessageHandler
     MessageHandler(const TCPSocket &socket) : socket(socket)
     {
         receiveLoginMessage();
+        std::cout << "Logged in as " << username << std::endl;
     }
 
     MessageHandler(const TCPSocket &socket, const std::string username) : socket(socket), username(username)
@@ -46,14 +47,13 @@ class MessageHandler
         sendMessage(message, false);
     }
 
-    // TODO: This is more confusing then it needs to be, try to simplify it
     void receiveMessage()
     {
         MessageHeader header = receiveHeader();
 
-        if (header.headerType == HeaderType::PURE_HEADER)
+        if (header.headerType == common::HeaderType::PURE_HEADER)
         {
-            Message message(header.messageType);
+            Message message(header);
             sendOK();
             handleMessage(message);
             return;
@@ -61,17 +61,9 @@ class MessageHandler
 
         std::vector<char> messageData(header.dataSize);
         socket.receive(messageData.data(), header.dataSize);
+
+        Message message(header, messageData);
         sendOK();
-
-        if (header.headerType == HeaderType::JSON_HEADER)
-        {
-            Message message(header.messageType, std::string(messageData.begin(), messageData.end()));
-            handleMessage(message);
-            return;
-        }
-
-        Message message(header.messageType, messageData);
-
         handleMessage(message);
     }
 
@@ -98,6 +90,7 @@ class MessageHandler
     void sendMessage(const Message &message, bool waitForResponse = true) const
     {
         std::vector<char> serialized = message.serialize();
+
         socket.send(serialized.data(), serialized.size());
 
         if (waitForResponse)

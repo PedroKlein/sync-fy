@@ -15,9 +15,9 @@ class MessageHandler : public common::MessageHandler
     using common::MessageHandler::MessageHandler;
 
   public:
-    void sendInitUploadFileMessage(const std::string &filename) const;
-    void sendFileMessage(common::File &file);
-    void sendDownloadFileMessage(const std::string &filename) const;
+    void sendInitUploadFileMessage(const std::string &filename, size_t fileSize) const;
+    void sendFileMessage(common::File &file) const;
+    void sendInitDownloadFileMessage(const std::string &filename, size_t fileSize) const;
     void sendDeleteFileMessage(const std::string &filename) const;
     void sendListServerFilesMessage() const;
     void sendListClientFilesMessage() const;
