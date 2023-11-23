@@ -7,16 +7,30 @@ void MessageHandler::handleMessage(const common::Message &message)
     std::cout << message << std::endl;
 }
 
-void MessageHandler::sendUploadFileMessage(const std::string &filename) const
+void MessageHandler::sendInitUploadFileMessage(const std::string &filename) const
 {
     common::InitSendFile initSendFile(filename);
     sendModelMessage(initSendFile);
 }
 
+void MessageHandler::sendFileMessage(common::File &file)
+{
+    size_t totalSent = 0;
+    const size_t fileSize = file.getSize();
+
+    file.sendFile([&](const std::vector<char> &chunk) {
+        sendRawMessage(chunk);
+        totalSent += chunk.size();
+
+        float progress = static_cast<float>(totalSent) / fileSize * 100;
+        std::cout << "Progress: " << progress << "%\n";
+    });
+}
+
 void MessageHandler::sendDownloadFileMessage(const std::string &filename) const
 {
-    common::InitRecieveFile initRecieveFile(filename);
-    sendModelMessage(initRecieveFile);
+    common::InitReceiveFile initReceiveFile(filename);
+    sendModelMessage(initReceiveFile);
 }
 
 void MessageHandler::sendDeleteFileMessage(const std::string &filename) const

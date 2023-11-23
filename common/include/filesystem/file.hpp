@@ -1,3 +1,6 @@
+#pragma once
+
+#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <string>
@@ -16,15 +19,25 @@ class File
   public:
     File(const std::string &filePath) : path(filePath), fileStream(filePath, std::ios::binary)
     {
+        if (!std::filesystem::exists(path))
+        {
+            throw std::runtime_error("File does not exist: " + filePath);
+        }
     }
 
-    size_t getSize()
+    static File create(const std::string &filePath)
     {
-        std::streampos currentPos = fileStream.tellg();
-        fileStream.seekg(0, std::ios::end);
-        size_t size = fileStream.tellg();
-        fileStream.seekg(currentPos);
-        return size;
+        std::ofstream ofs(filePath, std::ios::binary);
+        if (!ofs)
+        {
+            throw std::runtime_error("Failed to create file: " + filePath);
+        }
+        return File(filePath);
+    }
+
+    const size_t getSize() const
+    {
+        return std::filesystem::file_size(path);
     }
 
     std::string getName()
@@ -60,7 +73,7 @@ class File
     std::string path;
     std::ifstream fileStream;
 
-    std::vector<char> getChunk(size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
+    const std::vector<char> getChunk(size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
     {
         std::vector<char> buffer(chunkSize);
         fileStream.read(buffer.data(), chunkSize);

@@ -31,11 +31,25 @@ void CLI::run()
 {
     while (isRunning)
     {
-        std::string command;
+        std::string input;
         std::cout << "Enter command: ";
-        std::getline(std::cin, command);
+        std::getline(std::cin, input);
 
-        commandHandler.executeCommand(command);
+        std::istringstream iss(input);
+        std::string word;
+
+        // Get the command
+        std::getline(iss, word, ' ');
+        std::string command = word;
+
+        // Get the parameters
+        std::vector<std::string> parameters;
+        while (std::getline(iss, word, ' '))
+        {
+            parameters.push_back(word);
+        }
+
+        commandHandler.executeCommand(command, parameters);
     }
 }
 } // namespace cli

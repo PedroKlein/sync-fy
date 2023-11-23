@@ -2,16 +2,18 @@
 
 namespace common
 {
-class InitRecieveFile : public BaseModel
+class InitReceiveFile : public BaseModel
 {
   public:
     std::string filename;
+    size_t fileSize;
 
-    InitRecieveFile() : BaseModel(MessageType::INIT_RECEIVE_FILE)
+    InitReceiveFile() : BaseModel(MessageType::INIT_RECEIVE_FILE)
     {
     }
 
-    InitRecieveFile(const std::string &filename) : BaseModel(MessageType::INIT_RECEIVE_FILE), filename(filename)
+    InitReceiveFile(const std::string &filename, size_t fileSize)
+        : BaseModel(MessageType::INIT_RECEIVE_FILE), filename(filename), fileSize(fileSize)
     {
     }
 
@@ -19,6 +21,7 @@ class InitRecieveFile : public BaseModel
     {
         Json::Value root;
         root["filename"] = filename;
+        root["fileSize"] = fileSize;
         Json::StreamWriterBuilder writer;
         std::string output = Json::writeString(writer, root);
         return output;
@@ -35,6 +38,7 @@ class InitRecieveFile : public BaseModel
             throw std::runtime_error("Failed to parse JSON");
         }
         filename = root["filename"].asString();
+        fileSize = root["fileSize"].asString();
     }
 };
 } // namespace common

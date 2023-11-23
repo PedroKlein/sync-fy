@@ -14,7 +14,7 @@ class MessageHandler
   public:
     MessageHandler(const TCPSocket &socket) : socket(socket)
     {
-        recieveLoginMessage();
+        receiveLoginMessage();
     }
 
     MessageHandler(const TCPSocket &socket, const std::string username) : socket(socket), username(username)
@@ -43,7 +43,7 @@ class MessageHandler
     void sendRawMessage(const std::vector<char> &data) const
     {
         Message message(common::MessageType::SEND_RAW, data);
-        sendMessage(message);
+        sendMessage(message, false);
     }
 
     // TODO: This is more confusing then it needs to be, try to simplify it
@@ -102,7 +102,7 @@ class MessageHandler
 
         if (waitForResponse)
         {
-            recieveOK();
+            receiveOK();
         }
     }
 
@@ -112,7 +112,7 @@ class MessageHandler
         sendModelMessage(login);
     }
 
-    void recieveLoginMessage()
+    void receiveLoginMessage()
     {
         MessageHeader header = receiveHeader();
 
@@ -140,7 +140,7 @@ class MessageHandler
         return common::MessageHeader::deserialize(headerBytes);
     }
 
-    void recieveOK() const
+    void receiveOK() const
     {
         auto header = receiveHeader();
 

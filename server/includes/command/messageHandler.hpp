@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem/file.hpp>
 #include <messages/message.hpp>
 #include <messages/messageHandler.hpp>
 

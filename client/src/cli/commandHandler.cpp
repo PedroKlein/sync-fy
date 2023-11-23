@@ -3,7 +3,7 @@
 
 namespace cli
 {
-CommandHandler::CommandHandler(const cli::MessageHandler &messager) : messager(messager)
+CommandHandler::CommandHandler(const MessageHandler &messageHandler) : messageHandler(messageHandler)
 {
 }
 
@@ -11,9 +11,9 @@ void CommandHandler::executeCommand(std::string command, const std::vector<std::
 {
     std::transform(command.begin(), command.end(), command.begin(), ::tolower); // Convert command to lowercase
 
-    if (command == "start")
+    if (command == "upload")
     {
-        start(parameters[0]);
+        upload(parameters[0]);
     }
     else
     {
@@ -21,11 +21,13 @@ void CommandHandler::executeCommand(std::string command, const std::vector<std::
     }
 }
 
-void CommandHandler::start(const std::string &parameter) const
+void CommandHandler::upload(const std::string &filepath) const
 {
-    std::cout << "Start command executed." << std::endl;
-    std::vector<char> message(std::begin("start"), std::end("start") - 1);
-    common::Login login("test command");
-    messager.sendModelMessage(login);
+    std::cout << "Upload command start." << std::endl;
+    common::File file(filepath);
+
+    messageHandler.sendInitUploadFileMessage(file.getName());
+
+    messageHandler.sendFileMessage(file);
 }
 } // namespace cli
