@@ -12,7 +12,7 @@ typedef struct Connection
     pthread_t thread;
 } Connection;
 
-using OnConnectionCallback = std::function<void(int)>;
+using OnConnectionCallback = std::function<void(int, std::string)>;
 
 class ServerSocket : public common::TCPSocket
 {
