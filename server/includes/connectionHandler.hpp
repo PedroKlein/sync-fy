@@ -9,12 +9,5 @@
 class ConnectionHandler
 {
   public:
-    static void onCommandSocketConnection(int clientSocketId)
-    {
-        std::thread([clientSocketId]() {
-            common::TCPSocket clientSocket(clientSocketId);
-            command::MessageHandler handler(clientSocket);
-            handler.receiveMessage();
-        }).detach();
-    }
+    static void onCommandSocketConnection(int clientSocketId);
 };

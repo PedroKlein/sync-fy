@@ -25,7 +25,7 @@ void CommandHandler::start(const std::string &parameter) const
 {
     std::cout << "Start command executed." << std::endl;
     std::vector<char> message(std::begin("start"), std::end("start") - 1);
-    common::Login login(messager.getUsername());
-    messager.sendJsonMessage(login);
+    common::Login login("test command");
+    messager.sendModelMessage(login);
 }
 } // namespace cli

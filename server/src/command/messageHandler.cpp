@@ -2,15 +2,6 @@
 
 namespace command
 {
-MessageHandler::MessageHandler(const common::TCPSocket &socket) : common::MessageHandler(socket)
-{
-}
-
-MessageHandler::MessageHandler(const common::TCPSocket &socket, const std::string username)
-    : common::MessageHandler(socket, username)
-{
-}
-
 void MessageHandler::handleJsonMessage(common::MessageHeader header, const std::string &message)
 {
     switch (header.messageType)

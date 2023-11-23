@@ -2,74 +2,86 @@
 
 #include "messageTypes.hpp"
 #include "models/baseModel.hpp"
+#include "models/login.hpp"
 #include "socket/tcpSocket.hpp"
 #include <iostream>
 
 namespace common
 {
+// TODO: Extract a Message class form this with all the logic related to the structure of our messages
 class MessageHandler
 {
   public:
     MessageHandler(const TCPSocket &socket) : socket(socket)
     {
+        recieveLoginMessage();
     }
 
     MessageHandler(const TCPSocket &socket, const std::string username) : socket(socket), username(username)
     {
+        sendLoginMessage(username);
     }
 
-    void sendJsonMessage(const BaseModel &model) const
+    void sendData(const std::vector<char> &data, bool shouldConfirm = false) const
+    {
+        socket.send(data.data(), data.size());
+        recieveOK();
+    }
+
+    void sendModelMessage(const BaseModel &model) const
     {
         auto message = buildJsonMessage(model.toJson(), model.getType());
-        socket.send(message.data(), message.size());
+        sendData(message);
     }
 
-    // void sendAcknowledge() const
-    // {
-    //     auto message = buildAcknowledgeMessage();
-    //     socket.send(message.data(), message.size());
-    // }
+    void sendOK() const
+    {
+        MessageHeader header(HeaderType::PURE_HEADER, MessageType::OK, 0);
+        std::vector<char> bytes = header.serialize();
+        socket.send(bytes.data(), bytes.size());
+    }
 
-    void sendRawMessage(const std::vector<char> &data)
+    void sendExit() const
+    {
+        MessageHeader header(HeaderType::PURE_HEADER, MessageType::EXIT, 0);
+        std::vector<char> bytes = header.serialize();
+        sendData(bytes);
+    }
+
+    void sendRawMessage(const std::vector<char> &data) const
     {
         auto message = buildRawDataMessage(data);
-        socket.send(message.data(), message.size());
+        sendData(message);
     }
 
-    void receiveMessage(bool shouldMonitor = true)
+    void receiveMessage()
     {
-        bool recievedMessage = false;
-        while (shouldMonitor || !recievedMessage)
+        MessageHeader header = receiveHeader();
+
+        switch (header.headerType)
         {
-            std::vector<char> headerBytes(MESSAGE_HEADER_SIZE);
-            socket.receive(headerBytes.data(), MESSAGE_HEADER_SIZE);
-
-            if (headerBytes.size() > 0)
-            {
-                recievedMessage = true;
-                MessageHeader header = MessageHeader::deserialize(headerBytes);
-                switch (header.headerType)
-                {
-                case HeaderType::JSON_HEADER:
-                    recieveJsonMessage(header);
-                    break;
-                case HeaderType::RAW_DATA_HEADER:
-                    handleRawMessage(header);
-                    break;
-                // case HeaderType::PURE_HEADER:
-                //     handlePureHeaderMessage(header);
-                //     break;
-                default:
-                    throw std::runtime_error("Invalid header");
-                    break;
-                }
-            }
+        case HeaderType::JSON_HEADER:
+            recieveJsonMessage(header);
+            break;
+        case HeaderType::RAW_DATA_HEADER:
+            handleRawMessage(header);
+            break;
+        case HeaderType::PURE_HEADER:
+            handlePureHeaderMessage(header);
+        default:
+            throw std::runtime_error("Invalid header");
+            break;
         }
+
+        sendOK();
     }
 
-    void setUsername(const std::string username)
+    void monitorMessages()
     {
-        this->username = username;
+        while (true)
+        {
+            receiveMessage();
+        }
     }
 
     std::string getUsername() const
@@ -86,9 +98,72 @@ class MessageHandler
 
     virtual void handleRawMessage(MessageHeader header) = 0;
 
-    // virtual void handlePureHeaderMessage(MessageHeader header) = 0;
+    virtual void handleExitMessage() = 0;
 
   private:
+    void handlePureHeaderMessage(MessageHeader header)
+    {
+        switch (header.messageType)
+        {
+        case MessageType::OK:
+            std::cout << "Received OK message" << std::endl;
+            break;
+        case MessageType::EXIT:
+            std::cout << "Received EXIT message" << std::endl;
+            handleExitMessage();
+            break;
+        default:
+            throw std::runtime_error("Invalid header");
+            break;
+        }
+    }
+
+    void sendLoginMessage(const std::string username)
+    {
+        common::Login login(username);
+        sendModelMessage(login);
+    }
+
+    void recieveLoginMessage()
+    {
+        MessageHeader header = receiveHeader();
+
+        if (header.messageType != MessageType::LOGIN)
+        {
+            throw std::runtime_error("Expected login message");
+        }
+
+        std::vector<char> messageBytes(header.dataSize);
+        socket.receive(messageBytes.data(), header.dataSize);
+        std::string message(messageBytes.begin(), messageBytes.end());
+
+        Login login;
+        login.fromJson(message);
+
+        username = login.username;
+        sendOK();
+    }
+
+    common::MessageHeader receiveHeader() const
+    {
+        std::vector<char> headerBytes(MESSAGE_HEADER_SIZE);
+        socket.receive(headerBytes.data(), MESSAGE_HEADER_SIZE);
+
+        return common::MessageHeader::deserialize(headerBytes);
+    }
+
+    void recieveOK() const
+    {
+        auto header = receiveHeader();
+
+        std::cout << "Received OK message" << std::endl;
+
+        if (header.messageType != MessageType::OK)
+        {
+            throw std::runtime_error("Expected OK message");
+        }
+    }
+
     void recieveJsonMessage(MessageHeader header)
     {
         std::vector<char> messageBytes(header.dataSize);
@@ -108,28 +183,16 @@ class MessageHandler
         MessageHeader header(HeaderType::JSON_HEADER, id, message.size());
         std::vector<char> bytes = header.serialize();
 
-        // Add message
         bytes.insert(bytes.end(), message.begin(), message.end());
-
         return bytes;
     }
 
-    // std::vector<char> buildAcknowledgeMessage() const
-    // {
-    //     MessageHeader header(HeaderType::PURE_HEADER, MessageType::ACKNOWLEDGE, 0);
-    //     std::vector<char> bytes = header.serialize();
-
-    //     return bytes;
-    // }
-
-    std::vector<char> buildRawDataMessage(const std::vector<char> &data)
+    std::vector<char> buildRawDataMessage(const std::vector<char> &data) const
     {
         MessageHeader header(HeaderType::RAW_DATA_HEADER, MessageType::SEND_RAW, data.size());
         std::vector<char> bytes = header.serialize();
 
-        // Add message
         bytes.insert(bytes.end(), data.begin(), data.end());
-
         return bytes;
     }
 };

@@ -9,8 +9,10 @@ constexpr size_t MESSAGE_HEADER_SIZE = 9;
 
 enum MessageType
 {
-    ACKNOWLEDGE,
+    OK,
+    EXIT,
     INIT_SEND_FILE,
+    INIT_RECIEVE_FILE,
     SEND_RAW,
     LOGIN,
     DELETE_FILE,

@@ -66,6 +66,8 @@ class TCPSocket
         while (i < size)
         {
             const int l = read(socketId, &buffer[i], std::min(chunkSize, size - i));
+            std::cout << "Received " << l << " bytes"
+                      << " from " << size << std::endl;
             if (l < 0)
             {
                 std::runtime_error("Failed to receive data");

@@ -2,16 +2,16 @@
 
 namespace common
 {
-class InitSendFile : public BaseModel
+class InitRecieveFile : public BaseModel
 {
   public:
     std::string filename;
 
-    InitSendFile() : BaseModel(MessageType::INIT_SEND_FILE)
+    InitRecieveFile() : BaseModel(MessageType::INIT_RECEIVE_FILE)
     {
     }
 
-    InitSendFile(const std::string &filename) : BaseModel(MessageType::INIT_SEND_FILE), filename(filename)
+    InitRecieveFile(const std::string &filename) : BaseModel(MessageType::INIT_RECEIVE_FILE), filename(filename)
     {
     }
 
