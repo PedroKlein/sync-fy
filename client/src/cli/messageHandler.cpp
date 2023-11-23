@@ -2,16 +2,9 @@
 
 namespace cli
 {
-void MessageHandler::handleJsonMessage(common::MessageHeader header, const std::string &message)
+void MessageHandler::handleMessage(const common::Message &message)
 {
     std::cout << message << std::endl;
-}
-
-void MessageHandler::handleRawMessage(common::MessageHeader header)
-{
-    // auto bytes = socket.receive(header.dataSize);
-    // std::string message(bytes.begin(), bytes.end());
-    // std::cout << message << std::endl;
 }
 
 void MessageHandler::sendUploadFileMessage(const std::string &filename) const

@@ -2,24 +2,19 @@
 
 namespace command
 {
-void MessageHandler::handleJsonMessage(common::MessageHeader header, const std::string &message)
+void MessageHandler::handleMessage(const common::Message &message)
 {
-    switch (header.messageType)
+    switch (message.getMessageHeader().headerType)
     {
-    case common::MessageType::LOGIN:
-        std::cout << message << std::endl;
-        break;
-
-    default:
-        std::cout << "Not implemented" << std::endl;
+    case common::HeaderType::JSON_HEADER: {
+        std::cout << "JSON_HEADER" << std::endl;
+        std::string data(message.getData().begin(), message.getData().end());
+        std::cout << data << std::endl;
         break;
     }
-}
-
-void MessageHandler::handleRawMessage(common::MessageHeader header)
-{
-    // auto bytes = socket.receive(header.dataSize);
-    // std::string message(bytes.begin(), bytes.end());
-    // std::cout << message << std::endl;
+    default:
+        std::cout << "not implemented" << std::endl;
+        break;
+    }
 }
 } // namespace command

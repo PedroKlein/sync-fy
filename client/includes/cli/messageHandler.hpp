@@ -1,5 +1,6 @@
 #pragma once
 
+#include <messages/message.hpp>
 #include <messages/messageHandler.hpp>
 #include <models/deleteFile.hpp>
 #include <models/initRecieveFile.hpp>
@@ -20,7 +21,6 @@ class MessageHandler : public common::MessageHandler
 
   public:
   protected:
-    void handleJsonMessage(common::MessageHeader header, const std::string &message) override;
-    void handleRawMessage(common::MessageHeader header) override;
+    void handleMessage(const common::Message &message) override;
 };
 }

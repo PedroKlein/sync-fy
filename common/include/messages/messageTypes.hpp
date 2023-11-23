@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <iostream>
 #include <vector>
 
 namespace common
@@ -12,10 +13,11 @@ enum MessageType
     OK,
     EXIT,
     INIT_SEND_FILE,
-    INIT_RECIEVE_FILE,
+    INIT_RECEIVE_FILE,
     SEND_RAW,
     LOGIN,
     DELETE_FILE,
+    LIST_FILES,
     LIST_SERVER,
     LIST_CLIENT,
 };
@@ -38,7 +40,7 @@ struct MessageHeader
     {
     }
 
-    std::vector<char> serialize()
+    std::vector<char> serialize() const
     {
         std::vector<char> bytes;
 
@@ -72,6 +74,14 @@ struct MessageHeader
         }
 
         return MessageHeader(headerType, messageType, dataSize);
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const MessageHeader &header)
+    {
+        os << "Header Type: " << static_cast<char>(header.headerType) << "\n";
+        os << "Message Type: " << static_cast<int>(header.messageType) << "\n";
+        os << "Data Size: " << header.dataSize;
+        return os;
     }
 };
 } // namespace common
