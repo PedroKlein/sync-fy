@@ -37,9 +37,11 @@ void ServerSocket::StartListening()
             exit(EXIT_FAILURE);
         }
 
-        std::cout << "Client {" << connection.socket << "} connected." << std::endl;
+        // Get the client IP
+        std::string clientIP(inet_ntoa(clientAddress.sin_addr));
+        std::cout << "Client {" << connection.socket << "} connected from IP: " << clientIP << std::endl;
 
-        onClientConnectCallback(connection.socket);
+        onClientConnectCallback(connection.socket, clientIP);
 
         clientConnections.push_back(connection);
     }
