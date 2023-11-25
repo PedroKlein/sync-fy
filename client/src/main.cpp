@@ -27,17 +27,17 @@ int main(int argc, char *argv[])
         username = "test";
     }
 
-    ClientSocket commandSocket("localhost", common::COMMAND_PORT);
-    ClientSocket serverDataSocket("localhost", common::SERVER_DATA_PORT);
-    ClientSocket clientDataSocket("localhost", common::CLIENT_DATA_PORT);
+    // ClientSocket commandSocket("localhost", common::COMMAND_PORT);
+    // ClientSocket serverDataSocket("localhost", common::SERVER_DATA_PORT);
+    // ClientSocket clientDataSocket("localhost", common::CLIENT_DATA_PORT);
 
-    cli::MessageHandler commandMessager(commandSocket, username);
+    // cli::MessageHandler commandMessager(commandSocket, username);
 
-    cli::CommandHandler handler(commandMessager);
-    cli::CLI cli(handler);
-    std::thread *cliThread = cli.start();
+    // cli::CommandHandler handler(commandMessager);
+    // cli::CLI cli(handler);
+    // std::thread *cliThread = cli.start();
 
-    cliThread->join();
+    // cliThread->join();
 
     return 0;
 }

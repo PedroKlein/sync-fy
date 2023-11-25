@@ -1,5 +1,6 @@
 #pragma once
 
+#include <arpa/inet.h>
 #include <functional>
 #include <jsoncpp/json/json.h>
 #include <socket/tcpSocket.hpp>
