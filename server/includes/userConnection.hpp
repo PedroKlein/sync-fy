@@ -6,7 +6,6 @@
 struct Connection
 {
     common::TCPSocket socket;
-    std::thread thread;
 };
 
 struct ClientConnection
@@ -14,7 +13,7 @@ struct ClientConnection
     Connection *commandConnection;
     Connection *serverDataConnection;
     Connection *clientDataConnection;
-    FileChangesQueue fileChangesQueue;
+    // FileChangesQueue fileChangesQueue;
 };
 
 class UserConnection
@@ -26,7 +25,7 @@ class UserConnection
     UserConnection() = default;
     ~UserConnection() = default;
 
-    void setClientConnection(const std::string &ip, const ClientConnection *clientConnection)
+    void setClientConnection(const std::string &ip, ClientConnection *clientConnection)
     {
         if (clientConnections.size() >= 2)
         {
@@ -36,12 +35,24 @@ class UserConnection
         clientConnections[ip] = clientConnection;
     }
 
-    ClientConnection &getClientConnection(const std::string &ip) const
+    void setCommandConnection(const std::string &ip, Connection *commandConnection)
     {
         auto it = clientConnections.find(ip);
         if (it == clientConnections.end())
         {
             throw std::out_of_range("IP not found");
+        }
+
+        it->second->commandConnection = commandConnection;
+    }
+
+    ClientConnection *getClientConnection(const std::string &ip)
+    {
+        auto it = clientConnections.find(ip);
+        if (it == clientConnections.end())
+        {
+            // throw std::out_of_range("IP not found");
+            return nullptr;
         }
         return it->second;
     }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "command/messageHandler.hpp"
-// #include "userConnection.hpp"
+#include "userConnection.hpp"
 #include <messages/messageHandler.hpp>
 #include <socket/tcpSocket.hpp>
 #include <thread>
@@ -15,32 +15,33 @@ class ConnectionHandler
     // ConnectionHandler &operator=(const ConnectionHandler &) = delete;
 
     // Provide a static method to get the instance of the class
-    static ConnectionHandler &getInstance()
+    static ConnectionHandler *getInstance()
     {
-        static ConnectionHandler instance;
+        static ConnectionHandler *instance = new ConnectionHandler();
         return instance;
     }
 
-    // void setUserConnection(const std::string &username, const UserConnection &userConnection)
-    // {
-    //     userConnections[username] = userConnection;
-    // }
+    void addUserConnection(const std::string &username, UserConnection *userConnection)
+    {
+        userConnections[username] = userConnection;
+    }
 
-    // UserConnection getUserConnection(const std::string &username) const
-    // {
-    //     auto it = userConnections.find(username);
-    //     if (it == userConnections.end())
-    //     {
-    //         throw std::out_of_range("Username not found");
-    //     }
-    //     return it->second;
-    // }
+    UserConnection *getUserConnection(const std::string &username) 
+    {
+        auto it = userConnections.find(username);
+        if (it == userConnections.end())
+        {
+            // throw std::out_of_range("Username not found");
+            return nullptr;
+        }
+        return it->second;
+    }
 
     static void onCommandSocketConnection(int clientSocketId, const std::string &ip);
 
   private:
     // // Make the constructor private
-    // ConnectionHandler() = default;
+    ConnectionHandler() = default;
 
-    // std::unordered_map<std::string, UserConnection> userConnections;
+    std::unordered_map<std::string, UserConnection*> userConnections;
 };
