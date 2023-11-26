@@ -12,7 +12,7 @@ void ConnectionHandler::onCommandSocketConnection(int clientSocketId, const std:
         Connection connection;
         connection.socketId = clientSocketId;
 
-        UserConnection *userConnection = connectionHandler->getUserConnection(ip);
+        UserConnection *userConnection = connectionHandler->getUserConnection(handler.getUsername());
         if (userConnection == nullptr)
         {
             userConnection = new UserConnection();
