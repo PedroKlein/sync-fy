@@ -5,7 +5,7 @@
 
 struct Connection
 {
-    common::TCPSocket socket;
+    int socketId;
 };
 
 struct ClientConnection
