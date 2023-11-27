@@ -6,8 +6,8 @@
 #include <unistd.h>
 #include <sys/inotify.h>
 #include <functional>
-#include <sys/stat.h>
 #include <thread>
+#include <filesystem>
 
 #define DEFAULT_PATH "./sync_dir"
 
@@ -35,7 +35,20 @@ private:
 public:
     FileWatcher(const char *dirPath) : dirPath(dirPath)
     {
-        mkdir(dirPath, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        if(std::filesystem::exists(dirPath)) 
+        {
+            try {
+                std::filesystem::remove_all(dirPath);
+            } catch (const std::exception& e) {
+                std::cerr << "Error removing directory: " << e.what() << std::endl;
+            }
+        }
+
+        try {
+            std::filesystem::create_directory(dirPath);
+        } catch (const std::exception& e) {
+            std::cerr << "Error creating directory: " << e.what() << std::endl;
+        }
 
         inotifyFd = inotify_init();
         if (inotifyFd < 0)

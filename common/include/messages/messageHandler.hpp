@@ -10,6 +10,7 @@
 #include "socket/tcpSocket.hpp"
 #include <iostream>
 #include <sys/stat.h>
+#include <filesystem>
 
 namespace common
 {
@@ -184,7 +185,6 @@ class MessageHandler
         sendOK();
     }
 
-    // TODO: This is not generic, file is always save in the root.
     void handleInitSendFile(const std::vector<char> &data, common::MessageHeader header)
     {
         std::string message(data.begin(), data.end());
@@ -194,7 +194,15 @@ class MessageHandler
 
         sendOK();
 
-        mkdir((char *)&username[0], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        if (!std::filesystem::exists(username))
+        {
+            try {
+                std::filesystem::create_directory(username);
+            } catch (const std::exception& e) {
+                std::cerr << "Error creating directory: " << e.what() << std::endl;
+            }
+        }
+        
         std::string filePath = "./" + username + "/" + initSendFile.filename;
         File file = File::create(filePath);
 
