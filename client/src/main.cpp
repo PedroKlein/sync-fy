@@ -27,23 +27,6 @@ int main(int argc, char *argv[])
     {
         username = "test";
     }
- 
-    // FileWatcher
-    FileWatcher fileWatcher(DEFAULT_PATH); 
-
-    fileWatcher.setFileAddedCallback([](const std::string& filePath) {
-        std::cout << "File added: "  << filePath << std::endl;
-    });
-    
-    fileWatcher.setFileModifiedCallback([](const std::string& filePath) {
-        std::cout << "File modified: " << filePath << std::endl;
-    });
-
-    fileWatcher.setFileRemovedCallback([](const std::string& filePath) {
-        std::cout << "File removed: " << filePath << std::endl;
-    });
-
-    std::thread *fileWatcherThread = fileWatcher.start();
 
     // CLI
     ClientSocket commandSocket("localhost", common::COMMAND_PORT);
@@ -56,8 +39,25 @@ int main(int argc, char *argv[])
     cli::CLI cli(handler);
     std::thread *cliThread = cli.start();
 
-    
-    // Finalization 
+    // FileWatcher
+    FileWatcher fileWatcher(DEFAULT_PATH);
+
+    fileWatcher.setFileAddedCallback([handler](const std::string &filePath){ 
+        std::cout << "File added: " << filePath << std::endl; 
+        handler.executeCommand("upload", std::vector<std::string>{filePath});
+    });
+
+    fileWatcher.setFileModifiedCallback([](const std::string &filePath){ 
+        std::cout << "File modified: " << filePath << std::endl; 
+    });
+
+    fileWatcher.setFileRemovedCallback([](const std::string &filePath){ 
+        std::cout << "File removed: " << filePath << std::endl; 
+    });
+
+    std::thread *fileWatcherThread = fileWatcher.start();
+
+    // Finalization
     cliThread->join();
     fileWatcherThread->join();
 

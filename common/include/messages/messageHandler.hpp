@@ -9,6 +9,7 @@
 #include "models/login.hpp"
 #include "socket/tcpSocket.hpp"
 #include <iostream>
+#include <sys/stat.h>
 
 namespace common
 {
@@ -193,7 +194,9 @@ class MessageHandler
 
         sendOK();
 
-        File file = File::create(initSendFile.filename);
+        mkdir((char *)&username[0], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        std::string filePath = "./" + username + "/" + initSendFile.filename;
+        File file = File::create(filePath);
 
         file.writeFile([&]() -> common::FileChunk {
             auto message = receiveRaw();
