@@ -6,29 +6,37 @@ void ConnectionHandler::onCommandSocketConnection(int clientSocketId, const std:
 {
     std::thread([clientSocketId, ip]() {  
         common::TCPSocket clientSocket(clientSocketId);
-        command::MessageHandler handler(clientSocket);    
+        command::MessageHandler handler(clientSocket);
 
         ConnectionHandler *connectionHandler = ConnectionHandler::getInstance();
-        Connection connection;
-        connection.socketId = clientSocketId;
 
-        UserConnection *userConnection = connectionHandler->getUserConnection(handler.getUsername());
-        if (userConnection == nullptr)
-        {
-            userConnection = new UserConnection();
-        }
+        UserConnection *userConnection = connectionHandler->addUserConnection(handler.getUsername());
 
-        ClientConnection *clientConnection = userConnection->getClientConnection(ip);
-        if (clientConnection == nullptr)
-        {
-            clientConnection = new ClientConnection();
-            userConnection->setClientConnection(ip, clientConnection);
-        }
-        else {
-            userConnection->setCommandConnection(ip, &connection);
-        }
+        ClientConnection *clientConnection = userConnection->addClientConnection(ip);
 
-        connectionHandler->addUserConnection(handler.getUsername(), userConnection);
+        Connection *connection = new Connection();
+        connection->socketId = clientSocketId;
+        userConnection->setCommandConnection(clientConnection, connection);
+
+        handler.monitorMessages();
+    }).detach();
+}
+
+void ConnectionHandler::onClientDataSocketConnection(int clientSocketId, const std::string &ip)
+{
+    std::thread([clientSocketId, ip]() {
+        common::TCPSocket clientSocket(clientSocketId);
+        clientMonitor::MessageHandler handler(clientSocket);
+
+        ConnectionHandler *connectionHandler = ConnectionHandler::getInstance();
+
+        UserConnection *userConnection = connectionHandler->addUserConnection(handler.getUsername());
+
+        ClientConnection *clientConnection = userConnection->addClientConnection(ip);
+
+        Connection *connection = new Connection();
+        connection->socketId = clientSocketId;
+        userConnection->setClientDataConnection(clientConnection, connection);
 
         handler.monitorMessages();
     }).detach();

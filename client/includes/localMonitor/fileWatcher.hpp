@@ -1,52 +1,39 @@
-#ifndef FILEMANAGER_HPP
-#define FILEMANAGER_HPP
+#pragma once
 
-#include <iostream>
 #include <cstring>
-#include <unistd.h>
-#include <sys/inotify.h>
-#include <functional>
-#include <thread>
 #include <filesystem>
+#include <functional>
+#include <iostream>
+#include <sys/inotify.h>
+#include <thread>
+#include <unistd.h>
 
-#define DEFAULT_PATH "./sync_dir"
+namespace localMonitor
+{
 
 class FileWatcher
 {
-private:
-    static const int EVENT_SIZE = (sizeof(struct inotify_event));
-    static const int EVENT_BUF_LEN = 1024;
-
-    int inotifyFd;
-    int watchFd;
-
-    bool isRunning = true;
-    std::thread watcherThread;
-
-    std::string dirPath;
-
-    std::function<void(const std::string &)> fileAddedCallback;
-    std::function<void(const std::string &)> fileRemovedCallback;
-    std::function<void(const std::string &)> fileModifiedCallback;
-
-    void processEvents();
-    void run();
-
-public:
+  public:
     FileWatcher(const char *dirPath) : dirPath(dirPath)
     {
-        if(std::filesystem::exists(dirPath)) 
+        if (std::filesystem::exists(dirPath))
         {
-            try {
+            try
+            {
                 std::filesystem::remove_all(dirPath);
-            } catch (const std::exception& e) {
+            }
+            catch (const std::exception &e)
+            {
                 std::cerr << "Error removing directory: " << e.what() << std::endl;
             }
         }
 
-        try {
+        try
+        {
             std::filesystem::create_directory(dirPath);
-        } catch (const std::exception& e) {
+        }
+        catch (const std::exception &e)
+        {
             std::cerr << "Error creating directory: " << e.what() << std::endl;
         }
 
@@ -67,11 +54,9 @@ public:
 
     ~FileWatcher()
     {
-        stop();
+        inotify_rm_watch(inotifyFd, watchFd);
+        close(inotifyFd);
     }
-
-    std::thread* start();
-    void stop();
 
     void setFileAddedCallback(std::function<void(const std::string &)> callback);
     void setFileRemovedCallback(std::function<void(const std::string &)> callback);
@@ -79,6 +64,20 @@ public:
 
     void pauseFileWatching();
     void resumeFileWatching();
-};
 
-#endif
+    void processEvents();
+
+  private:
+    static const int EVENT_SIZE = (sizeof(struct inotify_event));
+    static const int EVENT_BUF_LEN = 1024;
+
+    int inotifyFd;
+    int watchFd;
+
+    std::string dirPath;
+
+    std::function<void(const std::string &)> fileAddedCallback;
+    std::function<void(const std::string &)> fileRemovedCallback;
+    std::function<void(const std::string &)> fileModifiedCallback;
+};
+} // namespace localMonitor

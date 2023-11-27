@@ -1,4 +1,7 @@
-#include "../includes/fileWatcher/fileWatcher.hpp"
+#include "localMonitor/fileWatcher.hpp"
+
+namespace localMonitor
+{
 
 void FileWatcher::setFileAddedCallback(std::function<void(const std::string &)> callback)
 {
@@ -57,30 +60,4 @@ void FileWatcher::processEvents()
         i += EVENT_SIZE + event->len;
     }
 }
-
-std::thread *FileWatcher::start()
-{
-    isRunning = true;
-    watcherThread = std::thread(&FileWatcher::run, this);
-    return &watcherThread;
-}
-
-void FileWatcher::run()
-{
-    while (isRunning)
-    {
-        processEvents();
-    }
-}
-
-void FileWatcher::stop()
-{
-    isRunning = false;
-    close(watchFd);
-    close(inotifyFd);
-
-    if (watcherThread.joinable())
-    {
-        watcherThread.join();
-    }
-}
+} // namespace localMonitor

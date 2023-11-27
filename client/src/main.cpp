@@ -3,9 +3,13 @@
 #include "cli/cli.hpp"
 #include "cli/commandHandler.hpp"
 #include "cli/messageHandler.hpp"
-#include "fileWatcher/fileWatcher.hpp"
 #include "clientSocket.hpp"
+#include "localMonitor/fileWatcher.hpp"
+#include "localMonitor/localMonitor.hpp"
+#include "localMonitor/messageHandler.hpp"
 #include <constants.hpp>
+
+constexpr const char *DEFAULT_SYNC_DIR = "./sync_dir";
 
 int main(int argc, char *argv[])
 {
@@ -28,40 +32,25 @@ int main(int argc, char *argv[])
         username = "test";
     }
 
-    // CLI
     ClientSocket commandSocket("localhost", common::COMMAND_PORT);
-    ClientSocket serverDataSocket("localhost", common::SERVER_DATA_PORT);
-    ClientSocket clientDataSocket("localhost", common::CLIENT_DATA_PORT);
+    ClientSocket serverMonitorSocket("localhost", common::SERVER_DATA_PORT);
+    ClientSocket localMonitorSocket("localhost", common::CLIENT_DATA_PORT);
 
+    // CLI
     cli::MessageHandler commandMessager(commandSocket, username);
-
-    cli::CommandHandler handler(commandMessager);
-    cli::CLI cli(handler);
+    cli::CommandHandler commandHandler(commandMessager);
+    cli::CLI cli(commandHandler);
     std::thread *cliThread = cli.start();
 
-    // FileWatcher
-    FileWatcher fileWatcher(DEFAULT_PATH);
-
-    fileWatcher.setFileAddedCallback([handler](const std::string &filePath){ 
-        std::cout << "File added: " << filePath << std::endl; 
-        handler.executeCommand("upload", std::vector<std::string>{filePath});
-    });
-
-    fileWatcher.setFileModifiedCallback([](const std::string &filePath){ 
-        std::cout << "File modified: " << filePath << std::endl; 
-    });
-
-    fileWatcher.setFileRemovedCallback([](const std::string &filePath){ 
-        std::cout << "File removed: " << filePath << std::endl; 
-    });
-
-    std::thread *fileWatcherThread = fileWatcher.start();
+    // LocalMonitor
+    localMonitor::FileWatcher fileWatcher(DEFAULT_SYNC_DIR);
+    localMonitor::MessageHandler localMonitorMessageHandler(localMonitorSocket);
+    localMonitor::LocalMonitor localMonitor(fileWatcher, localMonitorMessageHandler);
+    std::thread *localMonitorThread = localMonitor.start();
 
     // Finalization
     cliThread->join();
-    fileWatcherThread->join();
-
-    std::cout << "Hello, World!" << std::endl;
+    localMonitorThread->join();
 
     return 0;
 }
