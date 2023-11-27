@@ -1,23 +1,21 @@
-#include "../../includes/fileManager/fileManager.hpp"
+#include "../includes/fileWatcher/fileWatcher.hpp"
 
-using namespace filemanager;
-
-void FileManager::setFileAddedCallback(std::function<void(const std::string&)> callback)
+void FileWatcher::setFileAddedCallback(std::function<void(const std::string&)> callback)
 {
     fileAddedCallback = std::move(callback);
 }
 
-void FileManager::setFileRemovedCallback(std::function<void(const std::string&)> callback)
+void FileWatcher::setFileRemovedCallback(std::function<void(const std::string&)> callback)
 {
     fileRemovedCallback = std::move(callback);
 }
 
-void FileManager::setFileModifiedCallback(std::function<void(const std::string&)> callback)
+void FileWatcher::setFileModifiedCallback(std::function<void(const std::string&)> callback)
 {
     fileModifiedCallback = std::move(callback);
 }
 
-void FileManager::processEvents() 
+void FileWatcher::processEvents() 
 {
     char buffer[EVENT_BUF_LEN];
         int length = read(inotifyFd, buffer, EVENT_BUF_LEN);
@@ -50,11 +48,11 @@ void FileManager::processEvents()
         }
 }
 
-void FileManager::startMonitoring() 
+std::thread* FileWatcher::start() 
 {
     while (true)
     {
         processEvents();
     }
-    
+    return nullptr;
 }

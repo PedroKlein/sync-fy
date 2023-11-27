@@ -3,6 +3,7 @@
 #include "cli/cli.hpp"
 #include "cli/commandHandler.hpp"
 #include "cli/messageHandler.hpp"
+#include "fileWatcher/fileWatcher.hpp"
 #include "clientSocket.hpp"
 #include <constants.hpp>
 
@@ -16,7 +17,7 @@ int main(int argc, char *argv[])
     //     exit(errno);
     // }
 
-    std::string username;
+    std::string username, dirPath;
 
     if (argv[1])
     {
@@ -26,7 +27,25 @@ int main(int argc, char *argv[])
     {
         username = "test";
     }
+ 
+    // FileWatcher
+    FileWatcher fileWatcher(DEFAULT_PATH); 
 
+    fileWatcher.setFileAddedCallback([](const std::string& filePath) {
+        std::cout << "File added: "  << filePath << std::endl;
+    });
+    
+    fileWatcher.setFileModifiedCallback([](const std::string& filePath) {
+        std::cout << "File modified: " << filePath << std::endl;
+    });
+
+    fileWatcher.setFileRemovedCallback([](const std::string& filePath) {
+        std::cout << "File removed: " << filePath << std::endl;
+    });
+
+    std::thread *fileWatcherThread = fileWatcher.start();
+
+    // CLI
     ClientSocket commandSocket("localhost", common::COMMAND_PORT);
     ClientSocket serverDataSocket("localhost", common::SERVER_DATA_PORT);
     ClientSocket clientDataSocket("localhost", common::CLIENT_DATA_PORT);
@@ -37,7 +56,10 @@ int main(int argc, char *argv[])
     cli::CLI cli(handler);
     std::thread *cliThread = cli.start();
 
+    
+    // Finalization 
     cliThread->join();
+    fileWatcherThread->join();
 
     std::cout << "Hello, World!" << std::endl;
 
