@@ -20,6 +20,9 @@ private:
     int inotifyFd;
     int watchFd;
 
+    bool isRunning = true;
+    std::thread watcherThread;
+
     std::string dirPath;
 
     std::function<void(const std::string &)> fileAddedCallback;
@@ -27,6 +30,7 @@ private:
     std::function<void(const std::string &)> fileModifiedCallback;
 
     void processEvents();
+    void run();
 
 public:
     FileWatcher(const char *dirPath) : dirPath(dirPath)
@@ -50,11 +54,11 @@ public:
 
     ~FileWatcher()
     {
-        close(watchFd);
-        close(inotifyFd);
+        stop();
     }
 
     std::thread* start();
+    void stop();
 
     void setFileAddedCallback(std::function<void(const std::string &)> callback);
     void setFileRemovedCallback(std::function<void(const std::string &)> callback);

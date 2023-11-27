@@ -1,58 +1,86 @@
 #include "../includes/fileWatcher/fileWatcher.hpp"
 
-void FileWatcher::setFileAddedCallback(std::function<void(const std::string&)> callback)
+void FileWatcher::setFileAddedCallback(std::function<void(const std::string &)> callback)
 {
     fileAddedCallback = std::move(callback);
 }
 
-void FileWatcher::setFileRemovedCallback(std::function<void(const std::string&)> callback)
+void FileWatcher::setFileRemovedCallback(std::function<void(const std::string &)> callback)
 {
     fileRemovedCallback = std::move(callback);
 }
 
-void FileWatcher::setFileModifiedCallback(std::function<void(const std::string&)> callback)
+void FileWatcher::setFileModifiedCallback(std::function<void(const std::string &)> callback)
 {
     fileModifiedCallback = std::move(callback);
 }
 
-void FileWatcher::processEvents() 
+void FileWatcher::processEvents()
 {
     char buffer[EVENT_BUF_LEN];
-        int length = read(inotifyFd, buffer, EVENT_BUF_LEN);
+    int length = read(inotifyFd, buffer, EVENT_BUF_LEN);
 
-        if (length < 0) {
-            perror("read");
-            exit(EXIT_FAILURE);
-        }
+    if (length < 0)
+    {
+        perror("read");
+        exit(EXIT_FAILURE);
+    }
 
-        for (int i = 0; i < length;) {
-            struct inotify_event* event = reinterpret_cast<struct inotify_event*>(&buffer[i]);
-            std::string fileName = event->name ? event->name : "";
-            std::string filePath = dirPath + "/" + fileName;
+    for (int i = 0; i < length;)
+    {
+        struct inotify_event *event = reinterpret_cast<struct inotify_event *>(&buffer[i]);
+        std::string fileName = event->name ? event->name : "";
+        std::string filePath = dirPath + "/" + fileName;
 
-            if (event->mask & IN_MODIFY) {
-                if (fileModifiedCallback) {
-                    fileModifiedCallback(filePath);
-                }
-            } else if (event->mask & IN_CREATE) {
-                if (fileAddedCallback) {
-                    fileAddedCallback(filePath);
-                }
-            } else if (event->mask & IN_DELETE) {
-                if (fileRemovedCallback) {
-                    fileRemovedCallback(filePath);
-                }
+        if (event->mask & IN_MODIFY)
+        {
+            if (fileModifiedCallback)
+            {
+                fileModifiedCallback(filePath);
             }
-
-            i += EVENT_SIZE + event->len;
         }
+        else if (event->mask & IN_CREATE)
+        {
+            if (fileAddedCallback)
+            {
+                fileAddedCallback(filePath);
+            }
+        }
+        else if (event->mask & IN_DELETE)
+        {
+            if (fileRemovedCallback)
+            {
+                fileRemovedCallback(filePath);
+            }
+        }
+
+        i += EVENT_SIZE + event->len;
+    }
 }
 
-std::thread* FileWatcher::start() 
+std::thread *FileWatcher::start()
 {
-    while (true)
+    isRunning = true;
+    watcherThread = std::thread(&FileWatcher::run, this);
+    return &watcherThread;
+}
+
+void FileWatcher::run()
+{
+    while (isRunning)
     {
         processEvents();
     }
-    return nullptr;
+}
+
+void FileWatcher::stop()
+{
+    isRunning = false;
+    close(watchFd);
+    close(inotifyFd);
+
+    if (watcherThread.joinable())
+    {
+        watcherThread.join();
+    }
 }
