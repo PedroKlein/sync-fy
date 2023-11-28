@@ -26,7 +26,8 @@ ServerSocket::~ServerSocket()
 
 void ServerSocket::startListening()
 {
-    while (true)
+    isListening = true;
+    while (isListening)
     {
         // Accept a client connection
         int newSocket = accept(socketId, (struct sockaddr *)&clientAddress, &clientLength);
@@ -42,6 +43,12 @@ void ServerSocket::startListening()
 
         onClientConnectCallback(newSocket, clientIP);
     }
+}
+
+void ServerSocket::stopListening()
+{
+    isListening = false;
+    close(socketId);
 }
 
 struct sockaddr_in ServerSocket::newSocketAddress(int port)

@@ -53,10 +53,10 @@ class TCPSocket
             try
             {
                 const int l = ::send(socketId, &buffer[i], std::min(chunkSize, size - i), 0);
-                if (l < 0)
-                {
-                    throw std::runtime_error("Failed to send data");
-                }
+                // if (l < 0)
+                // {
+                //     throw std::runtime_error("Failed to send data");
+                // }
                 i += l;
             }
             catch (const std::exception &e)
