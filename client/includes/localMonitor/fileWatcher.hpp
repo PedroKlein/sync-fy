@@ -14,50 +14,9 @@ namespace localMonitor
 class FileWatcher
 {
   public:
-    FileWatcher(const char *dirPath) : dirPath(dirPath)
-    {
-        if (std::filesystem::exists(dirPath))
-        {
-            try
-            {
-                std::filesystem::remove_all(dirPath);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "Error removing directory: " << e.what() << std::endl;
-            }
-        }
+    FileWatcher(const char *dirPath);
 
-        try
-        {
-            std::cout << "Creating directory: " << dirPath << std::endl;
-            std::filesystem::create_directory(dirPath);
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << "Error creating directory: " << e.what() << std::endl;
-        }
-
-        inotifyFd = inotify_init();
-        if (inotifyFd < 0)
-        {
-            std::cout << "inotify_init failed" << std::endl;
-            exit(EXIT_FAILURE);
-        }
-
-        watchFd = inotify_add_watch(inotifyFd, dirPath, IN_MODIFY | IN_CREATE | IN_DELETE);
-        if (watchFd < 0)
-        {
-            std::cout << "inotify_add_watch failed" << std::endl;
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    ~FileWatcher()
-    {
-        inotify_rm_watch(inotifyFd, watchFd);
-        close(inotifyFd);
-    }
+    ~FileWatcher();
 
     void setFileAddedCallback(std::function<void(const std::string &)> callback);
     void setFileRemovedCallback(std::function<void(const std::string &)> callback);
