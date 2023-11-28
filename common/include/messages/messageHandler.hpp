@@ -206,6 +206,12 @@ class MessageHandler
         std::string filePath = "./" + username + "/" + initSendFile.filename;
         File file = File::create(filePath);
 
+        if (initSendFile.fileSize == 0)
+        {
+            sendOK();
+            return;
+        }
+
         file.writeFile([&]() -> common::FileChunk {
             auto message = receiveRaw();
             auto messageHeader = message.getMessageHeader();

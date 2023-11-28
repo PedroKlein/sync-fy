@@ -24,7 +24,7 @@ ServerSocket::~ServerSocket()
 {
 }
 
-void ServerSocket::StartListening()
+void ServerSocket::startListening()
 {
     while (true)
     {

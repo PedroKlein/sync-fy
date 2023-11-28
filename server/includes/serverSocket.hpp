@@ -14,7 +14,7 @@ class ServerSocket : public common::TCPSocket
   public:
     ServerSocket(int port, OnConnectionCallback onClientConnectCallback);
     ~ServerSocket();
-    void StartListening();
+    void startListening();
 
   private:
     socklen_t clientLength;

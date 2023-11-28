@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
     std::thread *cliThread = cli.start();
 
     // LocalMonitor
+    localMonitor::MessageHandler localMonitorMessageHandler(localMonitorSocket, username);
     localMonitor::FileWatcher fileWatcher(DEFAULT_SYNC_DIR);
-    localMonitor::MessageHandler localMonitorMessageHandler(localMonitorSocket);
     localMonitor::LocalMonitor localMonitor(fileWatcher, localMonitorMessageHandler);
     std::thread *localMonitorThread = localMonitor.start();
 

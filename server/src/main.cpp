@@ -10,8 +10,14 @@ int main()
     ServerSocket serverDataSocket(common::SERVER_DATA_PORT, ConnectionHandler::onCommandSocketConnection);
     ServerSocket clientDataSocket(common::CLIENT_DATA_PORT, ConnectionHandler::onClientDataSocketConnection);
 
-    commandSocket.StartListening();
-    serverDataSocket.StartListening();
-    clientDataSocket.StartListening();
+    // start listening inside a thread
+    std::thread commandSocketThread(&ServerSocket::startListening, &commandSocket);
+    std::thread serverDataSocketThread(&ServerSocket::startListening, &serverDataSocket);
+    std::thread clientDataSocketThread(&ServerSocket::startListening, &clientDataSocket);
+
+    commandSocketThread.join();
+    serverDataSocketThread.join();
+    clientDataSocketThread.join();
+
     return 0;
 }

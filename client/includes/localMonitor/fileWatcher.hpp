@@ -30,6 +30,7 @@ class FileWatcher
 
         try
         {
+            std::cout << "Creating directory: " << dirPath << std::endl;
             std::filesystem::create_directory(dirPath);
         }
         catch (const std::exception &e)
