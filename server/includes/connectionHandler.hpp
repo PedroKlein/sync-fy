@@ -3,6 +3,7 @@
 #include "clientMonitor/messageHandler.hpp"
 #include "command/messageHandler.hpp"
 #include "userConnection.hpp"
+#include <memory>
 #include <messages/messageHandler.hpp>
 #include <socket/tcpSocket.hpp>
 #include <thread>
@@ -15,41 +16,12 @@ class ConnectionHandler
     // ConnectionHandler(const ConnectionHandler &) = delete;
     // ConnectionHandler &operator=(const ConnectionHandler &) = delete;
 
-    // Provide a static method to get the instance of the class
-    static ConnectionHandler *getInstance()
-    {
-        // should we use a mutex here?
-        static ConnectionHandler *instance = new ConnectionHandler();
-        return instance;
-    }
+    UserConnection &addUserConnection(const std::string &username);
+    UserConnection &getUserConnection(const std::string &username);
 
-    UserConnection *addUserConnection(const std::string &username)
-    {
-        std::lock_guard<std::mutex> lock(mtx);
-        auto it = userConnections.find(username);
+    void removeUserConnection(const std::string &username);
 
-        // user connection already exists
-        if (it != userConnections.end())
-        {
-            return it->second;
-        }
-
-        UserConnection *userConnection = new UserConnection();
-        userConnections[username] = userConnection;
-
-        return userConnection;
-    }
-
-    UserConnection *getUserConnection(const std::string &username) 
-    {
-        auto it = userConnections.find(username);
-        if (it == userConnections.end())
-        {
-            throw std::out_of_range("Username not found");
-        }
-        return it->second;
-    }
-
+    static ConnectionHandler &getInstance();
     static void onCommandSocketConnection(int clientSocketId, const std::string &ip);
     static void onClientDataSocketConnection(int clientSocketId, const std::string &ip);
 
@@ -58,6 +30,6 @@ class ConnectionHandler
     ConnectionHandler() = default;
 
     // username -> userConnection
-    std::unordered_map<std::string, UserConnection*> userConnections;
+    std::unordered_map<std::string, std::unique_ptr<UserConnection>> userConnections;
     std::mutex mtx;
 };

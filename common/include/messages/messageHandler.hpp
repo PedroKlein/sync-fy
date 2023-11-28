@@ -105,7 +105,7 @@ class MessageHandler
         }
     }
 
-    std::string getUsername() const
+    const std::string &getUsername() const
     {
         return username;
     }

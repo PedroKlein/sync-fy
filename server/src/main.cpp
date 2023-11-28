@@ -4,7 +4,7 @@
 
 int main()
 {
-    ConnectionHandler *connectionHandler = ConnectionHandler::getInstance();
+    ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
     // TODO: Change callback connection to each socket type
     ServerSocket commandSocket(common::COMMAND_PORT, ConnectionHandler::onCommandSocketConnection);
     ServerSocket serverDataSocket(common::SERVER_DATA_PORT, ConnectionHandler::onCommandSocketConnection);
