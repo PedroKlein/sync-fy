@@ -6,7 +6,7 @@ void ConnectionHandler::onCommandSocketConnection(int clientSocketId, const std:
 {
     std::thread([clientSocketId, ip]() {
         common::TCPSocket clientSocket(clientSocketId);
-        command::MessageHandler handler(clientSocket);
+        command::MessageHandler handler(clientSocket, ip);
 
         ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
         UserConnection &userConnection = connectionHandler.addUserConnection(handler.getUsername());
@@ -28,7 +28,7 @@ void ConnectionHandler::onClientDataSocketConnection(int clientSocketId, const s
 {
     std::thread([clientSocketId, ip]() {
         common::TCPSocket clientSocket(clientSocketId);
-        clientMonitor::MessageHandler handler(clientSocket);
+        clientMonitor::MessageHandler handler(clientSocket, ip);
 
         ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
         UserConnection &userConnection = connectionHandler.addUserConnection(handler.getUsername());

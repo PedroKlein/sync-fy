@@ -1,8 +1,9 @@
 #pragma once
 
+#include "connectionHandler.hpp"
 #include "serverMessageHandler.hpp"
 #include <filesystem/file.hpp>
-#include <messages/message.hpp>
+#include <filesystem/fileChange.hpp>
 
 namespace clientMonitor
 {

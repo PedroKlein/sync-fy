@@ -1,4 +1,5 @@
-#include "fileChangesQueue.hpp"
+#include <atomic/atomicQueue.hpp>
+#include <filesystem/fileChange.hpp>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -15,6 +16,7 @@ struct ClientConnection
     std::unique_ptr<Connection> commandConnection;
     std::unique_ptr<Connection> serverDataConnection;
     std::unique_ptr<Connection> clientDataConnection;
+    std::unique_ptr<common::AtomicQueue<common::FileChange>> fileChangesQueue;
 };
 
 class UserConnection
@@ -40,6 +42,8 @@ class UserConnection
         }
 
         std::unique_ptr<ClientConnection> clientConnection = std::make_unique<ClientConnection>();
+
+        clientConnection->fileChangesQueue = std::make_unique<common::AtomicQueue<common::FileChange>>();
 
         // Get a reference before moving the unique_ptr into the map
         ClientConnection &connectionRef = *clientConnection;
@@ -83,9 +87,36 @@ class UserConnection
         return *(it->second);
     }
 
+    // add file change to the other client, if there is one
+    void addFileChange(const std::string &ip, common::FileChange fileChange)
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        auto it = clientConnections.find(ip);
+        if (it == clientConnections.end())
+        {
+            throw std::out_of_range("IP not found");
+        }
+        for (auto &clientConnection : clientConnections)
+        {
+            if (clientConnection.first != ip)
+            {
+                clientConnection.second->fileChangesQueue->push(fileChange);
+            }
+        }
+    }
+
+    // add file change to all clients
+    void addFileChange(common::FileChange fileChange)
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        for (auto &clientConnection : clientConnections)
+        {
+            clientConnection.second->fileChangesQueue->push(fileChange);
+        }
+    }
+
   private:
     // ip -> clientConnection
     std::map<std::string, std::unique_ptr<ClientConnection>> clientConnections;
     std::mutex mtx;
-    // FileChangesQueue fileChangesQueue;
 };

@@ -55,9 +55,8 @@ class MessageHandler
         {
             if (header.messageType == common::MessageType::EXIT)
             {
-                // TODO: close the connection, maybe this should be virtual and implemented both on client and server to
-                // properly close the connection
-                sendOK();
+                onExit();
+                isMonitoring = false;
                 return;
             }
 
@@ -75,10 +74,11 @@ class MessageHandler
     void monitorMessages()
     {
         isMonitoring = true;
-        while (isMonitoring)
+
+        do
         {
             receiveMessage();
-        }
+        } while (isMonitoring);
     }
 
     void receiveOK() const
@@ -103,6 +103,7 @@ class MessageHandler
     bool isMonitoring = false;
 
     virtual void handleMessage(const Message &message) = 0;
+    virtual void onExit(){};
 
     Message receiveRaw()
     {
