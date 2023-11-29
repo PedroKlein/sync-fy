@@ -14,8 +14,8 @@
 class ClientMessageHandler : public common::FileMessageHandler
 {
   public:
-    ClientMessageHandler(const common::TCPSocket &socket, const std::string username)
-        : common::FileMessageHandler(socket), username(username), syncFolder(common::DEFAULT_CLIENT_SYNC_DIR)
+    ClientMessageHandler(const common::TCPSocket &socket, std::string username)
+        : common::FileMessageHandler(socket, username, common::DEFAULT_CLIENT_SYNC_DIR)
     {
         sendLoginMessage(username);
         onLogin();
@@ -25,10 +25,7 @@ class ClientMessageHandler : public common::FileMessageHandler
     virtual void onLogin(){};
 
   private:
-    const std::string username;
-    std::string syncFolder;
-
-    void sendLoginMessage(const std::string username)
+    void sendLoginMessage(const std::string &username)
     {
         common::Login login(username);
         sendModelMessage(login);

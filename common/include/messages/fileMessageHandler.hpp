@@ -13,8 +13,10 @@ namespace common
 class FileMessageHandler : public MessageHandler
 {
   public:
-    FileMessageHandler(const TCPSocket &socket) : MessageHandler(socket)
+    FileMessageHandler(const TCPSocket &socket, std::string username, std::string syncFolder) : MessageHandler(socket)
     {
+        this->username = username;
+        this->syncFolder = syncFolder;
     }
 
     void sendInitSendFileMessage(const std::string &filename, size_t fileSize) const
@@ -101,7 +103,7 @@ class FileMessageHandler : public MessageHandler
 
         sendOK();
 
-        File file = File::create(syncFolder + "/" + initSendFile.filename);
+        File file = File::create(syncFolder + initSendFile.filename);
 
         if (initSendFile.fileSize == 0)
         {
@@ -127,7 +129,7 @@ class FileMessageHandler : public MessageHandler
         DeleteFile DeleteFile;
         DeleteFile.fromJson(message);
 
-        std::string filePath = syncFolder + "/" + DeleteFile.filename;
+        std::string filePath = syncFolder + DeleteFile.filename;
 
         if (std::filesystem::exists(filePath))
         {
