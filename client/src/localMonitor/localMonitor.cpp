@@ -3,7 +3,7 @@
 namespace localMonitor
 {
 
-LocalMonitor::LocalMonitor(FileWatcher &fileWatcher, const MessageHandler &messageHandler)
+LocalMonitor::LocalMonitor(FileWatcher &fileWatcher, const ClientMessageHandler &messageHandler)
     : fileWatcher(fileWatcher), messageHandler(messageHandler), isRunning(false)
 {
     fileWatcher.setFileAddedCallback(std::bind(&LocalMonitor::onFileAddedOrModified, this, std::placeholders::_1));
@@ -45,7 +45,7 @@ void LocalMonitor::onFileAddedOrModified(const std::string &filePath)
     std::cout << "File added or modified: " << filePath << std::endl;
     common::File file(filePath);
 
-    messageHandler.sendInitUploadFileMessage(file.getName(), file.getSize());
+    messageHandler.sendInitSendFileMessage(file.getName(), file.getSize());
 
     messageHandler.sendFileMessage(file);
 

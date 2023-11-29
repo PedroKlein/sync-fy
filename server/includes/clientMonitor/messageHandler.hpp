@@ -1,17 +1,16 @@
 #pragma once
 
+#include "serverMessageHandler.hpp"
 #include <filesystem/file.hpp>
 #include <messages/message.hpp>
-#include <messages/messageHandler.hpp>
 
 namespace clientMonitor
 {
-class MessageHandler : public common::MessageHandler
+class MessageHandler : public ServerMessageHandler
 {
     using common::MessageHandler::MessageHandler;
 
-  public:
-  protected:
-    void handleMessage(const common::Message &message) override;
+  private:
+    void onSendFileMessage(const common::InitSendFile &initSendFile) override;
 };
 } // namespace clientMonitor

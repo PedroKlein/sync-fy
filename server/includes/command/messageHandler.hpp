@@ -1,17 +1,17 @@
 #pragma once
 
+#include "serverMessageHandler.hpp"
 #include <filesystem/file.hpp>
-#include <messages/message.hpp>
-#include <messages/messageHandler.hpp>
 
 namespace command
 {
-class MessageHandler : public common::MessageHandler
+class MessageHandler : public ServerMessageHandler
 {
-    using common::MessageHandler::MessageHandler;
+    using ServerMessageHandler::ServerMessageHandler;
 
   public:
-  protected:
-    void handleMessage(const common::Message &message) override;
+  private:
+    void handleOtherMessage(const common::Message &message) const override;
+    void onSendFileMessage(const common::InitSendFile &initSendFile) const override;
 };
 } // namespace command

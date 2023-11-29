@@ -3,10 +3,10 @@
 #include "cli/cli.hpp"
 #include "cli/commandHandler.hpp"
 #include "cli/messageHandler.hpp"
+#include "clientMessageHandler.hpp"
 #include "clientSocket.hpp"
 #include "localMonitor/fileWatcher.hpp"
 #include "localMonitor/localMonitor.hpp"
-#include "localMonitor/messageHandler.hpp"
 #include <constants.hpp>
 
 int main(int argc, char *argv[])
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     std::thread *cliThread = cli.start();
 
     // LocalMonitor
-    localMonitor::MessageHandler localMonitorMessageHandler(localMonitorSocket, username);
+    ClientMessageHandler localMonitorMessageHandler(localMonitorSocket, username);
     localMonitor::FileWatcher fileWatcher(common::DEFAULT_CLIENT_SYNC_DIR);
     localMonitor::LocalMonitor localMonitor(fileWatcher, localMonitorMessageHandler);
     std::thread *localMonitorThread = localMonitor.start();

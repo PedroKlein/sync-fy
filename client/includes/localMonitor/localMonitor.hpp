@@ -1,7 +1,7 @@
 #pragma once
 
+#include "clientMessageHandler.hpp"
 #include "fileWatcher.hpp"
-#include "messageHandler.hpp"
 #include <functional>
 #include <iostream>
 #include <string>
@@ -13,7 +13,7 @@ namespace localMonitor
 class LocalMonitor
 {
   public:
-    LocalMonitor(FileWatcher &fileWatcher, const MessageHandler &messageHandler);
+    LocalMonitor(FileWatcher &fileWatcher, const ClientMessageHandler &messageHandler);
     ~LocalMonitor();
 
     std::thread *start();
@@ -23,7 +23,7 @@ class LocalMonitor
     std::thread monitorThread;
     bool isRunning;
     FileWatcher &fileWatcher;
-    const MessageHandler &messageHandler;
+    const ClientMessageHandler &messageHandler;
 
     void run();
     void onFileAddedOrModified(const std::string &filePath);

@@ -2,22 +2,14 @@
 
 namespace command
 {
-void MessageHandler::handleMessage(const common::Message &message)
+void MessageHandler::handleOtherMessage(const common::Message &message) const
 {
-    const auto header = message.getMessageHeader();
+    std::cout << "Received message: " << message << std::endl;
+}
 
-    switch (header.headerType)
-    {
-    case common::HeaderType::JSON_HEADER: {
-        std::cout << "JSON_HEADER" << std::endl;
-        std::string data(message.getData().begin(), message.getData().end());
-        std::cout << data << std::endl;
-        break;
-    }
-
-    default:
-        std::cout << "not implemented" << std::endl;
-        break;
-    }
+// TODO: update files change list (both clients if needed)
+void MessageHandler::onSendFileMessage(const common::InitSendFile &initSendFile) const
+{
+    std::cout << "Received init send file message" << std::endl;
 }
 } // namespace command

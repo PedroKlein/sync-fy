@@ -3,7 +3,6 @@ add_executable(client
     src/cli/messageHandler.cpp
     src/cli/commandHandler.cpp 
     src/cli/cli.cpp 
-    src/localMonitor/messageHandler.cpp
     src/localMonitor/fileWatcher.cpp
     src/localMonitor/localMonitor.cpp
     src/main.cpp

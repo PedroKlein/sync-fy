@@ -20,18 +20,7 @@ class MessageHandler
 {
   public:
     MessageHandler(const TCPSocket &socket) : socket(socket)
-
     {
-        receiveLoginMessage();
-
-        syncFolder = DEFAULT_SERVER_SYNC_DIR + username + "/";
-        std::cout << "Logged in as " << username << std::endl;
-    }
-
-    MessageHandler(const TCPSocket &socket, const std::string username)
-        : socket(socket), username(username), syncFolder(DEFAULT_CLIENT_SYNC_DIR)
-    {
-        sendLoginMessage(username);
     }
 
     void sendModelMessage(const BaseModel &model) const
@@ -64,33 +53,19 @@ class MessageHandler
 
         if (header.headerType == common::HeaderType::PURE_HEADER)
         {
-            Message message(header);
-            sendOK();
-            handleMessage(message);
-            return;
+            if (header.messageType == common::MessageType::EXIT)
+            {
+                // TODO: close the connection, maybe this should be virtual and implemented both on client and server to
+                // properly close the connection
+                sendOK();
+                return;
+            }
+
+            throw std::runtime_error("Unexpected header message.");
         }
 
         std::vector<char> messageData(header.dataSize);
         socket.receive(messageData.data(), header.dataSize);
-
-        // TODO: Refactor this ifs
-        if (header.messageType == MessageType::INIT_SEND_FILE)
-        {
-            handleInitSendFile(messageData, header);
-            return;
-        }
-
-        if (header.messageType == MessageType::INIT_RECEIVE_FILE)
-        {
-            handleInitReceiveFile(messageData, header);
-            return;
-        }
-
-        if (header.messageType == MessageType::DELETE_FILE)
-        {
-            handleDeleteFile(messageData);
-            return;
-        }
 
         Message message(header, messageData);
         sendOK();
@@ -118,11 +93,6 @@ class MessageHandler
         }
     }
 
-    const std::string &getUsername() const
-    {
-        return username;
-    }
-
     void stopMonitoring()
     {
         isMonitoring = false;
@@ -130,65 +100,9 @@ class MessageHandler
 
   protected:
     const TCPSocket &socket;
-    std::string username;
     bool isMonitoring = false;
-    std::string syncFolder;
 
     virtual void handleMessage(const Message &message) = 0;
-
-  private:
-    void initSyncFolder()
-    {
-        if (!std::filesystem::exists(syncFolder))
-        {
-            try
-            {
-                std::filesystem::create_directory(syncFolder);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "Error creating directory: " << e.what() << std::endl;
-            }
-        }
-    }
-
-    void sendMessage(const Message &message, bool waitForResponse = true) const
-    {
-        std::vector<char> serialized = message.serialize();
-
-        socket.send(serialized.data(), serialized.size());
-
-        if (waitForResponse)
-        {
-            receiveOK();
-        }
-    }
-
-    void sendLoginMessage(const std::string username)
-    {
-        common::Login login(username);
-        sendModelMessage(login);
-    }
-
-    void receiveLoginMessage()
-    {
-        MessageHeader header = receiveHeader();
-
-        if (header.messageType != MessageType::LOGIN)
-        {
-            throw std::runtime_error("Expected login message");
-        }
-
-        std::vector<char> messageData(header.dataSize);
-        socket.receive(messageData.data(), header.dataSize);
-        std::string message(messageData.begin(), messageData.end());
-
-        Login login;
-        login.fromJson(message);
-
-        username = login.username;
-        sendOK();
-    }
 
     Message receiveRaw()
     {
@@ -213,58 +127,17 @@ class MessageHandler
         return common::MessageHeader::deserialize(headerBytes);
     }
 
-    void handleInitReceiveFile(const std::vector<char> &data, common::MessageHeader header)
+  private:
+    void sendMessage(const Message &message, bool waitForResponse = true) const
     {
-        // filename = std::string(data.begin(), data.end());
-        // std::cout << "Receiving file " << filename << std::endl;
-        sendOK();
-    }
+        std::vector<char> serialized = message.serialize();
 
-    void handleInitSendFile(const std::vector<char> &data, common::MessageHeader header)
-    {
-        std::string message(data.begin(), data.end());
+        socket.send(serialized.data(), serialized.size());
 
-        InitSendFile initSendFile;
-        initSendFile.fromJson(message);
-
-        sendOK();
-
-        initSyncFolder();
-
-        File file = File::create(syncFolder + "/" + initSendFile.filename);
-
-        if (initSendFile.fileSize == 0)
+        if (waitForResponse)
         {
-            sendOK();
-            return;
+            receiveOK();
         }
-
-        file.writeFile([&]() -> common::FileChunk {
-            auto message = receiveRaw();
-            auto messageHeader = message.getMessageHeader();
-            return common::FileChunk(message.getData(), messageHeader.packet, messageHeader.totalPackets);
-        });
-
-        sendOK();
-    }
-
-    void handleDeleteFile(const std::vector<char> &data)
-    {
-        std::string message(data.begin(), data.end());
-
-        DeleteFile DeleteFile;
-        DeleteFile.fromJson(message);
-
-        std::string filePath = syncFolder + "/" + DeleteFile.filename;
-
-        if (std::filesystem::exists(filePath))
-        {
-            std::filesystem::remove(filePath);
-        }
-
-        sendOK();
-
-        // TODO: propagate delete to other clients
     }
 };
 } // namespace common
