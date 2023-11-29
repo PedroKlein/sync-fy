@@ -56,6 +56,11 @@ class FileMessageHandler : public MessageHandler
         return username;
     }
 
+    const std::string &getSyncFolder() const
+    {
+        return syncFolder;
+    }
+
   protected:
     std::string username;
     std::string syncFolder;

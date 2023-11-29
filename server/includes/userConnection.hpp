@@ -6,6 +6,7 @@
 #include <string>
 #include <thread>
 
+using FileChangesQueue = common::AtomicQueue<common::FileChange>;
 struct Connection
 {
     int socketId;
@@ -16,7 +17,7 @@ struct ClientConnection
     std::unique_ptr<Connection> commandConnection;
     std::unique_ptr<Connection> serverDataConnection;
     std::unique_ptr<Connection> clientDataConnection;
-    std::unique_ptr<common::AtomicQueue<common::FileChange>> fileChangesQueue;
+    std::unique_ptr<FileChangesQueue> fileChangesQueue;
 };
 
 class UserConnection
@@ -43,7 +44,7 @@ class UserConnection
 
         std::unique_ptr<ClientConnection> clientConnection = std::make_unique<ClientConnection>();
 
-        clientConnection->fileChangesQueue = std::make_unique<common::AtomicQueue<common::FileChange>>();
+        clientConnection->fileChangesQueue = std::make_unique<FileChangesQueue>();
 
         // Get a reference before moving the unique_ptr into the map
         ClientConnection &connectionRef = *clientConnection;
