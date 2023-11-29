@@ -5,7 +5,6 @@
 
 namespace cli
 {
-// TODO: improve this class to use hashmaps instead of if-else statements
 class CommandHandler
 {
   public:
@@ -15,8 +14,12 @@ class CommandHandler
 
   private:
     const MessageHandler &messageHandler;
+    std::map<std::string, std::function<void(const std::vector<std::string> &)>> commands;
+
+    void registerCommand(const std::string &command, std::function<void(const std::vector<std::string> &)> method);
 
     void upload(const std::string &filepath) const;
+    void deleteFile(const std::string &filename) const;
     void test() const;
 };
 } // namespace cli

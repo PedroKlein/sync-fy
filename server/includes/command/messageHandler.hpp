@@ -11,9 +11,9 @@ class MessageHandler : public ServerMessageHandler
 {
     using ServerMessageHandler::ServerMessageHandler;
 
-  public:
   private:
     void handleOtherMessage(const common::Message &message) const override;
     void onSendFileMessage(const common::InitSendFile &initSendFile) const override;
+    void onDeleteFileMessage(const common::DeleteFile &deletedFile) const override;
 };
 } // namespace command

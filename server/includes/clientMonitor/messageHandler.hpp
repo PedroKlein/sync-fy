@@ -13,5 +13,6 @@ class MessageHandler : public ServerMessageHandler
 
   private:
     void onSendFileMessage(const common::InitSendFile &initSendFile) const override;
+    void onDeleteFileMessage(const common::DeleteFile &deletedFile) const override;
 };
 } // namespace clientMonitor
