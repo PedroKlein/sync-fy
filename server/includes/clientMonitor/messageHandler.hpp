@@ -8,9 +8,9 @@ namespace clientMonitor
 {
 class MessageHandler : public ServerMessageHandler
 {
-    using common::MessageHandler::MessageHandler;
+    using ServerMessageHandler::ServerMessageHandler;
 
   private:
-    void onSendFileMessage(const common::InitSendFile &initSendFile) override;
+    void onSendFileMessage(const common::InitSendFile &initSendFile) const override;
 };
 } // namespace clientMonitor

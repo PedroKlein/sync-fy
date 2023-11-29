@@ -49,6 +49,11 @@ class FileMessageHandler : public MessageHandler
         sendModelMessage(initReceiveFile);
     }
 
+    const std::string &getUsername() const
+    {
+        return username;
+    }
+
   protected:
     std::string username;
     std::string syncFolder;
