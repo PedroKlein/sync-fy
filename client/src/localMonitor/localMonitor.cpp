@@ -55,7 +55,8 @@ void LocalMonitor::onFileAddedOrModified(const std::string &filePath)
 void LocalMonitor::onFileRemoved(const std::string &filePath)
 {
     std::cout << "File removed: " << filePath << std::endl;
-    messageHandler.sendDeleteFileMessage(filePath);
+
+    messageHandler.sendDeleteFileMessage(common::File::getFileName(filePath));
 }
 
 } // namespace localMonitor

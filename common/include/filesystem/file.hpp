@@ -42,8 +42,12 @@ class File
 
     std::string getName()
     {
-        size_t pos = path.find_last_of("/\\");
-        return (pos == std::string::npos) ? path : path.substr(pos + 1);
+        return getFileName(path);
+    }
+
+    std::string getExtension()
+    {
+        return getFileExtension(path);
     }
 
     void readFile(OnChunkReadCallback callback, size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
@@ -91,8 +95,18 @@ class File
         }
     }
 
+    static std::string getFileExtension(const std::string &fileName)
+    {
+        return std::filesystem::path(fileName).extension().string();
+    }
+
+    static std::string getFileName(const std::string &filePath)
+    {
+        return std::filesystem::path(filePath).filename().string();
+    }
+
   private:
-    std::string path;
+    const std::string path;
     std::ifstream fileStream;
 
     const std::vector<char> getChunkData(size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)

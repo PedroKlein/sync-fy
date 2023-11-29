@@ -1,16 +1,18 @@
 #pragma once
 
+#include "constants.hpp"
 #include "filesystem/file.hpp"
 #include "message.hpp"
 #include "messageTypes.hpp"
 #include "models/baseModel.hpp"
+#include "models/deleteFile.hpp"
 #include "models/initReceiveFile.hpp"
 #include "models/initSendFile.hpp"
 #include "models/login.hpp"
 #include "socket/tcpSocket.hpp"
+#include <filesystem>
 #include <iostream>
 #include <sys/stat.h>
-#include <filesystem>
 
 namespace common
 {
@@ -18,12 +20,16 @@ class MessageHandler
 {
   public:
     MessageHandler(const TCPSocket &socket) : socket(socket)
+
     {
         receiveLoginMessage();
+
+        syncFolder = DEFAULT_SERVER_SYNC_DIR + username + "/";
         std::cout << "Logged in as " << username << std::endl;
     }
 
-    MessageHandler(const TCPSocket &socket, const std::string username) : socket(socket), username(username)
+    MessageHandler(const TCPSocket &socket, const std::string username)
+        : socket(socket), username(username), syncFolder(DEFAULT_CLIENT_SYNC_DIR)
     {
         sendLoginMessage(username);
     }
@@ -42,7 +48,7 @@ class MessageHandler
 
     void sendExit() const
     {
-        Message exitMessage(common::MessageType::OK);
+        Message exitMessage(common::MessageType::EXIT);
         sendMessage(exitMessage);
     }
 
@@ -80,6 +86,12 @@ class MessageHandler
             return;
         }
 
+        if (header.messageType == MessageType::DELETE_FILE)
+        {
+            handleDeleteFile(messageData);
+            return;
+        }
+
         Message message(header, messageData);
         sendOK();
         handleMessage(message);
@@ -87,7 +99,8 @@ class MessageHandler
 
     void monitorMessages()
     {
-        while (true)
+        isMonitoring = true;
+        while (isMonitoring)
         {
             receiveMessage();
         }
@@ -110,13 +123,35 @@ class MessageHandler
         return username;
     }
 
+    void stopMonitoring()
+    {
+        isMonitoring = false;
+    }
+
   protected:
     const TCPSocket &socket;
     std::string username;
+    bool isMonitoring = false;
+    std::string syncFolder;
 
     virtual void handleMessage(const Message &message) = 0;
 
   private:
+    void initSyncFolder()
+    {
+        if (!std::filesystem::exists(syncFolder))
+        {
+            try
+            {
+                std::filesystem::create_directory(syncFolder);
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << "Error creating directory: " << e.what() << std::endl;
+            }
+        }
+    }
+
     void sendMessage(const Message &message, bool waitForResponse = true) const
     {
         std::vector<char> serialized = message.serialize();
@@ -194,17 +229,9 @@ class MessageHandler
 
         sendOK();
 
-        if (!std::filesystem::exists(username))
-        {
-            try {
-                std::filesystem::create_directory(username);
-            } catch (const std::exception& e) {
-                std::cerr << "Error creating directory: " << e.what() << std::endl;
-            }
-        }
-        
-        std::string filePath = "./" + username + "/" + initSendFile.filename;
-        File file = File::create(filePath);
+        initSyncFolder();
+
+        File file = File::create(syncFolder + "/" + initSendFile.filename);
 
         if (initSendFile.fileSize == 0)
         {
@@ -219,6 +246,25 @@ class MessageHandler
         });
 
         sendOK();
+    }
+
+    void handleDeleteFile(const std::vector<char> &data)
+    {
+        std::string message(data.begin(), data.end());
+
+        DeleteFile DeleteFile;
+        DeleteFile.fromJson(message);
+
+        std::string filePath = syncFolder + "/" + DeleteFile.filename;
+
+        if (std::filesystem::exists(filePath))
+        {
+            std::filesystem::remove(filePath);
+        }
+
+        sendOK();
+
+        // TODO: propagate delete to other clients
     }
 };
 } // namespace common

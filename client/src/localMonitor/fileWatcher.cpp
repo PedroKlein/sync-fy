@@ -3,7 +3,7 @@
 namespace localMonitor
 {
 
-FileWatcher::FileWatcher(const char *dirPath) : dirPath(dirPath)
+FileWatcher::FileWatcher(const std::string &dirPath) : dirPath(dirPath)
 {
     if (std::filesystem::exists(dirPath))
     {
@@ -34,7 +34,7 @@ FileWatcher::FileWatcher(const char *dirPath) : dirPath(dirPath)
         exit(EXIT_FAILURE);
     }
 
-    watchFd = inotify_add_watch(inotifyFd, dirPath, IN_MODIFY | IN_CREATE | IN_DELETE);
+    watchFd = inotify_add_watch(inotifyFd, dirPath.data(), IN_MODIFY | IN_CREATE | IN_DELETE);
     if (watchFd < 0)
     {
         std::cout << "inotify_add_watch failed" << std::endl;
@@ -77,8 +77,21 @@ void FileWatcher::processEvents()
     for (int i = 0; i < length;)
     {
         struct inotify_event *event = reinterpret_cast<struct inotify_event *>(&buffer[i]);
+
         std::string fileName = event->name ? event->name : "";
-        std::string filePath = dirPath + "/" + fileName;
+        std::string fileExtension = common::File::getFileExtension(fileName);
+
+        // Check if the file extension matches ".swx" or ".swp"
+        if (!fileExtension.empty() && (fileExtension == "swx" || fileExtension == "swp"))
+        {
+            // Ignore this file and move to the next event
+            i += EVENT_SIZE + event->len;
+            continue;
+        }
+
+        std::string filePath = dirPath + fileName;
+
+        std::cout << "File path: " << filePath << std::endl;
 
         if (event->mask & IN_MODIFY)
         {
@@ -115,4 +128,5 @@ void FileWatcher::processEvents()
         i += EVENT_SIZE + event->len;
     }
 }
+
 } // namespace localMonitor

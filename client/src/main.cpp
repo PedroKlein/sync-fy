@@ -9,8 +9,6 @@
 #include "localMonitor/messageHandler.hpp"
 #include <constants.hpp>
 
-constexpr const char *DEFAULT_SYNC_DIR = "./sync_dir";
-
 int main(int argc, char *argv[])
 {
 
@@ -44,7 +42,7 @@ int main(int argc, char *argv[])
 
     // LocalMonitor
     localMonitor::MessageHandler localMonitorMessageHandler(localMonitorSocket, username);
-    localMonitor::FileWatcher fileWatcher(DEFAULT_SYNC_DIR);
+    localMonitor::FileWatcher fileWatcher(common::DEFAULT_CLIENT_SYNC_DIR);
     localMonitor::LocalMonitor localMonitor(fileWatcher, localMonitorMessageHandler);
     std::thread *localMonitorThread = localMonitor.start();
 

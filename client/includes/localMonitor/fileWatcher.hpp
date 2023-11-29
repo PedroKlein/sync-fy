@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstring>
+#include <filesystem/file.hpp>
 #include <filesystem>
 #include <functional>
 #include <iostream>
@@ -14,7 +15,7 @@ namespace localMonitor
 class FileWatcher
 {
   public:
-    FileWatcher(const char *dirPath);
+    FileWatcher(const std::string &dirPath);
 
     ~FileWatcher();
 
@@ -39,5 +40,7 @@ class FileWatcher
     std::function<void(const std::string &)> fileAddedCallback;
     std::function<void(const std::string &)> fileRemovedCallback;
     std::function<void(const std::string &)> fileModifiedCallback;
+
+    std::string getFileExtension(const std::string &fileName);
 };
 } // namespace localMonitor
