@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <errno.h>
+#include <functional>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sstream>
@@ -49,12 +50,20 @@ class TCPSocket
         ssize_t i = 0;
         while (i < size)
         {
-            const int l = ::send(socketId, &buffer[i], std::min(chunkSize, size - i), 0);
-            if (l < 0)
+            try
             {
-                throw std::runtime_error("Failed to send data");
+                const int l = ::send(socketId, &buffer[i], std::min(chunkSize, size - i), 0);
+                // if (l < 0)
+                // {
+                //     throw std::runtime_error("Failed to send data");
+                // }
+                i += l;
             }
-            i += l;
+            catch (const std::exception &e)
+            {
+                std::cerr << "Exception during send: " << e.what() << std::endl;
+                break;
+            }
         }
 
         std::cout << "Sent " << i << " bytes" << std::endl;
@@ -65,18 +74,64 @@ class TCPSocket
         size_t i = 0;
         while (i < size)
         {
-            const int l = read(socketId, &buffer[i], std::min(chunkSize, size - i));
-            std::cout << "Received " << l << " bytes"
-                      << " from " << size << std::endl;
-            if (l < 0)
+            try
             {
-                std::runtime_error("Failed to receive data");
+                const int l = read(socketId, &buffer[i], std::min(chunkSize, size - i));
+
+                if (l == 0)
+                {
+                    std::cout << "Connection closed" << std::endl;
+                    close(socketId);
+                    if (onDisconnect)
+                    {
+                        onDisconnect();
+                    }
+                    break;
+                }
+
+                std::cout << "Received " << l << " bytes";
+                i += l;
             }
-            i += l;
+            catch (const std::exception &e)
+            {
+                std::cerr << "Exception during receive: " << e.what() << std::endl;
+                break;
+            }
+        }
+    }
+
+    void setOnDisconnect(std::function<void()> callback)
+    {
+        onDisconnect = callback;
+    }
+
+    void checkConnection()
+    {
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(socketId, &readfds);
+
+        struct timeval timeout;
+        timeout.tv_sec = 0;  // Zero seconds
+        timeout.tv_usec = 0; // Zero microseconds
+
+        if (select(socketId + 1, &readfds, NULL, NULL, &timeout) > 0)
+        {
+            char buffer[1];
+            if (read(socketId, buffer, 1) == 0)
+            {
+                std::cout << "Connection closed" << std::endl;
+                close(socketId);
+                if (onDisconnect)
+                {
+                    onDisconnect();
+                }
+            }
         }
     }
 
   protected:
     int socketId;
+    std::function<void()> onDisconnect;
 };
 } // namespace common

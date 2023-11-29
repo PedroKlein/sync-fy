@@ -1,14 +1,18 @@
 #pragma once
 
+#include "constants.hpp"
 #include "filesystem/file.hpp"
 #include "message.hpp"
 #include "messageTypes.hpp"
 #include "models/baseModel.hpp"
+#include "models/deleteFile.hpp"
 #include "models/initReceiveFile.hpp"
 #include "models/initSendFile.hpp"
 #include "models/login.hpp"
 #include "socket/tcpSocket.hpp"
+#include <filesystem>
 #include <iostream>
+#include <sys/stat.h>
 
 namespace common
 {
@@ -17,13 +21,6 @@ class MessageHandler
   public:
     MessageHandler(const TCPSocket &socket) : socket(socket)
     {
-        receiveLoginMessage();
-        std::cout << "Logged in as " << username << std::endl;
-    }
-
-    MessageHandler(const TCPSocket &socket, const std::string username) : socket(socket), username(username)
-    {
-        sendLoginMessage(username);
     }
 
     void sendModelMessage(const BaseModel &model) const
@@ -40,7 +37,7 @@ class MessageHandler
 
     void sendExit() const
     {
-        Message exitMessage(common::MessageType::OK);
+        Message exitMessage(common::MessageType::EXIT);
         sendMessage(exitMessage);
     }
 
@@ -56,27 +53,19 @@ class MessageHandler
 
         if (header.headerType == common::HeaderType::PURE_HEADER)
         {
-            Message message(header);
-            sendOK();
-            handleMessage(message);
-            return;
+            if (header.messageType == common::MessageType::EXIT)
+            {
+                // TODO: close the connection, maybe this should be virtual and implemented both on client and server to
+                // properly close the connection
+                sendOK();
+                return;
+            }
+
+            throw std::runtime_error("Unexpected header message.");
         }
 
         std::vector<char> messageData(header.dataSize);
         socket.receive(messageData.data(), header.dataSize);
-
-        // TODO: Refactor this ifs
-        if (header.messageType == MessageType::INIT_SEND_FILE)
-        {
-            handleInitSendFile(messageData, header);
-            return;
-        }
-
-        if (header.messageType == MessageType::INIT_RECEIVE_FILE)
-        {
-            handleInitReceiveFile(messageData, header);
-            return;
-        }
 
         Message message(header, messageData);
         sendOK();
@@ -85,7 +74,8 @@ class MessageHandler
 
     void monitorMessages()
     {
-        while (true)
+        isMonitoring = true;
+        while (isMonitoring)
         {
             receiveMessage();
         }
@@ -103,55 +93,16 @@ class MessageHandler
         }
     }
 
-    std::string getUsername() const
+    void stopMonitoring()
     {
-        return username;
+        isMonitoring = false;
     }
 
   protected:
     const TCPSocket &socket;
-    std::string username;
+    bool isMonitoring = false;
 
     virtual void handleMessage(const Message &message) = 0;
-
-  private:
-    void sendMessage(const Message &message, bool waitForResponse = true) const
-    {
-        std::vector<char> serialized = message.serialize();
-
-        socket.send(serialized.data(), serialized.size());
-
-        if (waitForResponse)
-        {
-            receiveOK();
-        }
-    }
-
-    void sendLoginMessage(const std::string username)
-    {
-        common::Login login(username);
-        sendModelMessage(login);
-    }
-
-    void receiveLoginMessage()
-    {
-        MessageHeader header = receiveHeader();
-
-        if (header.messageType != MessageType::LOGIN)
-        {
-            throw std::runtime_error("Expected login message");
-        }
-
-        std::vector<char> messageData(header.dataSize);
-        socket.receive(messageData.data(), header.dataSize);
-        std::string message(messageData.begin(), messageData.end());
-
-        Login login;
-        login.fromJson(message);
-
-        username = login.username;
-        sendOK();
-    }
 
     Message receiveRaw()
     {
@@ -176,32 +127,17 @@ class MessageHandler
         return common::MessageHeader::deserialize(headerBytes);
     }
 
-    void handleInitReceiveFile(const std::vector<char> &data, common::MessageHeader header)
+  private:
+    void sendMessage(const Message &message, bool waitForResponse = true) const
     {
-        // filename = std::string(data.begin(), data.end());
-        // std::cout << "Receiving file " << filename << std::endl;
-        sendOK();
-    }
+        std::vector<char> serialized = message.serialize();
 
-    // TODO: This is not generic, file is always save in the root.
-    void handleInitSendFile(const std::vector<char> &data, common::MessageHeader header)
-    {
-        std::string message(data.begin(), data.end());
+        socket.send(serialized.data(), serialized.size());
 
-        InitSendFile initSendFile;
-        initSendFile.fromJson(message);
-
-        sendOK();
-
-        File file = File::create(initSendFile.filename);
-
-        file.writeFile([&]() -> common::FileChunk {
-            auto message = receiveRaw();
-            auto messageHeader = message.getMessageHeader();
-            return common::FileChunk(message.getData(), messageHeader.packet, messageHeader.totalPackets);
-        });
-
-        sendOK();
+        if (waitForResponse)
+        {
+            receiveOK();
+        }
     }
 };
 } // namespace common

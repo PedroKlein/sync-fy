@@ -14,12 +14,13 @@ class ServerSocket : public common::TCPSocket
   public:
     ServerSocket(int port, OnConnectionCallback onClientConnectCallback);
     ~ServerSocket();
-    void StartListening();
+    void startListening();
+    void stopListening();
 
   private:
+    bool isListening;
     socklen_t clientLength;
     struct sockaddr_in serverAddress, clientAddress;
-
     struct sockaddr_in newSocketAddress(int port);
 
     OnConnectionCallback onClientConnectCallback;

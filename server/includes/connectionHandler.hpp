@@ -1,7 +1,9 @@
 #pragma once
 
+#include "clientMonitor/messageHandler.hpp"
 #include "command/messageHandler.hpp"
 #include "userConnection.hpp"
+#include <memory>
 #include <messages/messageHandler.hpp>
 #include <socket/tcpSocket.hpp>
 #include <thread>
@@ -14,34 +16,20 @@ class ConnectionHandler
     // ConnectionHandler(const ConnectionHandler &) = delete;
     // ConnectionHandler &operator=(const ConnectionHandler &) = delete;
 
-    // Provide a static method to get the instance of the class
-    static ConnectionHandler *getInstance()
-    {
-        static ConnectionHandler *instance = new ConnectionHandler();
-        return instance;
-    }
+    UserConnection &addUserConnection(const std::string &username);
+    UserConnection &getUserConnection(const std::string &username);
 
-    void addUserConnection(const std::string &username, UserConnection *userConnection)
-    {
-        userConnections[username] = userConnection;
-    }
+    void removeUserConnection(const std::string &username);
 
-    UserConnection *getUserConnection(const std::string &username) 
-    {
-        auto it = userConnections.find(username);
-        if (it == userConnections.end())
-        {
-            // throw std::out_of_range("Username not found");
-            return nullptr;
-        }
-        return it->second;
-    }
-
+    static ConnectionHandler &getInstance();
     static void onCommandSocketConnection(int clientSocketId, const std::string &ip);
+    static void onClientDataSocketConnection(int clientSocketId, const std::string &ip);
 
   private:
     // // Make the constructor private
     ConnectionHandler() = default;
 
-    std::unordered_map<std::string, UserConnection*> userConnections;
+    // username -> userConnection
+    std::unordered_map<std::string, std::unique_ptr<UserConnection>> userConnections;
+    std::mutex mtx;
 };
