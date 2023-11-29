@@ -9,14 +9,13 @@ LocalMonitor::LocalMonitor(ServerMessageHandler &messageHandler, FileChangesQueu
 
 void LocalMonitor::monitorChanges()
 {
+    common::FileChange fileChange;
     while (true)
     {
-        // if (!changeQueue.empty())
-        // {
-        //     auto change = changeQueue.pop();
-        //     sendFileChange(change);
-        // }
-        std::cout << "monitoring changes" << std::endl;
+        if (changeQueue.tryPop(fileChange))
+        {
+            sendFileChange(fileChange);
+        }
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }

@@ -35,6 +35,18 @@ template <typename T> class AtomicQueue
         return data;
     }
 
+    bool tryPop(T &data)
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        if (queue.empty())
+        {
+            return false;
+        }
+        data = queue.front();
+        queue.pop();
+        return true;
+    }
+
     bool empty()
     {
         std::lock_guard<std::mutex> lock(mtx);
