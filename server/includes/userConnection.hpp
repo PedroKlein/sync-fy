@@ -1,3 +1,5 @@
+#pragma once
+
 #include <atomic/atomicQueue.hpp>
 #include <filesystem/fileChange.hpp>
 #include <map>
@@ -114,6 +116,17 @@ class UserConnection
         {
             clientConnection.second->fileChangesQueue->push(fileChange);
         }
+    }
+
+    FileChangesQueue &getFileChangesQueue(const std::string &ip)
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        auto it = clientConnections.find(ip);
+        if (it == clientConnections.end())
+        {
+            throw std::out_of_range("IP not found");
+        }
+        return *(it->second->fileChangesQueue);
     }
 
   private:

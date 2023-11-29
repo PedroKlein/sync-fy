@@ -29,12 +29,7 @@ void CommandHandler::upload(const std::string &filepath) const
 {
     std::cout << "Upload command start." << std::endl;
     common::File file(filepath);
-
-    messageHandler.sendInitSendFileMessage(file.getName(), file.getSize());
-
     messageHandler.sendFileMessage(file);
-
-    messageHandler.receiveOK();
 }
 
 void CommandHandler::test() const

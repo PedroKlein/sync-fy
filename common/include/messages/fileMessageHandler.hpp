@@ -19,36 +19,16 @@ class FileMessageHandler : public MessageHandler
         this->syncFolder = syncFolder;
     }
 
-    void sendInitSendFileMessage(const std::string &filename, size_t fileSize) const
-    {
-        InitSendFile initSendFile(filename, fileSize);
-        sendModelMessage(initSendFile);
-    }
-
     void sendFileMessage(File &file) const
     {
-        size_t totalSent = 0;
-        const size_t fileSize = file.getSize();
-
-        file.readFile([&](const FileChunk &chunk) {
-            sendRawMessage(chunk.data, chunk.numPacket, chunk.totalPackets);
-            totalSent += chunk.data.size();
-
-            float progress = static_cast<float>(totalSent) / fileSize * 100;
-            onSendProgress(progress);
-        });
+        sendInitSendFileMessage(file.getName(), file.getSize());
+        sendFileDataMessage(file);
     }
 
     void sendDeleteFileMessage(const std::string &filename) const
     {
         DeleteFile deleteFile(filename);
         sendModelMessage(deleteFile);
-    }
-
-    void sendInitReceiveFileMessage(const std::string &filename, size_t fileSize) const
-    {
-        InitReceiveFile initReceiveFile(filename, fileSize);
-        sendModelMessage(initReceiveFile);
     }
 
     const std::string &getUsername() const
@@ -90,6 +70,34 @@ class FileMessageHandler : public MessageHandler
         default:
             handleOtherMessage(message);
         }
+    }
+
+    void sendInitSendFileMessage(const std::string &filename, size_t fileSize) const
+    {
+        InitSendFile initSendFile(filename, fileSize);
+        sendModelMessage(initSendFile);
+    }
+
+    void sendFileDataMessage(File &file) const
+    {
+        size_t totalSent = 0;
+        const size_t fileSize = file.getSize();
+
+        file.readFile([&](const FileChunk &chunk) {
+            sendRawMessage(chunk.data, chunk.numPacket, chunk.totalPackets);
+            totalSent += chunk.data.size();
+
+            float progress = static_cast<float>(totalSent) / fileSize * 100;
+            onSendProgress(progress);
+        });
+
+        receiveOK();
+    }
+
+    void sendInitReceiveFileMessage(const std::string &filename, size_t fileSize) const
+    {
+        InitReceiveFile initReceiveFile(filename, fileSize);
+        sendModelMessage(initReceiveFile);
     }
 
     void handleInitReceiveFile(const std::vector<char> &data, MessageHeader header)

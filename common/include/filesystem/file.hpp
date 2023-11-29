@@ -40,12 +40,12 @@ class File
         return std::filesystem::file_size(path);
     }
 
-    std::string getName()
+    std::string getName() const
     {
         return getFileName(path);
     }
 
-    std::string getExtension()
+    std::string getExtension() const
     {
         return getFileExtension(path);
     }

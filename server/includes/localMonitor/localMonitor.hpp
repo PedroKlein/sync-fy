@@ -3,6 +3,8 @@
 #include "userConnection.hpp"
 #include <string>
 
+namespace localMonitor
+{
 class LocalMonitor
 {
   public:
@@ -16,3 +18,4 @@ class LocalMonitor
 
     void sendFileChange(const common::FileChange &fileChange) const;
 };
+} // namespace localMonitor

@@ -7,6 +7,7 @@
 #include "clientSocket.hpp"
 #include "localMonitor/fileWatcher.hpp"
 #include "localMonitor/localMonitor.hpp"
+#include "serverMonitor/serverMonitor.hpp"
 #include <constants.hpp>
 
 int main(int argc, char *argv[])
@@ -46,9 +47,15 @@ int main(int argc, char *argv[])
     localMonitor::LocalMonitor localMonitor(fileWatcher, localMonitorMessageHandler);
     std::thread *localMonitorThread = localMonitor.start();
 
+    // ServerMonitor
+    ClientMessageHandler serverMonitorMessageHandler(serverMonitorSocket, username);
+    serverMonitor::ServerMonitor serverMonitor(serverMonitorMessageHandler);
+    std::thread *serverMonitorThread = serverMonitor.start();
+
     // Finalization
     cliThread->join();
     localMonitorThread->join();
+    serverMonitorThread->join();
 
     return 0;
 }

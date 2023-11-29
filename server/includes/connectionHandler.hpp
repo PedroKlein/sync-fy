@@ -2,6 +2,7 @@
 
 #include "clientMonitor/messageHandler.hpp"
 #include "command/messageHandler.hpp"
+#include "localMonitor/localMonitor.hpp"
 #include "userConnection.hpp"
 #include <memory>
 #include <messages/messageHandler.hpp>
@@ -12,10 +13,6 @@
 class ConnectionHandler
 {
   public:
-    // // Delete the copy constructor and assignment operator
-    // ConnectionHandler(const ConnectionHandler &) = delete;
-    // ConnectionHandler &operator=(const ConnectionHandler &) = delete;
-
     UserConnection &addUserConnection(const std::string &username);
     UserConnection &getUserConnection(const std::string &username);
 
@@ -24,9 +21,10 @@ class ConnectionHandler
     static ConnectionHandler &getInstance();
     static void onCommandSocketConnection(int clientSocketId, const std::string &ip);
     static void onClientDataSocketConnection(int clientSocketId, const std::string &ip);
+    static void onServerDataSocketConnection(int clientSocketId, const std::string &ip);
 
   private:
-    // // Make the constructor private
+    // Make the constructor private
     ConnectionHandler() = default;
 
     // username -> userConnection

@@ -46,6 +46,34 @@ void ConnectionHandler::onClientDataSocketConnection(int clientSocketId, const s
     }).detach();
 }
 
+void ConnectionHandler::onServerDataSocketConnection(int clientSocketId, const std::string &ip)
+{
+    std::thread([clientSocketId, ip]() {
+        common::TCPSocket clientSocket(clientSocketId);
+        ServerMessageHandler handler(clientSocket, ip);
+
+        ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+        UserConnection &userConnection = connectionHandler.addUserConnection(handler.getUsername());
+        ClientConnection &clientConnection = userConnection.addClientConnection(ip);
+
+        userConnection.setServerDataConnection(clientConnection, clientSocketId);
+
+        clientSocket.setOnDisconnect([&ip, &userConnection, &connectionHandler, &handler]() {
+            std::cout << "Client data socket disconnected" << std::endl;
+            userConnection.removeClientConnection(ip);
+            connectionHandler.removeUserConnection(handler.getUsername());
+        });
+
+        auto &fileChangesQueue = userConnection.getFileChangesQueue(ip);
+
+        localMonitor::LocalMonitor localMonitor(handler, fileChangesQueue);
+
+        localMonitor.monitorChanges();
+
+        handler.monitorMessages();
+    }).detach();
+}
+
 ConnectionHandler &ConnectionHandler::getInstance()
 {
 
