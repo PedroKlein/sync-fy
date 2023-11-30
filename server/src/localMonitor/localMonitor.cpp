@@ -3,12 +3,14 @@
 namespace localMonitor
 {
 LocalMonitor::LocalMonitor(ServerMessageHandler &messageHandler, FileChangesQueue &changeQueue)
-    : messageHandler(messageHandler), changeQueue(changeQueue)
+    : messageHandler(messageHandler), changeQueue(changeQueue), directory(messageHandler.getSyncFolder())
 {
 }
 
 void LocalMonitor::monitorChanges()
 {
+    initialSync();
+
     common::FileChange fileChange;
     while (true)
     {
@@ -17,6 +19,19 @@ void LocalMonitor::monitorChanges()
             sendFileChange(fileChange);
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+}
+
+void LocalMonitor::initialSync()
+{
+    std::vector<common::FileInfo> dirFiles = directory.listFiles();
+
+    for (auto &file : dirFiles)
+    {
+        common::FileChange fileChange;
+        fileChange.changeType = common::FileChangeType::FILE_CREATED;
+        fileChange.filename = file.filename;
+        sendFileChange(fileChange);
     }
 }
 
