@@ -104,7 +104,7 @@ void FileWatcher::processEvents()
             continue;
         }
 
-        // TODO: temporary fix, check if has problems with concurrency
+        // TODO: temporary fix, check if this has problems with concurrency
         if (isPaused)
         {
             return;

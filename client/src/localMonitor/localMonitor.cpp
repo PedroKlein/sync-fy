@@ -26,18 +26,14 @@ std::thread *LocalMonitor::start()
 void LocalMonitor::stop()
 {
     isRunning = false;
-    if (monitorThread.joinable())
-    {
-        monitorThread.join();
-    }
 }
 
 void LocalMonitor::run()
 {
-    while (isRunning)
+    do
     {
         fileWatcher.processEvents();
-    }
+    } while (isRunning);
 }
 
 void LocalMonitor::onFileAddedOrModified(const std::string &filePath)
