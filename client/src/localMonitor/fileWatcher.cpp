@@ -19,7 +19,6 @@ FileWatcher::FileWatcher(const std::string &dirPath) : dirPath(dirPath)
 
     try
     {
-        std::cout << "Creating directory: " << dirPath << std::endl;
         std::filesystem::create_directory(dirPath);
     }
     catch (const std::exception &e)
@@ -90,8 +89,6 @@ void FileWatcher::processEvents()
         }
 
         std::string filePath = dirPath + fileName;
-
-        std::cout << "File path: " << filePath << std::endl;
 
         if (event->mask & IN_MODIFY)
         {

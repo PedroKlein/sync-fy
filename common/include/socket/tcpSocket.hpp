@@ -65,8 +65,6 @@ class TCPSocket
                 break;
             }
         }
-
-        std::cout << "Sent " << i << " bytes" << std::endl;
     }
 
     void receive(char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE) const
@@ -88,8 +86,10 @@ class TCPSocket
                     }
                     break;
                 }
-
-                std::cout << "Received " << l << " bytes";
+                // else if (l < 0)
+                // {
+                //     throw std::runtime_error("Failed to receive data");
+                // }
                 i += l;
             }
             catch (const std::exception &e)

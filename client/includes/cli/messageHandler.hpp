@@ -12,6 +12,7 @@ class MessageHandler : public ClientMessageHandler
 
   public:
     void sendListServerFilesMessage() const;
+    std::vector<common::FileInfo> receiveListFilesMessage() const;
 
   private:
     void onSendProgress(float progress) const override;

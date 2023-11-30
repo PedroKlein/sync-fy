@@ -64,8 +64,6 @@ class File
 
     void writeFile(OnChunkWriteCallback callback)
     {
-        std::cout << "Writing to file: " << path << std::endl;
-
         std::ofstream outFile(path, std::ios::binary);
         if (!outFile.is_open())
         {

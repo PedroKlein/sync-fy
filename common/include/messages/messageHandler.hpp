@@ -60,7 +60,7 @@ class MessageHandler
                 return;
             }
 
-            throw std::runtime_error("Unexpected header message.");
+            handlePureHeaderMessage(header);
         }
 
         std::vector<char> messageData(header.dataSize);
@@ -85,8 +85,6 @@ class MessageHandler
     {
         auto header = receiveHeader();
 
-        std::cout << "Received OK message" << std::endl;
-
         if (header.messageType != MessageType::OK)
         {
             throw std::runtime_error("Expected OK message");
@@ -103,6 +101,7 @@ class MessageHandler
     bool isMonitoring = false;
 
     virtual void handleMessage(const Message &message) = 0;
+    virtual void handlePureHeaderMessage(const MessageHeader &header) const {};
     virtual void onExit(){};
 
     Message receiveRaw()
@@ -128,7 +127,6 @@ class MessageHandler
         return common::MessageHeader::deserialize(headerBytes);
     }
 
-  private:
     void sendMessage(const Message &message, bool waitForResponse = true) const
     {
         std::vector<char> serialized = message.serialize();

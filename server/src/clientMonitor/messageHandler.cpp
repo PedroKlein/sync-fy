@@ -9,8 +9,6 @@ void MessageHandler::onSendFileMessage(const common::InitSendFile &initSendFile)
 
     common::FileChange fileChange(initSendFile.filename, common::FileChangeType::FILE_CREATED);
     userConnection.addFileChange(ip, fileChange);
-
-    std::cout << "Received init send file message" << std::endl;
 }
 
 void MessageHandler::onDeleteFileMessage(const common::DeleteFile &deletedFile) const
@@ -20,7 +18,5 @@ void MessageHandler::onDeleteFileMessage(const common::DeleteFile &deletedFile) 
 
     common::FileChange fileChange(deletedFile.filename, common::FileChangeType::FILE_DELETED);
     userConnection.addFileChange(ip, fileChange);
-
-    std::cout << "Received deleted file message" << std::endl;
 }
 } // namespace clientMonitor

@@ -1,17 +1,10 @@
 #pragma once
 
+#include "filesystem/directory.hpp"
 #include <vector>
 
 namespace common
 {
-struct FileData
-{
-    std::string filename;
-    std::string mTime;
-    std::string aTime;
-    std::string cTime;
-};
-
 class ListFiles : public BaseModel
 {
   public:
@@ -19,7 +12,7 @@ class ListFiles : public BaseModel
     {
     }
 
-    std::vector<FileData> files;
+    std::vector<FileInfo> files;
 
     std::string toJson() const override
     {
@@ -28,9 +21,10 @@ class ListFiles : public BaseModel
         {
             Json::Value fileJson;
             fileJson["filename"] = file.filename;
-            fileJson["mTime"] = file.mTime;
-            fileJson["aTime"] = file.aTime;
-            fileJson["cTime"] = file.cTime;
+            fileJson["mTime"] = file.modificationTime;
+            fileJson["aTime"] = file.accessTime;
+            fileJson["cTime"] = file.creationTime;
+            fileJson["filesize"] = file.filesize;
             root.append(fileJson);
         }
         Json::StreamWriterBuilder writer;
@@ -50,27 +44,14 @@ class ListFiles : public BaseModel
         }
         for (const auto &fileJson : root)
         {
-            FileData file;
+            FileInfo file;
             file.filename = fileJson["filename"].asString();
-            file.mTime = fileJson["mTime"].asString();
-            file.aTime = fileJson["aTime"].asString();
-            file.cTime = fileJson["cTime"].asString();
+            file.modificationTime = fileJson["mTime"].asUInt64();
+            file.accessTime = fileJson["aTime"].asUInt64();
+            file.creationTime = fileJson["cTime"].asUInt64();
+            file.filesize = fileJson["filesize"].asUInt64();
             files.push_back(file);
         }
-    }
-
-    friend std::ostream &operator<<(std::ostream &os, const ListFiles &obj)
-    {
-        os << "ListFiles: {\n";
-        for (const auto &file : obj.files)
-        {
-            os << "\tfilename: " << file.filename << ",\n"
-               << "\tmTime: " << file.mTime << ",\n"
-               << "\taTime: " << file.aTime << ",\n"
-               << "\tcTime: " << file.cTime << "\n";
-        }
-        os << "}";
-        return os;
     }
 };
 } // namespace common

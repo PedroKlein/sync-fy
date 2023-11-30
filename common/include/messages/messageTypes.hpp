@@ -13,14 +13,13 @@ enum MessageType
 {
     OK,                // Header only
     EXIT,              // Header only
+    INIT_LIST_FILES,   // Header only
     INIT_SEND_FILE,    // Header + JSON
     INIT_RECEIVE_FILE, // Header + JSON
     SEND_RAW,          // Header + RAW
     LOGIN,             // Header + JSON
     DELETE_FILE,       // Header + JSON
     LIST_FILES,        // Header + JSON
-    LIST_SERVER,       // Header + JSON
-    LIST_CLIENT,       // Header + JSON
 };
 
 enum HeaderType

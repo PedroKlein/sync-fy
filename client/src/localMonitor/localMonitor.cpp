@@ -42,14 +42,12 @@ void LocalMonitor::run()
 
 void LocalMonitor::onFileAddedOrModified(const std::string &filePath)
 {
-    std::cout << "File added or modified: " << filePath << std::endl;
     common::File file(filePath);
     messageHandler.sendFileMessage(file);
 }
 
 void LocalMonitor::onFileRemoved(const std::string &filePath)
 {
-    std::cout << "File removed: " << filePath << std::endl;
     messageHandler.sendDeleteFileMessage(common::File::getFileName(filePath));
 }
 

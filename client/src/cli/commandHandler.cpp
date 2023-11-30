@@ -1,12 +1,13 @@
 #include "cli/commandHandler.hpp"
-#include <models/login.hpp>
 
 namespace cli
 {
-CommandHandler::CommandHandler(const MessageHandler &messageHandler) : messageHandler(messageHandler)
+CommandHandler::CommandHandler(const MessageHandler &messageHandler)
+    : messageHandler(messageHandler), directory(common::Directory(messageHandler.getSyncFolder()))
 {
     registerCommand("upload", [this](const std::vector<std::string> &parameters) { upload(parameters[0]); });
     registerCommand("delete", [this](const std::vector<std::string> &parameters) { deleteFile(parameters[0]); });
+    registerCommand("list", [this](const std::vector<std::string> &parameters) { listFiles(parameters[0]); });
 }
 
 void CommandHandler::executeCommand(std::string command, const std::vector<std::string> &parameters) const
@@ -33,6 +34,35 @@ void CommandHandler::upload(const std::string &filepath) const
 void CommandHandler::deleteFile(const std::string &filename) const
 {
     messageHandler.sendDeleteFileMessage(filename);
+}
+
+void CommandHandler::listFiles(const std::string &from) const
+{
+    std::vector<common::FileInfo> files;
+
+    if (from == "server")
+    {
+        messageHandler.sendListServerFilesMessage();
+        files = messageHandler.receiveListFilesMessage();
+    }
+    else if (from == "client")
+    {
+        files = directory.listFiles();
+    }
+    else
+    {
+        std::cout << "Invalid argument for list command." << std::endl;
+        return;
+    }
+
+    std::cout << std::left << std::setw(30) << "Filename" << std::setw(30) << "Modification time" << std::setw(30)
+              << "Access time" << std::setw(30) << "Creation time" << std::setw(30) << "Filesize" << std::endl;
+    for (const auto &file : files)
+    {
+        std::cout << std::left << std::setw(30) << file.filename << std::setw(30) << file.modificationTime
+                  << std::setw(30) << file.accessTime << std::setw(30) << file.creationTime << std::setw(30)
+                  << file.filesize << std::endl;
+    }
 }
 
 void CommandHandler::registerCommand(const std::string &command,

@@ -4,7 +4,17 @@ namespace command
 {
 void MessageHandler::handleOtherMessage(const common::Message &message) const
 {
-    std::cout << "Received message: " << message << std::endl;
+}
+
+void MessageHandler::handlePureHeaderMessage(const common::MessageHeader &header) const
+{
+    if (header.messageType == common::MessageType::INIT_LIST_FILES)
+    {
+        sendOK();
+        common::ListFiles listFiles;
+        listFiles.files = directory.listFiles();
+        sendModelMessage(listFiles);
+    }
 }
 
 void MessageHandler::onSendFileMessage(const common::InitSendFile &initSendFile) const
@@ -13,7 +23,6 @@ void MessageHandler::onSendFileMessage(const common::InitSendFile &initSendFile)
     UserConnection &userConnection = connectionHandler.getUserConnection(username);
     common::FileChange fileChange(initSendFile.filename, common::FileChangeType::FILE_CREATED);
     userConnection.addFileChange(fileChange);
-    std::cout << "Received init send file message" << std::endl;
 }
 
 void MessageHandler::onDeleteFileMessage(const common::DeleteFile &deletedFile) const
@@ -22,6 +31,5 @@ void MessageHandler::onDeleteFileMessage(const common::DeleteFile &deletedFile) 
     UserConnection &userConnection = connectionHandler.getUserConnection(username);
     common::FileChange fileChange(deletedFile.filename, common::FileChangeType::FILE_DELETED);
     userConnection.addFileChange(fileChange);
-    std::cout << "Received deleted file message" << std::endl;
 }
 } // namespace command
