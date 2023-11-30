@@ -3,8 +3,7 @@ project(Common)
 # Define a library target for the common code
 add_library(common_lib
     include/filesystem/file.hpp
-    include/database/Database.h
-    include/datetime/DateTime.h
+    include/datetime/dateTime.hpp
     include/models/deleteFile.hpp
     include/models/initReceiveFile.hpp
     include/models/initSendFile.hpp
@@ -20,5 +19,3 @@ target_include_directories(common_lib
 )
 
 set_target_properties(common_lib PROPERTIES LINKER_LANGUAGE CXX)
-
-target_link_libraries(common_lib PUBLIC SQLite::SQLite3)

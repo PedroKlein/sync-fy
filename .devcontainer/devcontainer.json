@@ -24,8 +24,7 @@
         "seatonjiang.gitmoji-vscode",
         "ms-azuretools.vscode-docker",
         "dracula-theme.theme-dracula",
-        "GitHub.copilot",
-        "qwtel.sqlite-viewer"
+        "GitHub.copilot"
       ],
       "settings": {
         "editor.tabSize": 4,

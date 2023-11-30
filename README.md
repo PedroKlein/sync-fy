@@ -2,7 +2,7 @@
 
 ## Introduction
 
-TODO: Explain what the project is about and what it does.
+Sync-Fy is a project focused on implementing a service akin to Dropbox, enabling seamless sharing and automatic synchronization of files across various devices belonging to the same user. The application is designed to run in Unix environments, specifically on Linux. The implementation leverages the Unix Transmission Control Protocol (TCP) sockets API, inotify API and C++.
 
 ## Requirements
 
