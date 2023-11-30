@@ -32,7 +32,7 @@ class MessageHandler
     void sendOK() const
     {
         Message okMessage(common::MessageType::OK);
-        sendMessage(okMessage, false);
+        sendMessage(okMessage);
     }
 
     void sendExit() const
@@ -44,7 +44,7 @@ class MessageHandler
     void sendRawMessage(const std::vector<char> &data, size_t numPacket = 1, size_t totalPackets = 1) const
     {
         Message message(common::MessageType::SEND_RAW, data, numPacket, totalPackets);
-        sendMessage(message, false);
+        sendMessage(message);
     }
 
     void receiveMessage()
@@ -59,8 +59,6 @@ class MessageHandler
                 isMonitoring = false;
                 return;
             }
-
-            // sendOK();
             handlePureHeaderMessage(header);
         }
 
@@ -68,7 +66,6 @@ class MessageHandler
         socket.receive(messageData.data(), header.dataSize);
 
         Message message(header, messageData);
-        // sendOK();
         handleMessage(message);
     }
 
@@ -128,16 +125,11 @@ class MessageHandler
         return common::MessageHeader::deserialize(headerBytes);
     }
 
-    void sendMessage(const Message &message, bool waitForResponse = true) const
+    void sendMessage(const Message &message) const
     {
         std::vector<char> serialized = message.serialize();
 
         socket.send(serialized.data(), serialized.size());
-
-        if (waitForResponse)
-        {
-            // receiveOK();
-        }
     }
 };
 } // namespace common

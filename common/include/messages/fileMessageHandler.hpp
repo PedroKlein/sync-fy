@@ -38,15 +38,12 @@ class FileMessageHandler : public MessageHandler
         socket.receive(messageData.data(), header.dataSize);
 
         handleInitSendFile(messageData, header, true);
-
-        // receiveOK();
     }
 
     void sendDeleteFileMessage(const std::string &filename) const
     {
         DeleteFile deleteFile(filename);
         sendModelMessage(deleteFile);
-        // receiveOK();
     }
 
     const std::string &getUsername() const
@@ -109,8 +106,6 @@ class FileMessageHandler : public MessageHandler
             float progress = static_cast<float>(totalSent) / fileSize * 100;
             onSendProgress(progress);
         });
-
-        // receiveOK();
     }
 
     void handleInitReceiveFile(const std::vector<char> &data, MessageHeader header)
@@ -122,8 +117,6 @@ class FileMessageHandler : public MessageHandler
         File file(syncFolder + initReceiveFile.filename);
 
         sendFileMessage(file);
-
-        // sendOK();
     }
 
     void handleInitSendFile(const std::vector<char> &data, MessageHeader header, bool isCommand = false) const
@@ -150,7 +143,6 @@ class FileMessageHandler : public MessageHandler
         }
 
         onSendFileMessage(initSendFile);
-        // sendOK();
     }
 
     void handleDeleteFile(const std::vector<char> &data)
@@ -168,8 +160,6 @@ class FileMessageHandler : public MessageHandler
         }
 
         onDeleteFileMessage(DeleteFile);
-
-        // sendOK();
     }
 };
 } // namespace common

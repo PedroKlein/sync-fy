@@ -53,10 +53,11 @@ class TCPSocket
             try
             {
                 const int l = ::send(socketId, &buffer[i], std::min(chunkSize, size - i), 0);
-                // if (l < 0)
-                // {
-                //     throw std::runtime_error("Failed to send data");
-                // }
+                if (l < 0)
+                {
+                    onDisconnect();
+                    return;
+                }
                 i += l;
             }
             catch (const std::exception &e)
@@ -83,13 +84,15 @@ class TCPSocket
                     if (onDisconnect)
                     {
                         onDisconnect();
+                        return;
                     }
                     break;
                 }
-                // else if (l < 0)
-                // {
-                //     throw std::runtime_error("Failed to receive data");
-                // }
+                else if (l < 0)
+                {
+                    onDisconnect();
+                    return;
+                }
                 i += l;
             }
             catch (const std::exception &e)
@@ -112,8 +115,8 @@ class TCPSocket
         FD_SET(socketId, &readfds);
 
         struct timeval timeout;
-        timeout.tv_sec = 0;  // Zero seconds
-        timeout.tv_usec = 0; // Zero microseconds
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 0;
 
         if (select(socketId + 1, &readfds, NULL, NULL, &timeout) > 0)
         {

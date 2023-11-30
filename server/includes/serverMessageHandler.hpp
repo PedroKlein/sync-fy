@@ -41,8 +41,6 @@ class ServerMessageHandler : public common::FileMessageHandler
         common::Login login;
         login.fromJson(message);
 
-        // sendOK();
-
         return login.username;
     }
 };
