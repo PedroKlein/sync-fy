@@ -6,14 +6,12 @@ class InitReceiveFile : public BaseModel
 {
   public:
     std::string filename;
-    size_t fileSize;
 
     InitReceiveFile() : BaseModel(MessageType::INIT_RECEIVE_FILE)
     {
     }
 
-    InitReceiveFile(const std::string &filename, size_t fileSize)
-        : BaseModel(MessageType::INIT_RECEIVE_FILE), filename(filename), fileSize(fileSize)
+    InitReceiveFile(const std::string &filename) : BaseModel(MessageType::INIT_RECEIVE_FILE), filename(filename)
     {
     }
 
@@ -21,7 +19,6 @@ class InitReceiveFile : public BaseModel
     {
         Json::Value root;
         root["filename"] = filename;
-        root["fileSize"] = static_cast<Json::UInt64>(fileSize);
         Json::StreamWriterBuilder writer;
         std::string output = Json::writeString(writer, root);
         return output;
@@ -38,7 +35,6 @@ class InitReceiveFile : public BaseModel
             throw std::runtime_error("Failed to parse JSON");
         }
         filename = root["filename"].asString();
-        fileSize = root["fileSize"].asUInt();
     }
 };
 } // namespace common

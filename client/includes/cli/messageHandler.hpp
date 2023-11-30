@@ -12,6 +12,7 @@ class MessageHandler : public ClientMessageHandler
 
   public:
     void sendListServerFilesMessage() const;
+    void sendDownloadFileMessage(const std::string &filename) const;
     std::vector<common::FileInfo> receiveListFilesMessage() const;
 
   private:

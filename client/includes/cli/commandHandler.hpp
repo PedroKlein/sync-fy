@@ -21,6 +21,7 @@ class CommandHandler
     void registerCommand(const std::string &command, std::function<void(const std::vector<std::string> &)> method);
 
     void upload(const std::string &filepath) const;
+    void download(const std::string &filename) const;
     void deleteFile(const std::string &filename) const;
     void listFiles(const std::string &from) const;
 };

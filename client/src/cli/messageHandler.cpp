@@ -24,10 +24,17 @@ std::vector<common::FileInfo> MessageHandler::receiveListFilesMessage() const
     common::ListFiles listFiles;
     listFiles.fromJson(message);
 
-    sendOK();
-    receiveOK();
+    // sendOK();
+    // receiveOK();
 
     return listFiles.files;
+}
+
+void MessageHandler::sendDownloadFileMessage(const std::string &filename) const
+{
+    common::InitReceiveFile initReceiveFile(filename);
+    sendModelMessage(initReceiveFile);
+    receiveFileMessage();
 }
 
 void MessageHandler::onSendProgress(float progress) const

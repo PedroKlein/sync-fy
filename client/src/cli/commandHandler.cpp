@@ -8,6 +8,7 @@ CommandHandler::CommandHandler(const MessageHandler &messageHandler)
     registerCommand("upload", [this](const std::vector<std::string> &parameters) { upload(parameters[0]); });
     registerCommand("delete", [this](const std::vector<std::string> &parameters) { deleteFile(parameters[0]); });
     registerCommand("list", [this](const std::vector<std::string> &parameters) { listFiles(parameters[0]); });
+    registerCommand("download", [this](const std::vector<std::string> &parameters) { download(parameters[0]); });
 }
 
 void CommandHandler::executeCommand(std::string command, const std::vector<std::string> &parameters) const
@@ -24,9 +25,13 @@ void CommandHandler::executeCommand(std::string command, const std::vector<std::
     }
 }
 
+void CommandHandler::download(const std::string &filename) const
+{
+    messageHandler.sendDownloadFileMessage(filename);
+}
+
 void CommandHandler::upload(const std::string &filepath) const
 {
-    std::cout << "Upload command start." << std::endl;
     common::File file(filepath);
     messageHandler.sendFileMessage(file);
 }

@@ -10,7 +10,6 @@ void MessageHandler::handlePureHeaderMessage(const common::MessageHeader &header
 {
     if (header.messageType == common::MessageType::INIT_LIST_FILES)
     {
-        sendOK();
         common::ListFiles listFiles;
         listFiles.files = directory.listFiles();
         sendModelMessage(listFiles);

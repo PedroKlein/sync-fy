@@ -60,6 +60,7 @@ class MessageHandler
                 return;
             }
 
+            // sendOK();
             handlePureHeaderMessage(header);
         }
 
@@ -67,7 +68,7 @@ class MessageHandler
         socket.receive(messageData.data(), header.dataSize);
 
         Message message(header, messageData);
-        sendOK();
+        // sendOK();
         handleMessage(message);
     }
 
@@ -104,7 +105,7 @@ class MessageHandler
     virtual void handlePureHeaderMessage(const MessageHeader &header) const {};
     virtual void onExit(){};
 
-    Message receiveRaw()
+    Message receiveRaw() const
     {
         MessageHeader header = receiveHeader();
 
@@ -135,7 +136,7 @@ class MessageHandler
 
         if (waitForResponse)
         {
-            receiveOK();
+            // receiveOK();
         }
     }
 };

@@ -25,10 +25,28 @@ class FileMessageHandler : public MessageHandler
         sendFileDataMessage(file);
     }
 
+    void receiveFileMessage() const
+    {
+        MessageHeader header = receiveHeader();
+
+        if (header.messageType != common::MessageType::INIT_SEND_FILE)
+        {
+            throw std::runtime_error("Expected init send file message");
+        }
+
+        std::vector<char> messageData(header.dataSize);
+        socket.receive(messageData.data(), header.dataSize);
+
+        handleInitSendFile(messageData, header, true);
+
+        // receiveOK();
+    }
+
     void sendDeleteFileMessage(const std::string &filename) const
     {
         DeleteFile deleteFile(filename);
         sendModelMessage(deleteFile);
+        // receiveOK();
     }
 
     const std::string &getUsername() const
@@ -91,48 +109,45 @@ class FileMessageHandler : public MessageHandler
             onSendProgress(progress);
         });
 
-        receiveOK();
-    }
-
-    void sendInitReceiveFileMessage(const std::string &filename, size_t fileSize) const
-    {
-        InitReceiveFile initReceiveFile(filename, fileSize);
-        sendModelMessage(initReceiveFile);
+        // receiveOK();
     }
 
     void handleInitReceiveFile(const std::vector<char> &data, MessageHeader header)
     {
-        // filename = std::string(data.begin(), data.end());
-        // std::cout << "Receiving file " << filename << std::endl;
-        sendOK();
+        std::string message(data.begin(), data.end());
+        InitReceiveFile initReceiveFile;
+        initReceiveFile.fromJson(message);
+
+        File file(syncFolder + initReceiveFile.filename);
+
+        sendFileMessage(file);
+
+        // sendOK();
     }
 
-    void handleInitSendFile(const std::vector<char> &data, MessageHeader header)
+    void handleInitSendFile(const std::vector<char> &data, MessageHeader header, bool isCommand = false) const
     {
         std::string message(data.begin(), data.end());
 
         InitSendFile initSendFile;
         initSendFile.fromJson(message);
 
-        sendOK();
+        // for the specific scenario of download command (this is a gambiarra to prevent code duplication)
+        std::string filePath = isCommand ? initSendFile.filename : syncFolder + initSendFile.filename;
 
-        File file = File::create(syncFolder + initSendFile.filename);
+        File file = File::create(filePath);
 
-        if (initSendFile.fileSize == 0)
+        if (initSendFile.fileSize > 0)
         {
-            sendOK();
-            return;
+            file.writeFile([&]() -> FileChunk {
+                auto message = receiveRaw();
+                auto messageHeader = message.getMessageHeader();
+                return FileChunk(message.getData(), messageHeader.packet, messageHeader.totalPackets);
+            });
         }
 
-        file.writeFile([&]() -> FileChunk {
-            auto message = receiveRaw();
-            auto messageHeader = message.getMessageHeader();
-            return FileChunk(message.getData(), messageHeader.packet, messageHeader.totalPackets);
-        });
-
         onSendFileMessage(initSendFile);
-
-        sendOK();
+        // sendOK();
     }
 
     void handleDeleteFile(const std::vector<char> &data)
@@ -151,7 +166,7 @@ class FileMessageHandler : public MessageHandler
 
         onDeleteFileMessage(DeleteFile);
 
-        sendOK();
+        // sendOK();
     }
 };
 } // namespace common
