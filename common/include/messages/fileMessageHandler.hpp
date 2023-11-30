@@ -19,6 +19,10 @@ class FileMessageHandler : public MessageHandler
         this->syncFolder = syncFolder;
     }
 
+    FileMessageHandler(TCPSocket &socket) : MessageHandler(socket)
+    {
+    }
+
     void sendFileMessage(File &file) const
     {
         sendInitSendFileMessage(file.getName(), file.getSize());

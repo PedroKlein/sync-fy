@@ -8,12 +8,11 @@
 class ServerMessageHandler : public common::FileMessageHandler
 {
   public:
-    ServerMessageHandler(common::TCPSocket &socket, std::string ip)
-        : common::FileMessageHandler(socket, username, syncFolder)
+    ServerMessageHandler(common::TCPSocket &socket, std::string ip) : common::FileMessageHandler(socket)
     {
-        username = receiveLoginMessage();
+        this->username = receiveLoginMessage();
         onLogin();
-        syncFolder = common::DEFAULT_SERVER_SYNC_DIR + username + "/";
+        this->syncFolder = common::DEFAULT_SERVER_SYNC_DIR + username + "/";
 
         this->ip = ip;
 

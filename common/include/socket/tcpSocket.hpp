@@ -42,7 +42,8 @@ class TCPSocket
 
     virtual ~TCPSocket()
     {
-        closeConnection();
+        std::cout << "Connection closed" << std::endl;
+        close(socketId);
     }
 
     void send(const char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE)
@@ -53,7 +54,7 @@ class TCPSocket
             try
             {
                 const int l = ::send(socketId, &buffer[i], std::min(chunkSize, size - i), 0);
-                if (l < 0)
+                if (l < 0 || l == 0)
                 {
                     closeConnection();
                 }
@@ -76,16 +77,10 @@ class TCPSocket
             {
                 const int l = read(socketId, &buffer[i], std::min(chunkSize, size - i));
 
-                if (l == 0)
+                if (l < 0 || l == 0)
                 {
-                    std::cout << "Connection closed" << std::endl;
                     closeConnection();
                     break;
-                }
-                else if (l < 0)
-                {
-                    closeConnection();
-                    return;
                 }
                 i += l;
             }
@@ -99,7 +94,6 @@ class TCPSocket
 
     void closeConnection()
     {
-        close(socketId);
         if (onDisconnect)
         {
             onDisconnect();

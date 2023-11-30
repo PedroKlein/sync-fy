@@ -13,7 +13,8 @@ void ConnectionHandler::onCommandSocketConnection(int clientSocketId, const std:
         userConnection.setCommandConnection(clientConnection, clientSocketId);
 
         clientSocket.setOnDisconnect([&ip, &userConnection, &connectionHandler, &handler]() {
-            std::cout << "Command socket disconnected: " << handler.getUsername() << ":" << ip << std::endl;
+            std::cout << "Command socket disconnected - " << handler.getUsername() << ":" << ip << std::endl;
+            handler.stopMonitoring();
             connectionHandler.removeUserConnection(handler.getUsername(), ip);
         });
 
@@ -34,7 +35,8 @@ void ConnectionHandler::onClientDataSocketConnection(int clientSocketId, const s
         userConnection.setClientDataConnection(clientConnection, clientSocketId);
 
         clientSocket.setOnDisconnect([&ip, &userConnection, &connectionHandler, &handler]() {
-            std::cout << "Client data socket disconnected: " << handler.getUsername() << ":" << ip << std::endl;
+            std::cout << "Client data socket disconnected - " << handler.getUsername() << ":" << ip << std::endl;
+            handler.stopMonitoring();
             connectionHandler.removeUserConnection(handler.getUsername(), ip);
         });
 
@@ -54,18 +56,15 @@ void ConnectionHandler::onServerDataSocketConnection(int clientSocketId, const s
 
         userConnection.setServerDataConnection(clientConnection, clientSocketId);
 
-        clientSocket.setOnDisconnect([&ip, &userConnection, &connectionHandler, &handler]() {
-            std::cout << "Server data socket disconnected: " << handler.getUsername() << ":" << ip << std::endl;
+        localMonitor::LocalMonitor localMonitor(handler, userConnection.getFileChangesQueue(ip));
+
+        clientSocket.setOnDisconnect([&ip, &userConnection, &connectionHandler, &handler, &localMonitor]() {
+            std::cout << "Server data socket disconnected - " << handler.getUsername() << ":" << ip << std::endl;
+            localMonitor.stopMonitoring();
             connectionHandler.removeUserConnection(handler.getUsername(), ip);
         });
 
-        auto &fileChangesQueue = userConnection.getFileChangesQueue(ip);
-
-        localMonitor::LocalMonitor localMonitor(handler, fileChangesQueue);
-
         localMonitor.monitorChanges();
-
-        handler.monitorMessages();
     }).detach();
 }
 
@@ -98,6 +97,7 @@ UserConnection &ConnectionHandler::addUserConnection(const std::string &username
 
 UserConnection &ConnectionHandler::getUserConnection(const std::string &username)
 {
+    std::lock_guard<std::mutex> lock(mtx);
     auto it = userConnections.find(username);
     if (it == userConnections.end())
     {

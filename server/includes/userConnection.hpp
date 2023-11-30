@@ -19,7 +19,7 @@ struct ClientConnection
     std::unique_ptr<Connection> commandConnection;
     std::unique_ptr<Connection> serverDataConnection;
     std::unique_ptr<Connection> clientDataConnection;
-    std::unique_ptr<FileChangesQueue> fileChangesQueue;
+    std::shared_ptr<FileChangesQueue> fileChangesQueue;
 };
 
 class UserConnection
@@ -46,7 +46,7 @@ class UserConnection
 
         std::unique_ptr<ClientConnection> clientConnection = std::make_unique<ClientConnection>();
 
-        clientConnection->fileChangesQueue = std::make_unique<FileChangesQueue>();
+        clientConnection->fileChangesQueue = std::make_shared<FileChangesQueue>();
 
         // Get a reference before moving the unique_ptr into the map
         ClientConnection &connectionRef = *clientConnection;
@@ -64,6 +64,7 @@ class UserConnection
 
     bool hasClientConnections()
     {
+        std::lock_guard<std::mutex> lock(mtx);
         return clientConnections.size() > 0;
     }
 
@@ -87,6 +88,7 @@ class UserConnection
 
     ClientConnection &getClientConnection(const std::string &ip)
     {
+        std::lock_guard<std::mutex> lock(mtx);
         auto it = clientConnections.find(ip);
         if (it == clientConnections.end())
         {
@@ -123,7 +125,7 @@ class UserConnection
         }
     }
 
-    FileChangesQueue &getFileChangesQueue(const std::string &ip)
+    std::shared_ptr<FileChangesQueue> getFileChangesQueue(const std::string &ip)
     {
         std::lock_guard<std::mutex> lock(mtx);
         auto it = clientConnections.find(ip);
@@ -131,7 +133,7 @@ class UserConnection
         {
             throw std::out_of_range("IP not found");
         }
-        return *(it->second->fileChangesQueue);
+        return (it->second->fileChangesQueue);
     }
 
   private:

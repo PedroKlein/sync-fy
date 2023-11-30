@@ -74,7 +74,7 @@ void CommandHandler::listFiles(const std::string &from) const
 void CommandHandler::exit() const
 {
     std::cout << "Exiting...bye :)" << std::endl;
-    messageHandler.sendExit();
+    // messageHandler.sendExit();
 }
 
 void CommandHandler::registerCommand(const std::string &command,

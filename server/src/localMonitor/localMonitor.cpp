@@ -2,7 +2,7 @@
 
 namespace localMonitor
 {
-LocalMonitor::LocalMonitor(ServerMessageHandler &messageHandler, FileChangesQueue &changeQueue)
+LocalMonitor::LocalMonitor(ServerMessageHandler &messageHandler, std::shared_ptr<FileChangesQueue> changeQueue)
     : messageHandler(messageHandler), changeQueue(changeQueue), directory(messageHandler.getSyncFolder())
 {
 }
@@ -11,15 +11,22 @@ void LocalMonitor::monitorChanges()
 {
     initialSync();
 
+    isMonitoring = true;
     common::FileChange fileChange;
-    while (true)
+
+    do
     {
-        if (changeQueue.tryPop(fileChange))
+        if (changeQueue->tryPop(fileChange))
         {
             sendFileChange(fileChange);
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
+    } while (isMonitoring && changeQueue.use_count() > 1);
+}
+
+void LocalMonitor::stopMonitoring()
+{
+    isMonitoring = false;
 }
 
 void LocalMonitor::initialSync()
