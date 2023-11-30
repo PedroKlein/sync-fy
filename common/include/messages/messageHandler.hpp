@@ -29,18 +29,6 @@ class MessageHandler
         sendMessage(message);
     }
 
-    void sendOK() const
-    {
-        Message okMessage(common::MessageType::OK);
-        sendMessage(okMessage);
-    }
-
-    // void sendExit() const
-    // {
-    //     Message exitMessage(common::MessageType::EXIT);
-    //     sendMessage(exitMessage);
-    // }
-
     void sendRawMessage(const std::vector<char> &data, size_t numPacket = 1, size_t totalPackets = 1) const
     {
         Message message(common::MessageType::SEND_RAW, data, numPacket, totalPackets);
@@ -53,12 +41,6 @@ class MessageHandler
 
         if (header.headerType == common::HeaderType::PURE_HEADER)
         {
-            // if (header.messageType == common::MessageType::EXIT)
-            // {
-            //     socket.closeConnection();
-            //     isMonitoring = false;
-            //     return;
-            // }
             handlePureHeaderMessage(header);
         }
 
@@ -77,16 +59,6 @@ class MessageHandler
         {
             receiveMessage();
         } while (isMonitoring);
-    }
-
-    void receiveOK() const
-    {
-        auto header = receiveHeader();
-
-        if (header.messageType != MessageType::OK)
-        {
-            throw std::runtime_error("Expected OK message");
-        }
     }
 
     void stopMonitoring()

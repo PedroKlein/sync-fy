@@ -11,8 +11,6 @@ constexpr size_t MESSAGE_HEADER_SIZE =
 
 enum MessageType
 {
-    OK,                // Header only
-    EXIT,              // Header only
     INIT_LIST_FILES,   // Header only
     INIT_SEND_FILE,    // Header + JSON
     INIT_RECEIVE_FILE, // Header + JSON

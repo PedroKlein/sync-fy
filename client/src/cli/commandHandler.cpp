@@ -65,16 +65,18 @@ void CommandHandler::listFiles(const std::string &from) const
               << "Access time" << std::setw(30) << "Creation time" << std::setw(30) << "Filesize" << std::endl;
     for (const auto &file : files)
     {
-        std::cout << std::left << std::setw(30) << file.filename << std::setw(30) << file.modificationTime
-                  << std::setw(30) << file.accessTime << std::setw(30) << file.creationTime << std::setw(30)
-                  << file.filesize << std::endl;
+
+        std::cout << std::left << std::setw(30) << file.filename << std::setw(30)
+                  << common::DateTime::toLocalTime(file.modificationTime) << std::setw(30)
+                  << common::DateTime::toLocalTime(file.accessTime) << std::setw(30)
+                  << common::DateTime::toLocalTime(file.creationTime) << std::setw(30) << file.filesize << std::endl;
     }
 }
 
 void CommandHandler::exit() const
 {
     std::cout << "Exiting...bye :)" << std::endl;
-    // messageHandler.sendExit();
+    ::exit(0);
 }
 
 void CommandHandler::registerCommand(const std::string &command,
