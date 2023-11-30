@@ -14,7 +14,7 @@
 class ClientMessageHandler : public common::FileMessageHandler
 {
   public:
-    ClientMessageHandler(const common::TCPSocket &socket, std::string username)
+    ClientMessageHandler(common::TCPSocket &socket, std::string username)
         : common::FileMessageHandler(socket, username, common::DEFAULT_CLIENT_SYNC_DIR)
     {
         sendLoginMessage(username);

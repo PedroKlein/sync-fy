@@ -62,6 +62,11 @@ class UserConnection
         clientConnections.erase(ip);
     }
 
+    bool hasClientConnections()
+    {
+        return clientConnections.size() > 0;
+    }
+
     void setCommandConnection(ClientConnection &clientConnection, int socketId)
     {
         clientConnection.commandConnection = std::make_unique<Connection>();

@@ -19,7 +19,7 @@ namespace common
 class MessageHandler
 {
   public:
-    MessageHandler(const TCPSocket &socket) : socket(socket)
+    MessageHandler(TCPSocket &socket) : socket(socket)
     {
     }
 
@@ -55,7 +55,7 @@ class MessageHandler
         {
             if (header.messageType == common::MessageType::EXIT)
             {
-                onExit();
+                socket.closeConnection();
                 isMonitoring = false;
                 return;
             }
@@ -95,12 +95,11 @@ class MessageHandler
     }
 
   protected:
-    const TCPSocket &socket;
+    TCPSocket &socket;
     bool isMonitoring = false;
 
     virtual void handleMessage(const Message &message) = 0;
     virtual void handlePureHeaderMessage(const MessageHeader &header) const {};
-    virtual void onExit(){};
 
     Message receiveRaw() const
     {

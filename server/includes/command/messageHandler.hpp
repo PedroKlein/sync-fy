@@ -13,7 +13,7 @@ class MessageHandler : public ServerMessageHandler
 
     // implement contructor
   public:
-    MessageHandler(const common::TCPSocket &socket, std::string ip)
+    MessageHandler(common::TCPSocket &socket, std::string ip)
         : ServerMessageHandler(socket, ip), directory(common::Directory(getSyncFolder()))
     {
     }

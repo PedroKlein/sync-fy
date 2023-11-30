@@ -1,7 +1,5 @@
 #include "connectionHandler.hpp"
 
-// TODO: Implement user connection structure with thread safe operations
-// TODO: Implement other connection callbacks for each socket type
 void ConnectionHandler::onCommandSocketConnection(int clientSocketId, const std::string &ip)
 {
     std::thread([clientSocketId, ip]() {
@@ -15,9 +13,8 @@ void ConnectionHandler::onCommandSocketConnection(int clientSocketId, const std:
         userConnection.setCommandConnection(clientConnection, clientSocketId);
 
         clientSocket.setOnDisconnect([&ip, &userConnection, &connectionHandler, &handler]() {
-            std::cout << "Command socket disconnected" << std::endl;
-            userConnection.removeClientConnection(ip);
-            connectionHandler.removeUserConnection(handler.getUsername());
+            std::cout << "Command socket disconnected: " << handler.getUsername() << ":" << ip << std::endl;
+            connectionHandler.removeUserConnection(handler.getUsername(), ip);
         });
 
         handler.monitorMessages();
@@ -37,9 +34,8 @@ void ConnectionHandler::onClientDataSocketConnection(int clientSocketId, const s
         userConnection.setClientDataConnection(clientConnection, clientSocketId);
 
         clientSocket.setOnDisconnect([&ip, &userConnection, &connectionHandler, &handler]() {
-            std::cout << "Client data socket disconnected" << std::endl;
-            userConnection.removeClientConnection(ip);
-            connectionHandler.removeUserConnection(handler.getUsername());
+            std::cout << "Client data socket disconnected: " << handler.getUsername() << ":" << ip << std::endl;
+            connectionHandler.removeUserConnection(handler.getUsername(), ip);
         });
 
         handler.monitorMessages();
@@ -59,9 +55,8 @@ void ConnectionHandler::onServerDataSocketConnection(int clientSocketId, const s
         userConnection.setServerDataConnection(clientConnection, clientSocketId);
 
         clientSocket.setOnDisconnect([&ip, &userConnection, &connectionHandler, &handler]() {
-            std::cout << "Client data socket disconnected" << std::endl;
-            userConnection.removeClientConnection(ip);
-            connectionHandler.removeUserConnection(handler.getUsername());
+            std::cout << "Server data socket disconnected: " << handler.getUsername() << ":" << ip << std::endl;
+            connectionHandler.removeUserConnection(handler.getUsername(), ip);
         });
 
         auto &fileChangesQueue = userConnection.getFileChangesQueue(ip);
@@ -111,8 +106,20 @@ UserConnection &ConnectionHandler::getUserConnection(const std::string &username
     return *(it->second);
 }
 
-void ConnectionHandler::removeUserConnection(const std::string &username)
+void ConnectionHandler::removeUserConnection(const std::string &username, const std::string &ip)
 {
     std::lock_guard<std::mutex> lock(mtx);
-    size_t numErased = userConnections.erase(username);
+    auto it = userConnections.find(username);
+
+    if (it == userConnections.end())
+    {
+        return;
+    }
+
+    it->second->removeClientConnection(ip);
+
+    if (!it->second->hasClientConnections())
+    {
+        userConnections.erase(username);
+    }
 }

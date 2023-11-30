@@ -9,6 +9,7 @@ CommandHandler::CommandHandler(const MessageHandler &messageHandler)
     registerCommand("delete", [this](const std::vector<std::string> &parameters) { deleteFile(parameters[0]); });
     registerCommand("list", [this](const std::vector<std::string> &parameters) { listFiles(parameters[0]); });
     registerCommand("download", [this](const std::vector<std::string> &parameters) { download(parameters[0]); });
+    registerCommand("exit", [this](const std::vector<std::string> &parameters) { exit(); });
 }
 
 void CommandHandler::executeCommand(std::string command, const std::vector<std::string> &parameters) const
@@ -68,6 +69,12 @@ void CommandHandler::listFiles(const std::string &from) const
                   << std::setw(30) << file.accessTime << std::setw(30) << file.creationTime << std::setw(30)
                   << file.filesize << std::endl;
     }
+}
+
+void CommandHandler::exit() const
+{
+    std::cout << "Exiting...bye :)" << std::endl;
+    messageHandler.sendExit();
 }
 
 void CommandHandler::registerCommand(const std::string &command,

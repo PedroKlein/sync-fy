@@ -13,7 +13,7 @@ namespace common
 class FileMessageHandler : public MessageHandler
 {
   public:
-    FileMessageHandler(const TCPSocket &socket, std::string username, std::string syncFolder) : MessageHandler(socket)
+    FileMessageHandler(TCPSocket &socket, std::string username, std::string syncFolder) : MessageHandler(socket)
     {
         this->username = username;
         this->syncFolder = syncFolder;

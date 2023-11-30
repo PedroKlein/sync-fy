@@ -24,5 +24,6 @@ class CommandHandler
     void download(const std::string &filename) const;
     void deleteFile(const std::string &filename) const;
     void listFiles(const std::string &from) const;
+    void exit() const;
 };
 } // namespace cli

@@ -42,10 +42,10 @@ class TCPSocket
 
     virtual ~TCPSocket()
     {
-        close(socketId);
+        closeConnection();
     }
 
-    void send(const char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE) const
+    void send(const char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE)
     {
         ssize_t i = 0;
         while (i < size)
@@ -55,8 +55,7 @@ class TCPSocket
                 const int l = ::send(socketId, &buffer[i], std::min(chunkSize, size - i), 0);
                 if (l < 0)
                 {
-                    onDisconnect();
-                    return;
+                    closeConnection();
                 }
                 i += l;
             }
@@ -68,7 +67,7 @@ class TCPSocket
         }
     }
 
-    void receive(char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE) const
+    void receive(char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE)
     {
         size_t i = 0;
         while (i < size)
@@ -80,17 +79,12 @@ class TCPSocket
                 if (l == 0)
                 {
                     std::cout << "Connection closed" << std::endl;
-                    close(socketId);
-                    if (onDisconnect)
-                    {
-                        onDisconnect();
-                        return;
-                    }
+                    closeConnection();
                     break;
                 }
                 else if (l < 0)
                 {
-                    onDisconnect();
+                    closeConnection();
                     return;
                 }
                 i += l;
@@ -103,34 +97,18 @@ class TCPSocket
         }
     }
 
+    void closeConnection()
+    {
+        close(socketId);
+        if (onDisconnect)
+        {
+            onDisconnect();
+        }
+    }
+
     void setOnDisconnect(std::function<void()> callback)
     {
         onDisconnect = callback;
-    }
-
-    void checkConnection()
-    {
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(socketId, &readfds);
-
-        struct timeval timeout;
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 0;
-
-        if (select(socketId + 1, &readfds, NULL, NULL, &timeout) > 0)
-        {
-            char buffer[1];
-            if (read(socketId, buffer, 1) == 0)
-            {
-                std::cout << "Connection closed" << std::endl;
-                close(socketId);
-                if (onDisconnect)
-                {
-                    onDisconnect();
-                }
-            }
-        }
     }
 
   protected:

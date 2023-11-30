@@ -16,7 +16,7 @@ class ConnectionHandler
     UserConnection &addUserConnection(const std::string &username);
     UserConnection &getUserConnection(const std::string &username);
 
-    void removeUserConnection(const std::string &username);
+    void removeUserConnection(const std::string &username, const std::string &ip);
 
     static ConnectionHandler &getInstance();
     static void onCommandSocketConnection(int clientSocketId, const std::string &ip);
