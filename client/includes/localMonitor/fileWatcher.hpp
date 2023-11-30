@@ -15,9 +15,12 @@ namespace localMonitor
 class FileWatcher
 {
   public:
-    FileWatcher(const std::string &dirPath);
+    FileWatcher(const FileWatcher &) = delete;
+    FileWatcher &operator=(const FileWatcher &) = delete;
 
     ~FileWatcher();
+
+    static FileWatcher &getInstance(const std::string &dirPath);
 
     void setFileAddedCallback(std::function<void(const std::string &)> callback);
     void setFileRemovedCallback(std::function<void(const std::string &)> callback);
@@ -29,8 +32,11 @@ class FileWatcher
     void processEvents();
 
   private:
+    FileWatcher(const std::string &dirPath);
+
     static const int EVENT_SIZE = (sizeof(struct inotify_event));
     static const int EVENT_BUF_LEN = 1024;
+    bool isPaused = false;
 
     int inotifyFd;
     int watchFd;

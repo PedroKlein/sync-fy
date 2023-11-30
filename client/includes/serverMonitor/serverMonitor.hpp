@@ -1,6 +1,6 @@
 #pragma once
 
-#include "clientMessageHandler.hpp"
+#include "serverMonitor/messageHandler.hpp"
 #include <iostream>
 #include <string>
 #include <thread>
@@ -10,7 +10,7 @@ namespace serverMonitor
 class ServerMonitor
 {
   public:
-    ServerMonitor(ClientMessageHandler &messageHandler);
+    ServerMonitor(MessageHandler &messageHandler);
     ~ServerMonitor();
 
     std::thread *start();
@@ -18,7 +18,7 @@ class ServerMonitor
 
   private:
     std::thread monitorThread;
-    ClientMessageHandler &messageHandler;
+    MessageHandler &messageHandler;
 
     void run();
 };

@@ -3,7 +3,7 @@
 namespace serverMonitor
 {
 
-ServerMonitor::ServerMonitor(ClientMessageHandler &messageHandler) : messageHandler(messageHandler)
+ServerMonitor::ServerMonitor(MessageHandler &messageHandler) : messageHandler(messageHandler)
 {
 }
 

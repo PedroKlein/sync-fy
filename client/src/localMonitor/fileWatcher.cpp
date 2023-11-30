@@ -47,6 +47,22 @@ FileWatcher::~FileWatcher()
     close(inotifyFd);
 }
 
+FileWatcher &FileWatcher::getInstance(const std::string &dirPath)
+{
+    static FileWatcher instance(dirPath);
+    return instance;
+}
+
+void FileWatcher::pauseFileWatching()
+{
+    isPaused = true;
+}
+
+void FileWatcher::resumeFileWatching()
+{
+    isPaused = false;
+}
+
 void FileWatcher::setFileAddedCallback(std::function<void(const std::string &)> callback)
 {
     fileAddedCallback = std::move(callback);
@@ -86,6 +102,12 @@ void FileWatcher::processEvents()
             // Ignore this file and move to the next event
             i += EVENT_SIZE + event->len;
             continue;
+        }
+
+        // TODO: temporary fix, check if has problems with concurrency
+        if (isPaused)
+        {
+            return;
         }
 
         std::string filePath = dirPath + fileName;

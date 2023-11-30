@@ -76,7 +76,6 @@ void ConnectionHandler::onServerDataSocketConnection(int clientSocketId, const s
 
 ConnectionHandler &ConnectionHandler::getInstance()
 {
-
     static ConnectionHandler instance;
     return instance;
 }

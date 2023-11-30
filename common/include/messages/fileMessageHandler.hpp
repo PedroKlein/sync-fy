@@ -68,6 +68,7 @@ class FileMessageHandler : public MessageHandler
     virtual void onDeleteFileMessage(const DeleteFile &deleteFile) const {};
     virtual void onReceiveFileMessage(const InitReceiveFile &initReceiveFile) const {};
     virtual void onSendFileMessage(const InitSendFile &initSendFile) const {};
+    virtual void onStartSendFileMessage(const InitSendFile &initSendFile) const {};
 
     virtual void onSendProgress(float progress) const {};
 
@@ -131,6 +132,8 @@ class FileMessageHandler : public MessageHandler
 
         InitSendFile initSendFile;
         initSendFile.fromJson(message);
+
+        onStartSendFileMessage(initSendFile);
 
         // for the specific scenario of download command (this is a gambiarra to prevent code duplication)
         std::string filePath = isCommand ? initSendFile.filename : syncFolder + initSendFile.filename;
