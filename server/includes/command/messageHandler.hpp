@@ -1,17 +1,29 @@
 #pragma once
 
+#include "connectionHandler.hpp"
+#include "serverMessageHandler.hpp"
+#include <filesystem/directory.hpp>
 #include <filesystem/file.hpp>
-#include <messages/message.hpp>
-#include <messages/messageHandler.hpp>
+#include <filesystem/fileChange.hpp>
 
 namespace command
 {
-class MessageHandler : public common::MessageHandler
+class MessageHandler : public ServerMessageHandler
 {
-    using common::MessageHandler::MessageHandler;
 
+    // implement contructor
   public:
-  protected:
-    void handleMessage(const common::Message &message) override;
+    MessageHandler(const common::TCPSocket &socket, std::string ip)
+        : ServerMessageHandler(socket, ip), directory(common::Directory(getSyncFolder()))
+    {
+    }
+
+  private:
+    const common::Directory directory;
+
+    void handleOtherMessage(const common::Message &message) const override;
+    void handlePureHeaderMessage(const common::MessageHeader &message) const override;
+    void onSendFileMessage(const common::InitSendFile &initSendFile) const override;
+    void onDeleteFileMessage(const common::DeleteFile &deletedFile) const override;
 };
 } // namespace command

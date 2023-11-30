@@ -3,7 +3,12 @@
 #include "cli/cli.hpp"
 #include "cli/commandHandler.hpp"
 #include "cli/messageHandler.hpp"
+#include "clientMessageHandler.hpp"
 #include "clientSocket.hpp"
+#include "localMonitor/fileWatcher.hpp"
+#include "localMonitor/localMonitor.hpp"
+#include "serverMonitor/messageHandler.hpp"
+#include "serverMonitor/serverMonitor.hpp"
 #include <constants.hpp>
 
 int main(int argc, char *argv[])
@@ -16,7 +21,7 @@ int main(int argc, char *argv[])
     //     exit(errno);
     // }
 
-    std::string username;
+    std::string username, dirPath;
 
     if (argv[1])
     {
@@ -28,18 +33,30 @@ int main(int argc, char *argv[])
     }
 
     ClientSocket commandSocket("localhost", common::COMMAND_PORT);
-    ClientSocket serverDataSocket("localhost", common::SERVER_DATA_PORT);
-    ClientSocket clientDataSocket("localhost", common::CLIENT_DATA_PORT);
+    ClientSocket serverMonitorSocket("localhost", common::SERVER_DATA_PORT);
+    ClientSocket localMonitorSocket("localhost", common::CLIENT_DATA_PORT);
 
+    // CLI
     cli::MessageHandler commandMessager(commandSocket, username);
-
-    cli::CommandHandler handler(commandMessager);
-    cli::CLI cli(handler);
+    cli::CommandHandler commandHandler(commandMessager);
+    cli::CLI cli(commandHandler);
     std::thread *cliThread = cli.start();
 
-    cliThread->join();
+    // LocalMonitor
+    ClientMessageHandler localMonitorMessageHandler(localMonitorSocket, username);
+    localMonitor::FileWatcher &fileWatcher = localMonitor::FileWatcher::getInstance(common::DEFAULT_CLIENT_SYNC_DIR);
+    localMonitor::LocalMonitor localMonitor(fileWatcher, localMonitorMessageHandler);
+    std::thread *localMonitorThread = localMonitor.start();
 
-    std::cout << "Hello, World!" << std::endl;
+    // ServerMonitor
+    serverMonitor::MessageHandler serverMonitorMessageHandler(serverMonitorSocket, username);
+    serverMonitor::ServerMonitor serverMonitor(serverMonitorMessageHandler);
+    std::thread *serverMonitorThread = serverMonitor.start();
+
+    // Finalization
+    cliThread->join();
+    localMonitorThread->join();
+    serverMonitorThread->join();
 
     return 0;
 }

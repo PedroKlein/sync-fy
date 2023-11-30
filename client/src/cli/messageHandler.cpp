@@ -2,51 +2,44 @@
 
 namespace cli
 {
-void MessageHandler::handleMessage(const common::Message &message)
-{
-    std::cout << message << std::endl;
-}
-
-void MessageHandler::sendInitUploadFileMessage(const std::string &filename, size_t fileSize) const
-{
-    common::InitSendFile initSendFile(filename, fileSize);
-    sendModelMessage(initSendFile);
-}
-
-void MessageHandler::sendFileMessage(common::File &file) const
-{
-    size_t totalSent = 0;
-    const size_t fileSize = file.getSize();
-
-    file.readFile([&](const common::FileChunk &chunk) {
-        sendRawMessage(chunk.data, chunk.numPacket, chunk.totalPackets);
-        totalSent += chunk.data.size();
-
-        float progress = static_cast<float>(totalSent) / fileSize * 100;
-        std::cout << "Progress: " << progress << "%\n";
-    });
-}
-
-void MessageHandler::sendInitDownloadFileMessage(const std::string &filename, size_t fileSize) const
-{
-    common::InitReceiveFile initReceiveFile(filename, fileSize);
-    sendModelMessage(initReceiveFile);
-}
-
-void MessageHandler::sendDeleteFileMessage(const std::string &filename) const
-{
-    common::DeleteFile deleteFile(filename);
-    sendModelMessage(deleteFile);
-}
 void MessageHandler::sendListServerFilesMessage() const
 {
-    common::ListFiles listFiles;
-    sendModelMessage(listFiles);
+    common::Message initListFiles(common::MessageType::INIT_LIST_FILES);
+    sendMessage(initListFiles);
 }
-void MessageHandler::sendListClientFilesMessage() const
+
+std::vector<common::FileInfo> MessageHandler::receiveListFilesMessage() const
 {
+    common::MessageHeader header = receiveHeader();
+
+    if (header.messageType != common::MessageType::LIST_FILES)
+    {
+        throw std::runtime_error("Expected list files message");
+    }
+
+    std::vector<char> messageData(header.dataSize);
+    socket.receive(messageData.data(), header.dataSize);
+    std::string message(messageData.begin(), messageData.end());
+
     common::ListFiles listFiles;
-    sendModelMessage(listFiles);
+    listFiles.fromJson(message);
+
+    // sendOK();
+    // receiveOK();
+
+    return listFiles.files;
+}
+
+void MessageHandler::sendDownloadFileMessage(const std::string &filename) const
+{
+    common::InitReceiveFile initReceiveFile(filename);
+    sendModelMessage(initReceiveFile);
+    receiveFileMessage();
+}
+
+void MessageHandler::onSendProgress(float progress) const
+{
+    std::cout << "Progress: " << progress << "%" << std::endl;
 }
 
 } // namespace cli

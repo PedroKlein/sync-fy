@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <models/baseModel.hpp>
+
 namespace common
 {
 class Login : public BaseModel

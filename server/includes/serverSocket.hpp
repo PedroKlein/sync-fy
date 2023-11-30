@@ -7,12 +7,6 @@
 
 #define QUEUE_SIZE 5
 
-typedef struct Connection
-{
-    int socket;
-    pthread_t thread;
-} Connection;
-
 using OnConnectionCallback = std::function<void(int, std::string)>;
 
 class ServerSocket : public common::TCPSocket
@@ -20,16 +14,14 @@ class ServerSocket : public common::TCPSocket
   public:
     ServerSocket(int port, OnConnectionCallback onClientConnectCallback);
     ~ServerSocket();
-    void StartListening();
+    void startListening();
+    void stopListening();
 
   private:
+    bool isListening;
     socklen_t clientLength;
     struct sockaddr_in serverAddress, clientAddress;
-
     struct sockaddr_in newSocketAddress(int port);
-
-    // Connections / Clients
-    std::vector<Connection> clientConnections;
 
     OnConnectionCallback onClientConnectCallback;
 };

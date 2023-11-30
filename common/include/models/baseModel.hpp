@@ -1,6 +1,8 @@
 #pragma once
 
+#include "messages/messageTypes.hpp"
 #include <jsoncpp/json/json.h>
+#include <string>
 
 namespace common
 {

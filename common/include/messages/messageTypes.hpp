@@ -11,16 +11,15 @@ constexpr size_t MESSAGE_HEADER_SIZE =
 
 enum MessageType
 {
-    OK,
-    EXIT,
-    INIT_SEND_FILE,
-    INIT_RECEIVE_FILE,
-    SEND_RAW,
-    LOGIN,
-    DELETE_FILE,
-    LIST_FILES,
-    LIST_SERVER,
-    LIST_CLIENT,
+    OK,                // Header only
+    EXIT,              // Header only
+    INIT_LIST_FILES,   // Header only
+    INIT_SEND_FILE,    // Header + JSON
+    INIT_RECEIVE_FILE, // Header + JSON
+    SEND_RAW,          // Header + RAW
+    LOGIN,             // Header + JSON
+    DELETE_FILE,       // Header + JSON
+    LIST_FILES,        // Header + JSON
 };
 
 enum HeaderType

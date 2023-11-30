@@ -24,14 +24,14 @@ ServerSocket::~ServerSocket()
 {
 }
 
-void ServerSocket::StartListening()
+void ServerSocket::startListening()
 {
-    Connection connection;
-    while (true)
+    isListening = true;
+    while (isListening)
     {
         // Accept a client connection
-        connection.socket = accept(socketId, (struct sockaddr *)&clientAddress, &clientLength);
-        if (connection.socket < 0)
+        int newSocket = accept(socketId, (struct sockaddr *)&clientAddress, &clientLength);
+        if (newSocket < 0)
         {
             std::cerr << "Error on accept." << std::endl;
             exit(EXIT_FAILURE);
@@ -39,12 +39,16 @@ void ServerSocket::StartListening()
 
         // Get the client IP
         std::string clientIP(inet_ntoa(clientAddress.sin_addr));
-        std::cout << "Client {" << connection.socket << "} connected from IP: " << clientIP << std::endl;
+        std::cout << "Client {" << newSocket << "} connected from IP: " << clientIP << std::endl;
 
-        onClientConnectCallback(connection.socket, clientIP);
-
-        clientConnections.push_back(connection);
+        onClientConnectCallback(newSocket, clientIP);
     }
+}
+
+void ServerSocket::stopListening()
+{
+    isListening = false;
+    close(socketId);
 }
 
 struct sockaddr_in ServerSocket::newSocketAddress(int port)

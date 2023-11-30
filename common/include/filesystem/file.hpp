@@ -40,10 +40,14 @@ class File
         return std::filesystem::file_size(path);
     }
 
-    std::string getName()
+    std::string getName() const
     {
-        size_t pos = path.find_last_of("/\\");
-        return (pos == std::string::npos) ? path : path.substr(pos + 1);
+        return getFileName(path);
+    }
+
+    std::string getExtension() const
+    {
+        return getFileExtension(path);
     }
 
     void readFile(OnChunkReadCallback callback, size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
@@ -60,8 +64,6 @@ class File
 
     void writeFile(OnChunkWriteCallback callback)
     {
-        std::cout << "Writing to file: " << path << std::endl;
-
         std::ofstream outFile(path, std::ios::binary);
         if (!outFile.is_open())
         {
@@ -91,8 +93,18 @@ class File
         }
     }
 
+    static std::string getFileExtension(const std::string &fileName)
+    {
+        return std::filesystem::path(fileName).extension().string();
+    }
+
+    static std::string getFileName(const std::string &filePath)
+    {
+        return std::filesystem::path(filePath).filename().string();
+    }
+
   private:
-    std::string path;
+    const std::string path;
     std::ifstream fileStream;
 
     const std::vector<char> getChunkData(size_t chunkSize = DEFAULT_FILE_CHUNK_SIZE)
