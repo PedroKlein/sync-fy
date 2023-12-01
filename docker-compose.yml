@@ -1,0 +1,40 @@
+version: '3'
+services:
+  server:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILD_TYPE: Release
+    command: sh -c "./build/Release/server/server"
+    ports:
+      - "8765:8765"
+      - "8766:8766"
+      - "8767:8767"
+
+  client: &client
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILD_TYPE: Release
+    command: sh -c "./build/Release/client/client $USER_NAME $SERVER_IP"
+    depends_on:
+      - server
+    environment:
+      - SERVER_IP: server
+
+  user1a:
+    <<: *client
+    environment:
+      - USER_NAME: user1
+
+  user1b:
+    <<: *client
+    environment:
+      - USER_NAME: user1
+
+  user2:
+    <<: *client
+    environment:
+      - USER_NAME: user2

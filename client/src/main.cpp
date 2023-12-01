@@ -15,27 +15,27 @@
 
 int main(int argc, char *argv[])
 {
-    // if (argc < 3)
-    // {
-    //     std::cerr << "ERR: not enough arguments were provided\n\t";
-    //     std::cerr << "|=> " << argv[0] << " <username> <server_address>" << std::endl;
-    //     exit(errno);
-    // }
 
-    std::string username, dirPath;
+    std::string username, serverAddress;
 
-    if (argv[1])
+#ifdef RELEASE_BUILD
+    if (argc < 3)
     {
-        username = argv[1];
-    }
-    else
-    {
-        username = "test";
+        std::cerr << "ERR: not enough arguments were provided\n\t";
+        std::cerr << "|=> " << argv[0] << " <username> <server_address>" << std::endl;
+        exit(errno);
     }
 
-    ClientSocket commandSocket("localhost", common::COMMAND_PORT);
-    ClientSocket serverMonitorSocket("localhost", common::SERVER_DATA_PORT);
-    ClientSocket localMonitorSocket("localhost", common::CLIENT_DATA_PORT);
+    username = argv[1];
+    serverAddress = argv[2];
+#else
+    username = "test";
+    serverAddress = "localhost";
+#endif
+
+    ClientSocket commandSocket(serverAddress, common::COMMAND_PORT);
+    ClientSocket serverMonitorSocket(serverAddress, common::SERVER_DATA_PORT);
+    ClientSocket localMonitorSocket(serverAddress, common::CLIENT_DATA_PORT);
 
     // CLI
     cli::MessageHandler commandMessager(commandSocket, username);
