@@ -13,6 +13,7 @@ Sync-Fy is a project focused on implementing a service akin to Dropbox, enabling
 3. **C++ Compiler**: This project requires a C++ compiler that supports C++23. We recommend using GCC 11.4.0 or higher. You can check your current version with `gcc --version`. If you need to upgrade, visit the [GCC download page](https://gcc.gnu.org/install/).
 
 You may install cmake and conan with pip with the following command:
+
 ```bash
 pip install cmake conan
 ```
@@ -28,6 +29,16 @@ After ensuring that the requirements are met, follow these steps:
 3. Run `./build/Release/server/server` to run the server app.
 
 4. Run `./build/Release/client/client` to run the client app.
+
+## Tests
+
+To test the application you can use the provided docker-compose:
+
+1. Run `docker-compose up` to start the containers (1 server and 3 clients).
+2. Attach a shel to the desired client with `docker exec -it {container-id} bash `
+3. Run the client with `../scripts/run-client.sh {username} server` on the attached container.
+4. The tests/files folder is binded to the container, so you can add files there to test the commands.
+
 ## Recommended Tools
 
 ### Gitmoji
@@ -54,10 +65,11 @@ git commit
 Remember, the use of `gitmoji-cli` is not mandatory, but it helps to make the commit history clear and easy to understand.
 
 ### VS Code
+
 If using vs code, run the following command to install the recommended extensions:
 
 ```bash
-code --install-extension ms-vscode.cpptools-extension-pack ms-vscode.cmake-tools seatonjiang.gitmoji-vscode 
+code --install-extension ms-vscode.cpptools-extension-pack ms-vscode.cmake-tools seatonjiang.gitmoji-vscode
 ```
-Or simply press `Ctrl+Shift+P` and type `Show Recommended Extensions`
 
+Or simply press `Ctrl+Shift+P` and type `Show Recommended Extensions`

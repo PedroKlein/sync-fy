@@ -15,4 +15,4 @@ target_include_directories(client
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/includes
 )
 
-target_link_libraries(client jsoncpp pthread common_lib)
+target_link_libraries(client PRIVATE jsoncpp pthread common_lib)
