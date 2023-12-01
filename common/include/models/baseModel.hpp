@@ -2,6 +2,7 @@
 
 #include "messages/messageTypes.hpp"
 #include <jsoncpp/json/json.h>
+#include <sstream>
 #include <string>
 
 namespace common
@@ -12,7 +13,7 @@ class BaseModel
     BaseModel(MessageType type) : type(type)
     {
     }
-    
+
     virtual ~BaseModel()
     {
     }
@@ -25,7 +26,7 @@ class BaseModel
         return type;
     }
 
-    private:
+  private:
     const MessageType type;
 };
 } // namespace common

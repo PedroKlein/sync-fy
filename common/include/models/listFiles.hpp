@@ -21,10 +21,10 @@ class ListFiles : public BaseModel
         {
             Json::Value fileJson;
             fileJson["filename"] = file.filename;
-            fileJson["mTime"] = file.modificationTime;
-            fileJson["aTime"] = file.accessTime;
-            fileJson["cTime"] = file.creationTime;
-            fileJson["filesize"] = file.filesize;
+            fileJson["mTime"] = static_cast<Json::Int64>(file.modificationTime);
+            fileJson["aTime"] = static_cast<Json::Int64>(file.accessTime);
+            fileJson["cTime"] = static_cast<Json::Int64>(file.creationTime);
+            fileJson["filesize"] = static_cast<Json::Int64>(file.filesize);
             root.append(fileJson);
         }
         Json::StreamWriterBuilder writer;
