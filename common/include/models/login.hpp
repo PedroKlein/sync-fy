@@ -5,19 +5,35 @@
 
 namespace common
 {
+/**
+ * @class Login
+ * @brief Represents a login request, extending the BaseModel.
+ */
 class Login : public BaseModel
 {
   public:
     std::string username;
 
+    /**
+     * @brief Default constructor for Login.
+     * @details Initializes the Login with the LOGIN message type.
+     */
     Login() : BaseModel(MessageType::LOGIN)
     {
     }
 
+    /**
+     * @brief Constructor for Login with a specified username.
+     * @param username The username for the login request.
+     */
     Login(const std::string &username) : BaseModel(MessageType::LOGIN), username(username)
     {
     }
 
+    /**
+     * @brief Converts the Login object to a JSON-formatted string.
+     * @return A string representing the Login object in JSON format.
+     */
     std::string toJson() const override
     {
         Json::Value root;
@@ -27,6 +43,11 @@ class Login : public BaseModel
         return output;
     }
 
+     /**
+     * @brief Parses a JSON-formatted string to populate the Login object.
+     * @param jsonStr The JSON-formatted string to parse.
+     * @throw std::runtime_error if parsing fails.
+     */
     void fromJson(const std::string &jsonStr) override
     {
         Json::Value root;
