@@ -5,9 +5,25 @@
 #include <messages/fileMessageHandler.hpp>
 #include <messages/message.hpp>
 
+/**
+ * @class ServerMessageHandler
+ * @brief Represents a message handler for the server.
+ *
+ * This class extends the common::FileMessageHandler and provides functionality
+ * for handling messages specific to the server.
+ */
 class ServerMessageHandler : public common::FileMessageHandler
 {
 public:
+  /**
+   * @brief Constructs a ServerMessageHandler object.
+   *
+   * Initializes the object with a TCP socket and the IP address of the client.
+   * Performs login, creates a synchronization folder, and prints login details.
+   *
+   * @param socket A reference to the common::TCPSocket object.
+   * @param ip The IP address of the client.
+   */
   ServerMessageHandler(common::TCPSocket &socket, std::string ip) : common::FileMessageHandler(socket)
   {
     this->username = receiveLoginMessage();
@@ -30,9 +46,22 @@ public:
 
 protected:
   std::string ip;
+
+  /**
+   * @brief Callback function called after successful login.
+   *
+   * Subclasses can override this function to perform additional actions
+   * after a successful login.
+   */
   virtual void onLogin(){};
 
 private:
+
+  /**
+   * @brief Receives and processes the login message from the client.
+   * @return The username extracted from the login message.
+   * @throws std::runtime_error if the received message is not a login message.
+   */
   std::string receiveLoginMessage()
   {
     common::MessageHeader header = receiveHeader();

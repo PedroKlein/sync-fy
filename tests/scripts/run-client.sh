@@ -1,0 +1,1 @@
+/workspaces/sync-fy/build/Release/client/client "$@"

@@ -5,15 +5,30 @@
 
 namespace common
 {
+/**
+ * @class ListFiles
+ * @brief Represents a message for listing files in a directory.
+ *
+ * The ListFiles class is a concrete implementation of the BaseModel and
+ * represents a message with information about files in a directory.
+ */
 class ListFiles : public BaseModel
 {
   public:
+    /**
+     * @brief Constructs a ListFiles object with the message type set to LIST_FILES.
+     */
     ListFiles() : BaseModel(MessageType::LIST_FILES)
     {
     }
 
     std::vector<FileInfo> files;
 
+    /**
+     * @brief Converts the ListFiles object to a JSON-formatted string.
+     *
+     * @return A JSON-formatted string representing the ListFiles object.
+     */
     std::string toJson() const override
     {
         Json::Value root;
@@ -21,10 +36,10 @@ class ListFiles : public BaseModel
         {
             Json::Value fileJson;
             fileJson["filename"] = file.filename;
-            fileJson["mTime"] = file.modificationTime;
-            fileJson["aTime"] = file.accessTime;
-            fileJson["cTime"] = file.creationTime;
-            fileJson["filesize"] = file.filesize;
+            fileJson["mTime"] = static_cast<Json::Int64>(file.modificationTime);
+            fileJson["aTime"] = static_cast<Json::Int64>(file.accessTime);
+            fileJson["cTime"] = static_cast<Json::Int64>(file.creationTime);
+            fileJson["filesize"] = static_cast<Json::Int64>(file.filesize);
             root.append(fileJson);
         }
         Json::StreamWriterBuilder writer;
@@ -32,6 +47,12 @@ class ListFiles : public BaseModel
         return output;
     }
 
+    /**
+     * @brief Parses a JSON-formatted string to populate the ListFiles object.
+     *
+     * @param jsonStr The JSON-formatted string to be parsed.
+     * @throws std::runtime_error if parsing the JSON fails.
+     */
     void fromJson(const std::string &jsonStr) override
     {
         Json::Value root;
