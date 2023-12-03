@@ -1,7 +1,7 @@
 #pragma once
 
 #include "messages/messageTypes.hpp"
-#include <jsoncpp/json/json.h>
+#include <json/json.h>
 #include <sstream>
 #include <string>
 

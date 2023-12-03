@@ -12,7 +12,7 @@ ARG BUILD_TYPE=Debug
 
 RUN echo "Debug: BUILD_TYPE=${BUILD_TYPE}"
 
-RUN apt-get update && apt-get install -y gdb libjsoncpp-dev
+RUN apt-get update && apt-get install -y gdb
 
 RUN apt-get remove -y cmake
 

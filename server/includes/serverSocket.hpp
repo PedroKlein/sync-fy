@@ -2,7 +2,6 @@
 
 #include <arpa/inet.h>
 #include <functional>
-#include <jsoncpp/json/json.h>
 #include <socket/tcpSocket.hpp>
 
 #define QUEUE_SIZE 5
