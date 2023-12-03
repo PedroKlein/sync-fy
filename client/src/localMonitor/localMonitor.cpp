@@ -38,8 +38,15 @@ void LocalMonitor::run()
 
 void LocalMonitor::onFileAddedOrModified(const std::string &filePath)
 {
-    common::File file(filePath);
-    messageHandler.sendFileMessage(file);
+    try
+    {
+        common::File file(filePath);
+        messageHandler.sendFileMessage(file);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+    }
 }
 
 void LocalMonitor::onFileRemoved(const std::string &filePath)

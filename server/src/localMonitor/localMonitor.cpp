@@ -47,8 +47,16 @@ void LocalMonitor::sendFileChange(const common::FileChange &fileChange) const
     switch (fileChange.changeType)
     {
     case common::FileChangeType::FILE_CREATED: {
-        common::File file(messageHandler.getSyncFolder() + fileChange.filename);
-        messageHandler.sendFileMessage(file);
+        try
+        {
+            common::File file(messageHandler.getSyncFolder() + fileChange.filename);
+            messageHandler.sendFileMessage(file);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+
         break;
     }
     case common::FileChangeType::FILE_DELETED:

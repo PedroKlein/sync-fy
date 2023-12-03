@@ -161,9 +161,17 @@ class FileMessageHandler : public MessageHandler
         InitReceiveFile initReceiveFile;
         initReceiveFile.fromJson(message);
 
-        File file(syncFolder + initReceiveFile.filename);
+        try
+        {
+            File file(syncFolder + initReceiveFile.filename);
 
-        sendFileMessage(file);
+            sendFileMessage(file);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+            sendErrorMessage();
+        }
     }
 
     /**
@@ -184,15 +192,22 @@ class FileMessageHandler : public MessageHandler
         // for the specific scenario of download command (this is a gambiarra to prevent code duplication)
         std::string filePath = isCommand ? initSendFile.filename : syncFolder + initSendFile.filename;
 
-        File file = File::create(filePath);
-
-        if (initSendFile.fileSize > 0)
+        try
         {
-            file.writeFile([&]() -> FileChunk {
-                auto message = receiveRaw();
-                auto messageHeader = message.getMessageHeader();
-                return FileChunk(message.getData(), messageHeader.packet, messageHeader.totalPackets);
-            });
+            File file = File::create(filePath);
+
+            if (initSendFile.fileSize > 0)
+            {
+                file.writeFile([&]() -> FileChunk {
+                    auto message = receiveRaw();
+                    auto messageHeader = message.getMessageHeader();
+                    return FileChunk(message.getData(), messageHeader.packet, messageHeader.totalPackets);
+                });
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
         }
 
         onSendFileMessage(initSendFile);

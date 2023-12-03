@@ -28,13 +28,27 @@ void CommandHandler::executeCommand(std::string command, const std::vector<std::
 
 void CommandHandler::download(const std::string &filename) const
 {
-    messageHandler.sendDownloadFileMessage(filename);
+    try
+    {
+        messageHandler.sendDownloadFileMessage(filename);
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << "File " << filename << " not found." << std::endl;
+    }
 }
 
 void CommandHandler::upload(const std::string &filepath) const
 {
-    common::File file(filepath);
-    messageHandler.sendFileMessage(file);
+    try
+    {
+        common::File file(filepath);
+        messageHandler.sendFileMessage(file);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+    }
 }
 
 void CommandHandler::deleteFile(const std::string &filename) const

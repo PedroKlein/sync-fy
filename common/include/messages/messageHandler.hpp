@@ -54,6 +54,15 @@ class MessageHandler
     }
 
     /**
+     * @brief Sends a pure header message signalizing that an error happend.
+     */
+    void sendErrorMessage() const
+    {
+        Message message(common::MessageType::ERROR);
+        sendMessage(message);
+    }
+
+    /**
     * @brief Receives a message from the connected socket.
     */
     void receiveMessage()
