@@ -19,14 +19,25 @@
 namespace common
 {
 constexpr size_t DEFAULT_SOCKET_CHUNK_SIZE = 1024 * 4;
-
+/**
+ * @class TCPSocket
+ * @brief Represents a TCP socket for communication 
+ */
 class TCPSocket
 {
   public:
+    /**
+     * @brief Constructor with socket ID.
+     * @param socketId The ID of an existing socket.
+     */
     TCPSocket(int socketId) : socketId(socketId)
     {
     }
 
+     /**
+     * @brief Default constructor.
+     * Creates a new TCP socket.
+     */
     TCPSocket()
     {
         if (socketId != 0)
@@ -40,12 +51,22 @@ class TCPSocket
         }
     }
 
+     /**
+     * @brief Destructor.
+     * Closes the socket.
+     */
     virtual ~TCPSocket()
     {
         std::cout << "Connection closed" << std::endl;
         close(socketId);
     }
 
+    /**
+     * @brief Sends data over the socket.
+     * @param buffer The data to be sent.
+     * @param size The size of the data.
+     * @param chunkSize The size of each chunk to be sent at a time.
+     */
     void send(const char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE)
     {
         ssize_t i = 0;
@@ -68,6 +89,12 @@ class TCPSocket
         }
     }
 
+    /**
+     * @brief Receives data from the socket.
+     * @param buffer The buffer to store the received data.
+     * @param size The size of the buffer.
+     * @param chunkSize The size of each chunk to be received at a time.
+     */
     void receive(char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE)
     {
         size_t i = 0;
@@ -92,6 +119,9 @@ class TCPSocket
         }
     }
 
+    /**
+    * @brief Closes the socket connection.
+    */
     void closeConnection()
     {
         if (onDisconnect)
@@ -100,6 +130,10 @@ class TCPSocket
         }
     }
 
+    /**
+    * @brief Sets the callback function to be called on disconnection.
+    * @param callback The callback function.
+    */
     void setOnDisconnect(std::function<void()> callback)
     {
         onDisconnect = callback;
