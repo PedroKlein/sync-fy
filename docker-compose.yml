@@ -1,0 +1,30 @@
+version: "3"
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILD_TYPE=Release
+    command: sh -c "./build/Release/server/server"
+    ports:
+      - "8765:8765"
+      - "8766:8766"
+      - "8767:8767"
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILD_TYPE=Release
+    depends_on:
+      - server
+    stdin_open: true
+    tty: true
+    working_dir: /workspaces/sync-fy/tests/files
+    command: sh -c "chmod +x /workspaces/sync-fy/tests/scripts/run-client.sh && sleep infinity"
+    volumes:
+      - ./tests:/workspaces/sync-fy/tests
+    deploy:
+      replicas: 3

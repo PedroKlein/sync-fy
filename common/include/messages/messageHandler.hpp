@@ -16,51 +16,61 @@
 
 namespace common
 {
+/**
+* @class MessageHandler
+* @brief The MessageHandler class handles communication with a TCP socket using a custom messaging protocol.
+*/
 class MessageHandler
 {
   public:
-    MessageHandler(const TCPSocket &socket) : socket(socket)
+    /**
+    * @brief Constructs a MessageHandler object with the specified TCPSocket.
+    * @param socket The TCPSocket to be used for communication.
+    */
+    MessageHandler(TCPSocket &socket) : socket(socket)
     {
     }
 
+    /**
+    * @brief Sends a message based on the provided BaseModel.
+    * @param model The BaseModel used to construct the message.
+    */
     void sendModelMessage(const BaseModel &model) const
     {
         Message message(model.getType(), model.toJson());
         sendMessage(message);
     }
 
-    void sendOK() const
-    {
-        Message okMessage(common::MessageType::OK);
-        sendMessage(okMessage, false);
-    }
-
-    void sendExit() const
-    {
-        Message exitMessage(common::MessageType::EXIT);
-        sendMessage(exitMessage);
-    }
-
+    /**
+    * @brief Sends a raw message (raw bytes) with the given data, packet number, and total number of packets.
+    * @param data The raw data (bytes) to be sent.
+    * @param numPacket The current packet number.
+    * @param totalPackets The total number of packets for the message.
+    */
     void sendRawMessage(const std::vector<char> &data, size_t numPacket = 1, size_t totalPackets = 1) const
     {
         Message message(common::MessageType::SEND_RAW, data, numPacket, totalPackets);
-        sendMessage(message, false);
+        sendMessage(message);
     }
 
+    /**
+     * @brief Sends a pure header message signalizing that an error happend.
+     */
+    void sendErrorMessage() const
+    {
+        Message message(common::MessageType::ERROR);
+        sendMessage(message);
+    }
+
+    /**
+    * @brief Receives a message from the connected socket.
+    */
     void receiveMessage()
     {
         MessageHeader header = receiveHeader();
 
         if (header.headerType == common::HeaderType::PURE_HEADER)
         {
-            if (header.messageType == common::MessageType::EXIT)
-            {
-                onExit();
-                isMonitoring = false;
-                return;
-            }
-
-            // sendOK();
             handlePureHeaderMessage(header);
         }
 
@@ -68,10 +78,12 @@ class MessageHandler
         socket.receive(messageData.data(), header.dataSize);
 
         Message message(header, messageData);
-        // sendOK();
         handleMessage(message);
     }
 
+    /**
+    * @brief Monitors incoming messages continuously until explicitly stopped.
+    */
     void monitorMessages()
     {
         isMonitoring = true;
@@ -82,29 +94,34 @@ class MessageHandler
         } while (isMonitoring);
     }
 
-    void receiveOK() const
-    {
-        auto header = receiveHeader();
-
-        if (header.messageType != MessageType::OK)
-        {
-            throw std::runtime_error("Expected OK message");
-        }
-    }
-
+    /**
+    * @brief Stops monitoring incoming messages.
+    */
     void stopMonitoring()
     {
         isMonitoring = false;
     }
 
   protected:
-    const TCPSocket &socket;
+    TCPSocket &socket;
     bool isMonitoring = false;
-
+    
+    /**
+    * @brief Handles the received message.
+    * @param message The received message.
+    */
     virtual void handleMessage(const Message &message) = 0;
-    virtual void handlePureHeaderMessage(const MessageHeader &header) const {};
-    virtual void onExit(){};
 
+    /**
+    * @brief Handles a pure header message without message data.
+    * @param header The pure header message header.
+    */
+    virtual void handlePureHeaderMessage(const MessageHeader &header) const {};
+
+    /**
+    * @brief Receives a raw message from the connected socket.
+    * @return The received raw message.
+    */
     Message receiveRaw() const
     {
         MessageHeader header = receiveHeader();
@@ -120,6 +137,10 @@ class MessageHandler
         return Message(header, messageData);
     }
 
+    /**
+    * @brief Receives a message header from the connected socket.
+    * @return The received message header.
+    */
     common::MessageHeader receiveHeader() const
     {
         std::vector<char> headerBytes(MESSAGE_HEADER_SIZE);
@@ -128,16 +149,15 @@ class MessageHandler
         return common::MessageHeader::deserialize(headerBytes);
     }
 
-    void sendMessage(const Message &message, bool waitForResponse = true) const
+    /**
+    * @brief Sends the provided message through the connected socket.
+    * @param message The message to be sent.
+    */
+    void sendMessage(const Message &message) const
     {
         std::vector<char> serialized = message.serialize();
 
         socket.send(serialized.data(), serialized.size());
-
-        if (waitForResponse)
-        {
-            // receiveOK();
-        }
     }
 };
 } // namespace common

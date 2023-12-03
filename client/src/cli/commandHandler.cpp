@@ -9,6 +9,7 @@ CommandHandler::CommandHandler(const MessageHandler &messageHandler)
     registerCommand("delete", [this](const std::vector<std::string> &parameters) { deleteFile(parameters[0]); });
     registerCommand("list", [this](const std::vector<std::string> &parameters) { listFiles(parameters[0]); });
     registerCommand("download", [this](const std::vector<std::string> &parameters) { download(parameters[0]); });
+    registerCommand("exit", [this](const std::vector<std::string> &parameters) { exit(); });
 }
 
 void CommandHandler::executeCommand(std::string command, const std::vector<std::string> &parameters) const
@@ -27,13 +28,27 @@ void CommandHandler::executeCommand(std::string command, const std::vector<std::
 
 void CommandHandler::download(const std::string &filename) const
 {
-    messageHandler.sendDownloadFileMessage(filename);
+    try
+    {
+        messageHandler.sendDownloadFileMessage(filename);
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << "File " << filename << " not found." << std::endl;
+    }
 }
 
 void CommandHandler::upload(const std::string &filepath) const
 {
-    common::File file(filepath);
-    messageHandler.sendFileMessage(file);
+    try
+    {
+        common::File file(filepath);
+        messageHandler.sendFileMessage(file);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+    }
 }
 
 void CommandHandler::deleteFile(const std::string &filename) const
@@ -64,10 +79,18 @@ void CommandHandler::listFiles(const std::string &from) const
               << "Access time" << std::setw(30) << "Creation time" << std::setw(30) << "Filesize" << std::endl;
     for (const auto &file : files)
     {
-        std::cout << std::left << std::setw(30) << file.filename << std::setw(30) << file.modificationTime
-                  << std::setw(30) << file.accessTime << std::setw(30) << file.creationTime << std::setw(30)
-                  << file.filesize << std::endl;
+
+        std::cout << std::left << std::setw(30) << file.filename << std::setw(30)
+                  << common::DateTime::toLocalTime(file.modificationTime) << std::setw(30)
+                  << common::DateTime::toLocalTime(file.accessTime) << std::setw(30)
+                  << common::DateTime::toLocalTime(file.creationTime) << std::setw(30) << file.filesize << std::endl;
     }
+}
+
+void CommandHandler::exit() const
+{
+    std::cout << "Exiting...bye :)" << std::endl;
+    ::exit(0);
 }
 
 void CommandHandler::registerCommand(const std::string &command,

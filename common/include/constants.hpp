@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string> // Add this line for the std::string class
+#include <string>
 
 namespace common
 {
@@ -10,11 +10,12 @@ constexpr size_t SERVER_DATA_PORT = 8767;
 
 const std::string HOME_DIR = getenv("HOME");
 
-// for release version
-// const std::string DEFAULT_CLIENT_SYNC_DIR = HOME_DIR + "/sync_dir/";
-// const std::string DEFAULT_SERVER_SYNC_DIR = HOME_DIR + "/";
-
+#ifdef RELEASE_BUILD
+const std::string DEFAULT_CLIENT_SYNC_DIR = HOME_DIR + "/sync_dir/";
+const std::string DEFAULT_SERVER_SYNC_DIR = HOME_DIR + "/";
+#else
 const std::string DEFAULT_CLIENT_SYNC_DIR = "./sync_dir/";
 const std::string DEFAULT_SERVER_SYNC_DIR = "./";
+#endif
 
 } // namespace common

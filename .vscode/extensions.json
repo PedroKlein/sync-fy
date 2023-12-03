@@ -11,8 +11,7 @@
         "seatonjiang.gitmoji-vscode",
         "ms-azuretools.vscode-docker",
         "dracula-theme.theme-dracula",
-        "GitHub.copilot",
-        "qwtel.sqlite-viewer"
+        "GitHub.copilot"
   ],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
   "unwantedRecommendations": []

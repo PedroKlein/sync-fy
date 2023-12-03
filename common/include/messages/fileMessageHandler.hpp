@@ -10,21 +10,46 @@
 
 namespace common
 {
+/**
+* @class FileMessageHandler
+* @brief Handles file-related communication using a custom messaging protocol.
+*/
 class FileMessageHandler : public MessageHandler
 {
   public:
-    FileMessageHandler(const TCPSocket &socket, std::string username, std::string syncFolder) : MessageHandler(socket)
+    /**
+    * @brief Constructs a FileMessageHandler with the specified TCPSocket, username, and syncFolder.
+    * @param socket The TCPSocket to be used for communication.
+    * @param username The username associated with the handler.
+    * @param syncFolder The synchronization folder path.
+    */
+    FileMessageHandler(TCPSocket &socket, std::string username, std::string syncFolder) : MessageHandler(socket)
     {
         this->username = username;
         this->syncFolder = syncFolder;
     }
 
+    /**
+    * @brief Constructs a FileMessageHandler with the specified TCPSocket.
+    * @param socket The TCPSocket to be used for communication.
+    */
+    FileMessageHandler(TCPSocket &socket) : MessageHandler(socket)
+    {
+    }
+
+    /**
+    * @brief Sends a file-related message, including file metadata and data.
+    * @param file The File object representing the file to be sent.
+    */
     void sendFileMessage(File &file) const
     {
         sendInitSendFileMessage(file.getName(), file.getSize());
         sendFileDataMessage(file);
     }
 
+    /**
+    * @brief Receives a file-related message, including file metadata and data.
+    */
     void receiveFileMessage() const
     {
         MessageHeader header = receiveHeader();
@@ -38,15 +63,16 @@ class FileMessageHandler : public MessageHandler
         socket.receive(messageData.data(), header.dataSize);
 
         handleInitSendFile(messageData, header, true);
-
-        // receiveOK();
     }
 
+    /**
+    * @brief Sends a delete file message for the specified filename.
+    * @param filename The name of the file to be deleted.
+    */
     void sendDeleteFileMessage(const std::string &filename) const
     {
         DeleteFile deleteFile(filename);
         sendModelMessage(deleteFile);
-        // receiveOK();
     }
 
     const std::string &getUsername() const
@@ -73,6 +99,10 @@ class FileMessageHandler : public MessageHandler
     virtual void onSendProgress(float progress) const {};
 
   private:
+    /**
+    * @brief Handles incoming messages based on their types.
+    * @param message The received message.
+    */
     void handleMessage(const Message &message) override
     {
         switch (message.getMessageHeader().messageType)
@@ -91,12 +121,21 @@ class FileMessageHandler : public MessageHandler
         }
     }
 
+    /**
+    * @brief Sends the InitSendFile message for the specified filename and file size.
+    * @param filename The name of the file.
+    * @param fileSize The size of the file.
+    */
     void sendInitSendFileMessage(const std::string &filename, size_t fileSize) const
     {
         InitSendFile initSendFile(filename, fileSize);
         sendModelMessage(initSendFile);
     }
 
+    /**
+    * @brief Sends the file data message for the specified file.
+    * @param file The File object representing the file to be sent.
+    */
     void sendFileDataMessage(File &file) const
     {
         size_t totalSent = 0;
@@ -109,23 +148,38 @@ class FileMessageHandler : public MessageHandler
             float progress = static_cast<float>(totalSent) / fileSize * 100;
             onSendProgress(progress);
         });
-
-        // receiveOK();
     }
 
+    /**
+    * @brief Handles the InitReceiveFile message.
+    * @param data The message data.
+    * @param header The message header.
+    */
     void handleInitReceiveFile(const std::vector<char> &data, MessageHeader header)
     {
         std::string message(data.begin(), data.end());
         InitReceiveFile initReceiveFile;
         initReceiveFile.fromJson(message);
 
-        File file(syncFolder + initReceiveFile.filename);
+        try
+        {
+            File file(syncFolder + initReceiveFile.filename);
 
-        sendFileMessage(file);
-
-        // sendOK();
+            sendFileMessage(file);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+            sendErrorMessage();
+        }
     }
 
+    /**
+    * @brief Handles the InitSendFile message.
+    * @param data The message data.
+    * @param header The message header.
+    * @param isCommand Specifies if the message is a command.
+    */
     void handleInitSendFile(const std::vector<char> &data, MessageHeader header, bool isCommand = false) const
     {
         std::string message(data.begin(), data.end());
@@ -138,21 +192,31 @@ class FileMessageHandler : public MessageHandler
         // for the specific scenario of download command (this is a gambiarra to prevent code duplication)
         std::string filePath = isCommand ? initSendFile.filename : syncFolder + initSendFile.filename;
 
-        File file = File::create(filePath);
-
-        if (initSendFile.fileSize > 0)
+        try
         {
-            file.writeFile([&]() -> FileChunk {
-                auto message = receiveRaw();
-                auto messageHeader = message.getMessageHeader();
-                return FileChunk(message.getData(), messageHeader.packet, messageHeader.totalPackets);
-            });
+            File file = File::create(filePath);
+
+            if (initSendFile.fileSize > 0)
+            {
+                file.writeFile([&]() -> FileChunk {
+                    auto message = receiveRaw();
+                    auto messageHeader = message.getMessageHeader();
+                    return FileChunk(message.getData(), messageHeader.packet, messageHeader.totalPackets);
+                });
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
         }
 
         onSendFileMessage(initSendFile);
-        // sendOK();
     }
 
+    /**
+    * @brief Handles the delete file message.
+    * @param data The message data.
+    */
     void handleDeleteFile(const std::vector<char> &data)
     {
         std::string message(data.begin(), data.end());
@@ -168,8 +232,6 @@ class FileMessageHandler : public MessageHandler
         }
 
         onDeleteFileMessage(DeleteFile);
-
-        // sendOK();
     }
 };
 } // namespace common

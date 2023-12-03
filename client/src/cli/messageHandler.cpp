@@ -24,9 +24,6 @@ std::vector<common::FileInfo> MessageHandler::receiveListFilesMessage() const
     common::ListFiles listFiles;
     listFiles.fromJson(message);
 
-    // sendOK();
-    // receiveOK();
-
     return listFiles.files;
 }
 

@@ -10,7 +10,6 @@ std::array<ServerSocket *, 3> sockets;
 
 void handle_sigint(int sig)
 {
-    std::cout << "Caught signal " << sig << std::endl;
     for (ServerSocket *socket : sockets)
     {
         if (socket != nullptr)

@@ -21,15 +21,11 @@ std::thread *CLI::start()
 void CLI::stop()
 {
     isRunning = false;
-    if (cliThread.joinable())
-    {
-        cliThread.join();
-    }
 }
 
 void CLI::run()
 {
-    while (isRunning)
+    do
     {
         std::string input;
         std::cout << "Enter command: ";
@@ -50,6 +46,6 @@ void CLI::run()
         }
 
         commandHandler.executeCommand(command, parameters);
-    }
+    } while (isRunning);
 }
 } // namespace cli

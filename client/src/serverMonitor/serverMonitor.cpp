@@ -21,10 +21,6 @@ std::thread *ServerMonitor::start()
 void ServerMonitor::stop()
 {
     messageHandler.stopMonitoring();
-    if (monitorThread.joinable())
-    {
-        monitorThread.join();
-    }
 }
 
 void ServerMonitor::run()

@@ -27,7 +27,7 @@ ServerSocket::~ServerSocket()
 void ServerSocket::startListening()
 {
     isListening = true;
-    while (isListening)
+    do
     {
         // Accept a client connection
         int newSocket = accept(socketId, (struct sockaddr *)&clientAddress, &clientLength);
@@ -42,7 +42,7 @@ void ServerSocket::startListening()
         std::cout << "Client {" << newSocket << "} connected from IP: " << clientIP << std::endl;
 
         onClientConnectCallback(newSocket, clientIP);
-    }
+    } while (isListening);
 }
 
 void ServerSocket::stopListening()

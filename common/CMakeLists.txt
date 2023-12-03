@@ -3,8 +3,7 @@ project(Common)
 # Define a library target for the common code
 add_library(common_lib
     include/filesystem/file.hpp
-    include/database/Database.h
-    include/datetime/DateTime.h
+    include/datetime/dateTime.hpp
     include/models/deleteFile.hpp
     include/models/initReceiveFile.hpp
     include/models/initSendFile.hpp
@@ -14,11 +13,16 @@ add_library(common_lib
     include/constants.hpp
 )
 
-# Add include directories for the common library
+find_package(jsoncpp REQUIRED)
+target_link_libraries(common_lib ${jsoncpp_LIBRARIES})
+target_include_directories(common_lib PUBLIC ${jsoncpp_INCLUDE_DIRS})
+
 target_include_directories(common_lib
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 set_target_properties(common_lib PROPERTIES LINKER_LANGUAGE CXX)
 
-target_link_libraries(common_lib PUBLIC SQLite::SQLite3)
+message("FOUND CONFIG: ${jsoncpp_CONFIG}")
+message("INCLUDE DIRS: ${jsoncpp_INCLUDE_DIRS}")
+message("LIBRARIES: ${jsoncpp_LIBRARIES}")

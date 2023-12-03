@@ -19,14 +19,25 @@
 namespace common
 {
 constexpr size_t DEFAULT_SOCKET_CHUNK_SIZE = 1024 * 4;
-
+/**
+ * @class TCPSocket
+ * @brief Represents a TCP socket for communication 
+ */
 class TCPSocket
 {
   public:
+    /**
+     * @brief Constructor with socket ID.
+     * @param socketId The ID of an existing socket.
+     */
     TCPSocket(int socketId) : socketId(socketId)
     {
     }
 
+     /**
+     * @brief Default constructor.
+     * Creates a new TCP socket.
+     */
     TCPSocket()
     {
         if (socketId != 0)
@@ -40,12 +51,23 @@ class TCPSocket
         }
     }
 
+     /**
+     * @brief Destructor.
+     * Closes the socket.
+     */
     virtual ~TCPSocket()
     {
+        std::cout << "Connection closed" << std::endl;
         close(socketId);
     }
 
-    void send(const char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE) const
+    /**
+     * @brief Sends data over the socket.
+     * @param buffer The data to be sent.
+     * @param size The size of the data.
+     * @param chunkSize The size of each chunk to be sent at a time.
+     */
+    void send(const char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE)
     {
         ssize_t i = 0;
         while (i < size)
@@ -53,10 +75,10 @@ class TCPSocket
             try
             {
                 const int l = ::send(socketId, &buffer[i], std::min(chunkSize, size - i), 0);
-                // if (l < 0)
-                // {
-                //     throw std::runtime_error("Failed to send data");
-                // }
+                if (l < 0 || l == 0)
+                {
+                    closeConnection();
+                }
                 i += l;
             }
             catch (const std::exception &e)
@@ -67,7 +89,13 @@ class TCPSocket
         }
     }
 
-    void receive(char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE) const
+    /**
+     * @brief Receives data from the socket.
+     * @param buffer The buffer to store the received data.
+     * @param size The size of the buffer.
+     * @param chunkSize The size of each chunk to be received at a time.
+     */
+    void receive(char *buffer, size_t size, size_t chunkSize = DEFAULT_SOCKET_CHUNK_SIZE)
     {
         size_t i = 0;
         while (i < size)
@@ -76,20 +104,11 @@ class TCPSocket
             {
                 const int l = read(socketId, &buffer[i], std::min(chunkSize, size - i));
 
-                if (l == 0)
+                if (l < 0 || l == 0)
                 {
-                    std::cout << "Connection closed" << std::endl;
-                    close(socketId);
-                    if (onDisconnect)
-                    {
-                        onDisconnect();
-                    }
+                    closeConnection();
                     break;
                 }
-                // else if (l < 0)
-                // {
-                //     throw std::runtime_error("Failed to receive data");
-                // }
                 i += l;
             }
             catch (const std::exception &e)
@@ -100,34 +119,24 @@ class TCPSocket
         }
     }
 
+    /**
+    * @brief Closes the socket connection.
+    */
+    void closeConnection()
+    {
+        if (onDisconnect)
+        {
+            onDisconnect();
+        }
+    }
+
+    /**
+    * @brief Sets the callback function to be called on disconnection.
+    * @param callback The callback function.
+    */
     void setOnDisconnect(std::function<void()> callback)
     {
         onDisconnect = callback;
-    }
-
-    void checkConnection()
-    {
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(socketId, &readfds);
-
-        struct timeval timeout;
-        timeout.tv_sec = 0;  // Zero seconds
-        timeout.tv_usec = 0; // Zero microseconds
-
-        if (select(socketId + 1, &readfds, NULL, NULL, &timeout) > 0)
-        {
-            char buffer[1];
-            if (read(socketId, buffer, 1) == 0)
-            {
-                std::cout << "Connection closed" << std::endl;
-                close(socketId);
-                if (onDisconnect)
-                {
-                    onDisconnect();
-                }
-            }
-        }
     }
 
   protected:

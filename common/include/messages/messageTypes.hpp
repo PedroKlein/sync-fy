@@ -6,13 +6,19 @@
 
 namespace common
 {
+/**
+ * @brief Size of the message header in bytes.
+ */
 constexpr size_t MESSAGE_HEADER_SIZE =
     sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t);
 
+/**
+ * @enum MessageType
+ * @brief Enumerates the types of messages in the communication protocol.
+ */
 enum MessageType
 {
-    OK,                // Header only
-    EXIT,              // Header only
+    ERROR,             // Header only
     INIT_LIST_FILES,   // Header only
     INIT_SEND_FILE,    // Header + JSON
     INIT_RECEIVE_FILE, // Header + JSON
@@ -22,6 +28,10 @@ enum MessageType
     LIST_FILES,        // Header + JSON
 };
 
+/**
+ * @enum HeaderType
+ * @brief Enumerates the types of headers in the communication protocol.
+ */
 enum HeaderType
 {
     JSON_HEADER = 'J',
@@ -29,6 +39,11 @@ enum HeaderType
     PURE_HEADER = 'H',
 };
 
+
+/**
+ * @struct MessageHeader
+ * @brief Structure representing the header of a message in the communication protocol.
+ */
 struct MessageHeader
 {
     HeaderType headerType;
@@ -37,6 +52,14 @@ struct MessageHeader
     uint32_t packet;
     uint32_t totalPackets;
 
+    /**
+    * @brief Constructor for MessageHeader.
+    * @param headerType Type of the message header.
+    * @param messageType Type of the message.
+    * @param dataSize Size of the message data.
+    * @param packet Packet number.
+    * @param totalPackets Total number of packets.
+    */
     MessageHeader(HeaderType headerType, MessageType messageType, uint32_t dataSize, uint32_t packet,
                   uint32_t totalPackets)
         : headerType(headerType), messageType(messageType), dataSize(dataSize), packet(packet),
@@ -44,6 +67,10 @@ struct MessageHeader
     {
     }
 
+    /**
+    * @brief Serializes the MessageHeader into a byte vector.
+    * @return The byte vector representing the serialized MessageHeader.
+    */
     std::vector<char> serialize() const
     {
         std::vector<char> bytes;
@@ -75,6 +102,11 @@ struct MessageHeader
         return bytes;
     }
 
+    /**
+    * @brief Deserializes a byte vector into a MessageHeader.
+    * @param bytes The byte vector to deserialize.
+    * @return The deserialized MessageHeader.
+    */
     static MessageHeader deserialize(std::vector<char> bytes)
     {
         size_t offset = 0;

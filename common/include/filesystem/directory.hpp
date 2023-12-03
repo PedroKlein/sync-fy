@@ -10,6 +10,10 @@
 
 namespace common
 {
+/**
+ * @struct FileInfo
+ * @brief Represents information about a file in a directory.
+ */
 struct FileInfo
 {
     std::string filename;
@@ -19,13 +23,25 @@ struct FileInfo
     time_t creationTime;
 };
 
+/**
+ * @class Directory
+ * @brief Represents a directory and provides methods to interact with its files.
+ */
 class Directory
 {
   public:
+    /**
+     * @brief Constructs a Directory object with the specified path.
+     * @param path The path to the directory.
+     */
     explicit Directory(const std::string &path) : path_(path)
     {
     }
 
+    /**
+     * @brief Lists information about files in the directory.
+     * @return A vector of FileInfo objects representing the files in the directory.
+     */
     std::vector<FileInfo> listFiles() const
     {
         std::vector<FileInfo> files;
@@ -42,6 +58,12 @@ class Directory
   private:
     std::string path_;
 
+    /**
+     * @brief Retrieves the MAC (Modification, Access, and Creation) times of a file.
+     * @param filepath The path to the file.
+     * @return A FileInfo object containing information about the file.
+     * @throw std::runtime_error if there is an error getting file information.
+     */
     FileInfo getMACtimes(const std::string &filepath) const
     {
         FileInfo fileInfo;
