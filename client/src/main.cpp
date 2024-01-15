@@ -7,6 +7,7 @@
 #include "clientSocket.hpp"
 #include "localMonitor/fileWatcher.hpp"
 #include "localMonitor/localMonitor.hpp"
+#include "recoverySocket.hpp"
 #include "serverMonitor/messageHandler.hpp"
 #include "serverMonitor/serverMonitor.hpp"
 #include <constants.hpp>
@@ -37,6 +38,8 @@ int main(int argc, char *argv[])
     ClientSocket serverMonitorSocket(serverAddress, common::SERVER_DATA_PORT);
     ClientSocket localMonitorSocket(serverAddress, common::CLIENT_DATA_PORT);
 
+    RecoverySocket recoverySocket(common::CLIENT_RECOVERY_PORT);
+
     // CLI
     cli::MessageHandler commandMessager(commandSocket, username);
     cli::CommandHandler commandHandler(commandMessager);
@@ -57,11 +60,19 @@ int main(int argc, char *argv[])
     // mutex for handle disconections
     std::mutex mtx;
 
-    auto handleDisconnection = [&cli, &localMonitor, &serverMonitor, &mtx]() {
+    auto handleDisconnection = [&cli, &localMonitor, &serverMonitor, &recoverySocket, &mtx]() {
+        // Add here the logic for reconnecting
+        std::cout << "ERR: connection to server lost" << std::endl;
         std::lock_guard<std::mutex> lock(mtx);
-        cli.stop();
-        localMonitor.stop();
-        serverMonitor.stop();
+
+        std::string newServerAddress = recoverySocket.getNewAddress();
+
+        std::cout << "New server address: " << newServerAddress << std::endl;
+
+        // instead of stoping, try new connection after receive a new primary server
+        // cli.stop();
+        // localMonitor.stop();
+        // serverMonitor.stop();
     };
 
     // Handler exit/disconnect

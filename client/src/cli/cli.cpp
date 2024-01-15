@@ -9,6 +9,7 @@ CLI::CLI(const CommandHandler &handler) : isRunning(false), commandHandler(handl
 CLI::~CLI()
 {
     stop();
+    std::cout << "CLI stopped" << std::endl;
 }
 
 std::thread *CLI::start()
