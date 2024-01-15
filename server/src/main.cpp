@@ -34,33 +34,31 @@ int main(int argc, char *argv[])
 
         RecoverySocket recoverySocket("localhost", common::CLIENT_RECOVERY_PORT);
     }
-    else
-    {
-        // this is the primary mode
-        struct sigaction sigIntHandler;
-        sigIntHandler.sa_handler = handle_sigint;
-        sigemptyset(&sigIntHandler.sa_mask);
-        sigIntHandler.sa_flags = 0;
 
-        sigaction(SIGINT, &sigIntHandler, NULL);
+    // this is the primary mode
+    struct sigaction sigIntHandler;
+    sigIntHandler.sa_handler = handle_sigint;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
 
-        ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+    sigaction(SIGINT, &sigIntHandler, NULL);
 
-        ServerSocket commandSocket(common::COMMAND_PORT, ConnectionHandler::onCommandSocketConnection);
-        ServerSocket serverDataSocket(common::SERVER_DATA_PORT, ConnectionHandler::onServerDataSocketConnection);
-        ServerSocket clientDataSocket(common::CLIENT_DATA_PORT, ConnectionHandler::onClientDataSocketConnection);
+    ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
 
-        sockets = {&commandSocket, &serverDataSocket, &clientDataSocket};
+    ServerSocket commandSocket(common::COMMAND_PORT, ConnectionHandler::onCommandSocketConnection);
+    ServerSocket serverDataSocket(common::SERVER_DATA_PORT, ConnectionHandler::onServerDataSocketConnection);
+    ServerSocket clientDataSocket(common::CLIENT_DATA_PORT, ConnectionHandler::onClientDataSocketConnection);
 
-        // start listening inside a thread
-        std::thread commandSocketThread(&ServerSocket::startListening, &commandSocket);
-        std::thread serverDataSocketThread(&ServerSocket::startListening, &serverDataSocket);
-        std::thread clientDataSocketThread(&ServerSocket::startListening, &clientDataSocket);
+    sockets = {&commandSocket, &serverDataSocket, &clientDataSocket};
 
-        commandSocketThread.join();
-        serverDataSocketThread.join();
-        clientDataSocketThread.join();
-    }
+    // start listening inside a thread
+    std::thread commandSocketThread(&ServerSocket::startListening, &commandSocket);
+    std::thread serverDataSocketThread(&ServerSocket::startListening, &serverDataSocket);
+    std::thread clientDataSocketThread(&ServerSocket::startListening, &clientDataSocket);
+
+    commandSocketThread.join();
+    serverDataSocketThread.join();
+    clientDataSocketThread.join();
 
     return 0;
 }

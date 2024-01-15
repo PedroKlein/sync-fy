@@ -60,12 +60,16 @@ int main(int argc, char *argv[])
     // mutex for handle disconections
     std::mutex mtx;
 
-    auto handleDisconnection = [&cli, &localMonitor, &serverMonitor, &recoverySocket, &mtx]() {
+    auto handleDisconnection = [&recoverySocket, &commandSocket, &serverMonitorSocket, &localMonitorSocket, &mtx]() {
         // Add here the logic for reconnecting
         std::cout << "ERR: connection to server lost" << std::endl;
         std::lock_guard<std::mutex> lock(mtx);
 
         std::string newServerAddress = recoverySocket.getNewAddress();
+
+        commandSocket.changeServerAndReconnect(newServerAddress);
+        serverMonitorSocket.changeServerAndReconnect(newServerAddress);
+        localMonitorSocket.changeServerAndReconnect(newServerAddress);
 
         std::cout << "New server address: " << newServerAddress << std::endl;
 

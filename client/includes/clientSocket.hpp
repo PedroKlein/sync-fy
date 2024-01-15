@@ -29,6 +29,8 @@ class ClientSocket : public common::TCPSocket
     */
     ~ClientSocket();
 
+    void changeServerAndReconnect(const std::string &newServerAddress);
+
   private:
     struct sockaddr_in serverAddress;
     struct hostent *server;

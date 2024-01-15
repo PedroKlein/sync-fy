@@ -25,6 +25,25 @@ ClientSocket::~ClientSocket()
 {
 }
 
+void ClientSocket::changeServerAndReconnect(const std::string &newServerAddress)
+{
+    close(socketId);
+
+    server = gethostbyname(newServerAddress.c_str());
+    if (server == NULL)
+    {
+        std::cerr << "ERR: could not get host with name " << server << std::endl;
+        exit(errno);
+    }
+
+    bzero((char *)&this->serverAddress, sizeof(this->serverAddress));
+    this->serverAddress.sin_family = AF_INET;
+
+    bcopy((char *)server->h_addr, (char *)&this->serverAddress.sin_addr.s_addr, server->h_length);
+
+    connectToServer();
+}
+
 void ClientSocket::connectToServer()
 {
     int err = connect(socketId, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
