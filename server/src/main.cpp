@@ -24,17 +24,6 @@ void handle_sigint(int sig)
 int main(int argc, char *argv[])
 {
 
-    std::string primaryServerAddress;
-
-    // please future me, refactor this or I will die
-    if (argc > 1)
-    {
-        // this is the backup mode
-        primaryServerAddress = argv[1];
-
-        RecoverySocket recoverySocket("localhost", common::CLIENT_RECOVERY_PORT);
-    }
-
     // this is the primary mode
     struct sigaction sigIntHandler;
     sigIntHandler.sa_handler = handle_sigint;
@@ -55,6 +44,17 @@ int main(int argc, char *argv[])
     std::thread commandSocketThread(&ServerSocket::startListening, &commandSocket);
     std::thread serverDataSocketThread(&ServerSocket::startListening, &serverDataSocket);
     std::thread clientDataSocketThread(&ServerSocket::startListening, &clientDataSocket);
+
+    std::string primaryServerAddress;
+
+    // please future me, refactor this or I will die
+    if (argc > 1)
+    {
+        // this is the backup mode
+        primaryServerAddress = argv[1];
+
+        RecoverySocket recoverySocket("localhost", common::CLIENT_RECOVERY_PORT);
+    }
 
     commandSocketThread.join();
     serverDataSocketThread.join();

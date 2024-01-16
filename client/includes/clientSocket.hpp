@@ -31,6 +31,8 @@ class ClientSocket : public common::TCPSocket
 
     void changeServerAndReconnect(const std::string &newServerAddress);
 
+    void closeConnection();
+
   private:
     struct sockaddr_in serverAddress;
     struct hostent *server;

@@ -25,21 +25,32 @@ ClientSocket::~ClientSocket()
 {
 }
 
+// TODO: maybe this needs a mutex? as well as other uses of socketId
 void ClientSocket::changeServerAndReconnect(const std::string &newServerAddress)
 {
     close(socketId);
 
-    server = gethostbyname(newServerAddress.c_str());
-    if (server == NULL)
+    socketId = socket(AF_INET, SOCK_STREAM, 0);
+    if (socketId == -1)
     {
-        std::cerr << "ERR: could not get host with name " << server << std::endl;
+        std::cerr << "ERR: could not create socket" << std::endl;
         exit(errno);
     }
 
-    bzero((char *)&this->serverAddress, sizeof(this->serverAddress));
-    this->serverAddress.sin_family = AF_INET;
+    struct addrinfo hints, *res;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
 
-    bcopy((char *)server->h_addr, (char *)&this->serverAddress.sin_addr.s_addr, server->h_length);
+    if (getaddrinfo(newServerAddress.c_str(), NULL, &hints, &res) != 0)
+    {
+        std::cerr << "ERR: could not get address info for " << newServerAddress << std::endl;
+        exit(errno);
+    }
+
+    serverAddress.sin_addr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
+
+    freeaddrinfo(res);
 
     connectToServer();
 }
@@ -55,4 +66,10 @@ void ClientSocket::connectToServer()
 
     std::clog << "LOG: successfully connected to server " << serverAddress.sin_addr.s_addr << ":"
               << serverAddress.sin_port << std::endl;
+}
+
+// For local development only
+void ClientSocket::closeConnection()
+{
+    close(socketId);
 }

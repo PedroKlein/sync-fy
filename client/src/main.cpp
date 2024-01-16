@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     username = argv[1];
     serverAddress = argv[2];
 #else
-    username = "test";
+    username = "user1";
     serverAddress = "localhost";
 #endif
 
@@ -60,10 +60,17 @@ int main(int argc, char *argv[])
     // mutex for handle disconections
     std::mutex mtx;
 
-    auto handleDisconnection = [&recoverySocket, &commandSocket, &serverMonitorSocket, &localMonitorSocket, &mtx]() {
+    // TODO: refactor this callback, too much code duplication
+    auto handleDisconnection = [&recoverySocket, &commandSocket, &serverMonitorSocket, &localMonitorSocket, &mtx,
+                                &commandMessager, &localMonitorMessageHandler, &serverMonitorMessageHandler,
+                                &username]() {
         // Add here the logic for reconnecting
         std::cout << "ERR: connection to server lost" << std::endl;
         std::lock_guard<std::mutex> lock(mtx);
+
+        commandSocket.closeConnection();
+        serverMonitorSocket.closeConnection();
+        localMonitorSocket.closeConnection();
 
         std::string newServerAddress = recoverySocket.getNewAddress();
 
@@ -71,12 +78,11 @@ int main(int argc, char *argv[])
         serverMonitorSocket.changeServerAndReconnect(newServerAddress);
         localMonitorSocket.changeServerAndReconnect(newServerAddress);
 
-        std::cout << "New server address: " << newServerAddress << std::endl;
+        commandMessager.sendLoginMessage(username);
+        localMonitorMessageHandler.sendLoginMessage(username);
+        serverMonitorMessageHandler.sendLoginMessage(username);
 
-        // instead of stoping, try new connection after receive a new primary server
-        // cli.stop();
-        // localMonitor.stop();
-        // serverMonitor.stop();
+        std::cout << "New server address: " << newServerAddress << std::endl;
     };
 
     // Handler exit/disconnect
