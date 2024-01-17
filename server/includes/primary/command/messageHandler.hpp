@@ -1,6 +1,6 @@
 #pragma once
 
-#include "connectionHandler.hpp"
+#include "primary/connectionHandler.hpp"
 #include "serverMessageHandler.hpp"
 #include <filesystem/directory.hpp>
 #include <filesystem/file.hpp>
@@ -20,7 +20,7 @@ class MessageHandler : public ServerMessageHandler
 
     // implement contructor
   public:
-     /**
+    /**
      * @brief Constructs a MessageHandler object.
      *
      * Initializes the object with a TCP socket, the IP address of the client,
@@ -37,7 +37,7 @@ class MessageHandler : public ServerMessageHandler
   private:
     const common::Directory directory;
 
-     /**
+    /**
      * @brief Handles non-specific messages received from the server.
      *
      * This function is called when a common::Message object is received from the server,
