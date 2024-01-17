@@ -10,6 +10,8 @@ add_library(common_lib
     include/models/listFiles.hpp
     include/models/login.hpp
     include/socket/tcpSocket.hpp
+    include/socket/serverSocket.hpp
+    include/socket/clientSocket.hpp
     include/constants.hpp
 )
 

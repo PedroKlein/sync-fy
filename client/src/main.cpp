@@ -4,15 +4,15 @@
 #include "cli/commandHandler.hpp"
 #include "cli/messageHandler.hpp"
 #include "clientMessageHandler.hpp"
-#include "clientSocket.hpp"
 #include "localMonitor/fileWatcher.hpp"
 #include "localMonitor/localMonitor.hpp"
-#include "recoverySocket.hpp"
 #include "serverMonitor/messageHandler.hpp"
 #include "serverMonitor/serverMonitor.hpp"
 #include <constants.hpp>
 #include <mutex>
 #include <signal.h>
+#include <socket/clientSocket.hpp>
+#include <socket/serverSocket.hpp>
 
 int main(int argc, char *argv[])
 {
@@ -34,11 +34,11 @@ int main(int argc, char *argv[])
     serverAddress = "localhost";
 #endif
 
-    ClientSocket commandSocket(serverAddress, common::COMMAND_PORT);
-    ClientSocket serverMonitorSocket(serverAddress, common::SERVER_DATA_PORT);
-    ClientSocket localMonitorSocket(serverAddress, common::CLIENT_DATA_PORT);
+    common::ClientSocket commandSocket(serverAddress, common::COMMAND_PORT);
+    common::ClientSocket serverMonitorSocket(serverAddress, common::SERVER_DATA_PORT);
+    common::ClientSocket localMonitorSocket(serverAddress, common::CLIENT_DATA_PORT);
 
-    RecoverySocket recoverySocket(common::CLIENT_RECOVERY_PORT);
+    common::ServerSocket recoverySocket(common::CLIENT_RECOVERY_PORT);
 
     // CLI
     cli::MessageHandler commandMessager(commandSocket, username);
@@ -61,10 +61,7 @@ int main(int argc, char *argv[])
     std::mutex mtx;
 
     // TODO: refactor this callback, too much code duplication
-    auto handleDisconnection = [&recoverySocket, &commandSocket, &serverMonitorSocket, &localMonitorSocket, &mtx,
-                                &commandMessager, &localMonitorMessageHandler, &serverMonitorMessageHandler,
-                                &username]() {
-        // Add here the logic for reconnecting
+    auto handleDisconnection = [&]() {
         std::cout << "ERR: connection to server lost" << std::endl;
         std::lock_guard<std::mutex> lock(mtx);
 
@@ -72,17 +69,18 @@ int main(int argc, char *argv[])
         serverMonitorSocket.closeConnection();
         localMonitorSocket.closeConnection();
 
-        std::string newServerAddress = recoverySocket.getNewAddress();
+        recoverySocket.startListening([&](int socketId, std::string newServerAddress) {
+            commandSocket.changeServerAndReconnect(newServerAddress);
+            serverMonitorSocket.changeServerAndReconnect(newServerAddress);
+            localMonitorSocket.changeServerAndReconnect(newServerAddress);
 
-        commandSocket.changeServerAndReconnect(newServerAddress);
-        serverMonitorSocket.changeServerAndReconnect(newServerAddress);
-        localMonitorSocket.changeServerAndReconnect(newServerAddress);
+            commandMessager.sendLoginMessage(username);
+            localMonitorMessageHandler.sendLoginMessage(username);
+            serverMonitorMessageHandler.sendLoginMessage(username);
 
-        commandMessager.sendLoginMessage(username);
-        localMonitorMessageHandler.sendLoginMessage(username);
-        serverMonitorMessageHandler.sendLoginMessage(username);
-
-        std::cout << "New server address: " << newServerAddress << std::endl;
+            std::cout << "New server address: " << newServerAddress << std::endl;
+            recoverySocket.stopListening();
+        });
     };
 
     // Handler exit/disconnect

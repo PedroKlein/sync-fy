@@ -1,5 +1,4 @@
 add_executable(client 
-    src/clientSocket.cpp 
     src/cli/messageHandler.cpp
     src/cli/commandHandler.cpp 
     src/cli/cli.cpp 
