@@ -1,4 +1,4 @@
-#include "primary/connectionHandler.hpp"
+#include "primary/clientConnection/connectionHandler.hpp"
 
 void ConnectionHandler::onCommandSocketConnection(int clientSocketId, const std::string &ip)
 {

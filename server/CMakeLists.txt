@@ -2,7 +2,7 @@ add_executable(server
     src/primary/command/messageHandler.cpp
     src/primary/clientMonitor/messageHandler.cpp
     src/primary/localMonitor/localMonitor.cpp
-    src/primary/connectionHandler.cpp
+    src/primary/clientConnection/connectionHandler.cpp
     src/main.cpp
 )
 
