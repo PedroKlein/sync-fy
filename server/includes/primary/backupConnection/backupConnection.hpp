@@ -2,8 +2,8 @@
 
 #include <memory>
 
-using UserFileChanges = std::pair<std::string, common::AtomicQueue<common::FileChange>>;
-using UserFileChangesQueue = common::AtomicQueue<UserFileChanges>;
+using UserFileChange = std::pair<std::string, common::AtomicQueue<common::FileChange>>;
+using UserFileChangesQueue = common::AtomicQueue<UserFileChange>;
 
 struct BackupConnection
 {

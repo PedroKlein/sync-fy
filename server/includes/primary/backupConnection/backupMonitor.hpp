@@ -1,4 +1,5 @@
 
+#include "primary/backupConnection/backupConnection.hpp"
 #include "primary/userConnection.hpp"
 #include "serverMessageHandler.hpp"
 #include <filesystem/directory.hpp>
@@ -8,7 +9,7 @@
 class BackupMonitor
 {
   public:
-    BackupMonitor(ServerMessageHandler &messageHandler, std::shared_ptr<FileChangesQueue> changeQueue)
+    BackupMonitor(common::TCPSocket &socket, std::shared_ptr<UserFileChangesQueue> changeQueue)
         : messageHandler(messageHandler), changeQueue(changeQueue), directory(messageHandler.getSyncFolder())
     {
     }
@@ -18,13 +19,13 @@ class BackupMonitor
         initialSync();
 
         isMonitoring = true;
-        common::FileChange fileChange;
+        UserFileChange userFileChange;
 
         do
         {
-            if (changeQueue->tryPop(fileChange))
+            if (changeQueue->tryPop(userFileChange))
             {
-                sendFileChange(fileChange);
+                sendFileChange(userFileChange.second, userFileChange.first);
             }
             std::this_thread::sleep_for(std::chrono::seconds(1));
         } while (isMonitoring && changeQueue.use_count() > 1);
@@ -35,21 +36,37 @@ class BackupMonitor
         isMonitoring = false;
     }
 
+  private:
+    common::TCPSocket &socket;
+    std::shared_ptr<UserFileChangesQueue> changeQueue;
+    bool isMonitoring;
+
     void initialSync()
     {
-        std::vector<common::FileInfo> dirFiles = directory.listFiles();
-
-        for (auto &file : dirFiles)
+        for (const auto &entry : std::filesystem::directory_iterator(DEFAULT_SERVER_SYNC_DIR))
         {
-            common::FileChange fileChange;
-            fileChange.changeType = common::FileChangeType::FILE_CREATED;
-            fileChange.filename = file.filename;
-            sendFileChange(fileChange);
+            if (entry.is_directory())
+            {
+                common::Directory directory(entry.path().string());
+                std::vector<common::FileInfo> dirFiles = directory.listFiles();
+
+                std::string username = directory.getDirectoryName();
+
+                for (auto &file : dirFiles)
+                {
+                    common::FileChange fileChange;
+                    fileChange.changeType = common::FileChangeType::FILE_CREATED;
+                    fileChange.filename = file.filename;
+                    sendFileChange(fileChange, username);
+                }
+            }
         }
     }
 
-    void sendFileChange(const common::FileChange &fileChange) const
+    void sendFileChange(const common::FileChange &fileChange, std::string username) const
     {
+        ServerMessageHandler messageHandler(socket, username, true);
+
         switch (fileChange.changeType)
         {
         case common::FileChangeType::FILE_CREATED: {
@@ -72,14 +89,4 @@ class BackupMonitor
             break;
         }
     };
-
-  private:
-    ServerMessageHandler &messageHandler;
-    std::shared_ptr<FileChangesQueue> changeQueue;
-    const common::Directory directory;
-    bool isMonitoring;
-
-    void initialSync();
-
-    void sendFileChange(const common::FileChange &fileChange) const;
 };

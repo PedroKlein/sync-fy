@@ -55,6 +55,20 @@ class Directory
         return files;
     }
 
+    /**
+     * @brief Returns the name of the directory.
+     * @return The name of the directory.
+     */
+    std::string getDirectoryName() const
+    {
+        size_t lastSlashPos = path_.find_last_of('/');
+        if (lastSlashPos != std::string::npos)
+        {
+            return path_.substr(lastSlashPos + 1);
+        }
+        return path_;
+    }
+
   private:
     std::string path_;
 

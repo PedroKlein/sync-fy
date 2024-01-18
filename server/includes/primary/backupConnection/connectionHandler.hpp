@@ -1,9 +1,7 @@
 #pragma once
 
 #include "backupConnection.hpp"
-#include "clientMonitor/messageHandler.hpp"
-#include "command/messageHandler.hpp"
-#include "localMonitor/localMonitor.hpp"
+#include "backupMonitor.hpp"
 #include <memory>
 #include <messages/messageHandler.hpp>
 #include <socket/tcpSocket.hpp>
@@ -15,28 +13,26 @@ class ConnectionHandler
   public:
     void ConnectionHandler::onNetworkBackupSocketConnection(int clientSocketId, const std::string &ip)
     {
-        std::thread([clientSocketId, ip]() {
-            common::TCPSocket clientSocket(clientSocketId);
-            // command::MessageHandler handler(clientSocket, ip);
-
-            // ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
-            // BackupConnection &backupConnection = connectionHandler.addBackupConnection(handler.getBackupname());
-            // ClientConnection &clientConnection = backupConnection.addClientConnection(ip);
-
-            // backupConnection.setCommandConnection(clientConnection, clientSocketId);
-
-            // clientSocket.setOnDisconnect([&ip, &backupConnection, &connectionHandler, &handler]() {
-            //     std::cout << "Command socket disconnected - " << handler.getBackupname() << ":" << ip << std::endl;
-            //     handler.stopMonitoring();
-            //     connectionHandler.removeBackupConnection(handler.getBackupname(), ip);
-            // });
-
-            // handler.monitorMessages();
-        }).detach();
     }
 
     void ConnectionHandler::onBackupDataSocketConnection(int clientSocketId, const std::string &ip)
     {
+        std::thread([clientSocketId, ip]() {
+            common::TCPSocket clientSocket(clientSocketId);
+
+            ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+            BackupConnection &backupConnection = connectionHandler.addBackupConnection(ip);
+
+            BackupMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip));
+
+            clientSocket.setOnDisconnect([&ip, &connectionHandler, &backupMonitor]() {
+                std::cout << "Backup socket disconnected - " << ip << std::endl;
+                backupMonitor.stopMonitoring();
+                connectionHandler.removeBackupConnection(ip);
+            });
+
+            backupMonitor.monitorChanges();
+        }).detach();
     }
 
     ConnectionHandler &ConnectionHandler::getInstance()
