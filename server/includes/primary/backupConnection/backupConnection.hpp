@@ -1,25 +1,20 @@
+#pragma once
 
+#include <memory>
 
-class BackupConnection
+using UserFileChanges = std::pair<std::string, common::AtomicQueue<common::FileChange>>;
+using UserFileChangesQueue = common::AtomicQueue<UserFileChanges>;
+
+struct BackupConnection
 {
-  public:
-    BackupConnection(const std::string &ip, int serverId) : ip_(ip), id_(getNextId(serverId))
+    std::string ip;
+    int id;
+    std::shared_ptr<UserFileChangesQueue> fileChangesQueue;
+
+    BackupConnection(const std::string &ip, int serverId, std::shared_ptr<UserFileChangesQueue> queue)
+        : ip(ip), id(getNextId(serverId)), fileChangesQueue(queue)
     {
     }
-
-    std::string getIP() const
-    {
-        return ip_;
-    }
-
-    int getID() const
-    {
-        return id_;
-    }
-
-  private:
-    std::string ip_;
-    int id_;
 
     static int getNextId(int serverId)
     {

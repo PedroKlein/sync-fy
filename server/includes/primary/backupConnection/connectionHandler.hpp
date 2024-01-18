@@ -1,16 +1,14 @@
 #pragma once
 
+#include "backupConnection.hpp"
 #include "clientMonitor/messageHandler.hpp"
 #include "command/messageHandler.hpp"
 #include "localMonitor/localMonitor.hpp"
-#include "userConnection.hpp"
 #include <memory>
 #include <messages/messageHandler.hpp>
 #include <socket/tcpSocket.hpp>
 #include <thread>
 #include <type_traits>
-
-using FileChangesQueue = common::AtomicQueue<common::FileChange>;
 
 class ConnectionHandler
 {
@@ -22,15 +20,15 @@ class ConnectionHandler
             // command::MessageHandler handler(clientSocket, ip);
 
             // ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
-            // UserConnection &userConnection = connectionHandler.addUserConnection(handler.getUsername());
-            // ClientConnection &clientConnection = userConnection.addClientConnection(ip);
+            // BackupConnection &backupConnection = connectionHandler.addBackupConnection(handler.getBackupname());
+            // ClientConnection &clientConnection = backupConnection.addClientConnection(ip);
 
-            // userConnection.setCommandConnection(clientConnection, clientSocketId);
+            // backupConnection.setCommandConnection(clientConnection, clientSocketId);
 
-            // clientSocket.setOnDisconnect([&ip, &userConnection, &connectionHandler, &handler]() {
-            //     std::cout << "Command socket disconnected - " << handler.getUsername() << ":" << ip << std::endl;
+            // clientSocket.setOnDisconnect([&ip, &backupConnection, &connectionHandler, &handler]() {
+            //     std::cout << "Command socket disconnected - " << handler.getBackupname() << ":" << ip << std::endl;
             //     handler.stopMonitoring();
-            //     connectionHandler.removeUserConnection(handler.getUsername(), ip);
+            //     connectionHandler.removeBackupConnection(handler.getBackupname(), ip);
             // });
 
             // handler.monitorMessages();
@@ -47,54 +45,77 @@ class ConnectionHandler
         return instance;
     }
 
-    UserConnection &ConnectionHandler::addUserConnection(const std::string &username)
+    ConnectionHandler &ConnectionHandler::getInstance(int serverId)
+    {
+        static ConnectionHandler instance(serverId);
+        return instance;
+    }
+
+    BackupConnection &addBackupConnection(const std::string &ip)
     {
         std::lock_guard<std::mutex> lock(mtx);
-        auto it = userConnections.find(username);
+        auto it = backupConnections.find(ip);
 
-        // user connection already exists
-        if (it != userConnections.end())
+        // backup connection already exists
+        if (it != backupConnections.end())
         {
             return *(it->second);
         }
 
-        std::unique_ptr<UserConnection> userConnection = std::make_unique<UserConnection>();
+        std::unique_ptr<BackupConnection> backupConnection =
+            std::make_unique<BackupConnection>(ip, serverId, std::make_shared<UserFileChangesQueue>());
 
         // Get a reference before moving the unique_ptr into the map
-        UserConnection &connectionRef = *userConnection;
+        BackupConnection &connectionRef = *backupConnection;
 
-        userConnections[username] = std::move(userConnection);
+        backupConnections[ip] = std::move(backupConnection);
 
         return connectionRef;
     }
 
-    UserConnection &ConnectionHandler::getUserConnection(const std::string &username)
+    BackupConnection &getBackupConnection(const std::string &ip)
     {
         std::lock_guard<std::mutex> lock(mtx);
-        auto it = userConnections.find(username);
-        if (it == userConnections.end())
+        auto it = backupConnections.find(ip);
+        if (it == backupConnections.end())
         {
-            throw std::out_of_range("Username not found");
+            throw std::out_of_range("Backupname not found");
         }
         return *(it->second);
     }
 
-    void ConnectionHandler::removeUserConnection(const std::string &username, const std::string &ip)
+    void removeBackupConnection(const std::string &ip)
     {
         std::lock_guard<std::mutex> lock(mtx);
-        auto it = userConnections.find(username);
+        auto it = backupConnections.find(ip);
 
-        if (it == userConnections.end())
+        if (it == backupConnections.end())
         {
             return;
         }
 
-        it->second->removeClientConnection(ip);
+        backupConnections.erase(ip);
+    }
 
-        if (!it->second->hasClientConnections())
+    void addFileChange(const std::string &username, common::FileChange fileChange)
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+
+        for (auto &backupConnection : backupConnections)
         {
-            userConnections.erase(username);
+            backupConnections.second->fileChangesQueue->push(std::make_pair(username, fileChange));
         }
+    }
+
+    std::shared_ptr<UserFileChangesQueue> getFileChangesQueue(const std::string &ip)
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        auto it = backupConnections.find(ip);
+        if (it == backupConnections.end())
+        {
+            throw std::out_of_range("IP not found");
+        }
+        return (it->second->fileChangesQueue);
     }
 
   private:
@@ -103,7 +124,9 @@ class ConnectionHandler
      */
     ConnectionHandler() = default;
 
-    // username -> userConnection
-    std::unordered_map<std::string, std::unique_ptr<UserConnection>> userConnections;
+    ConnectionHandler(int serverID) : serverId(serverId);
+    // ip -> backupConnection
+    std::unordered_map<std::string, std::unique_ptr<BackupConnection>> backupConnections;
     std::mutex mtx;
+    int serverId = 0;
 };

@@ -9,6 +9,7 @@ void MessageHandler::onSendFileMessage(const common::InitSendFile &initSendFile)
 
     common::FileChange fileChange(initSendFile.filename, common::FileChangeType::FILE_CREATED);
     userConnection.addFileChange(ip, fileChange);
+    // TODO: add here the same thing but for the backups
 }
 
 void MessageHandler::onDeleteFileMessage(const common::DeleteFile &deletedFile) const
@@ -18,5 +19,6 @@ void MessageHandler::onDeleteFileMessage(const common::DeleteFile &deletedFile) 
 
     common::FileChange fileChange(deletedFile.filename, common::FileChangeType::FILE_DELETED);
     userConnection.addFileChange(ip, fileChange);
+    // TODO: add here the same thing but for the backups
 }
 } // namespace clientMonitor

@@ -44,6 +44,26 @@ class ServerMessageHandler : public common::FileMessageHandler
         std::cout << "Logged in as " << username << " from " << ip << std::endl;
     }
 
+    // constructor for backup server
+    // ServerMessageHandler(common::TCPSocket &socket, std::string username)
+    //     : common::FileMessageHandler(socket), username(username)
+    // {
+    //     this->syncFolder = common::DEFAULT_SERVER_SYNC_DIR + username + "/";
+
+    //     try
+    //     {
+    //         std::filesystem::create_directory(this->syncFolder);
+    //     }
+    //     catch (const std::filesystem::filesystem_error &ex)
+    //     {
+    //         std::cerr << "Error creating directory: " << ex.what() << std::endl;
+    //     }
+
+    //     this->ip = ip;
+
+    //     std::cout << "Logged in as " << username << " from " << ip << std::endl;
+    // }
+
   protected:
     std::string ip;
 

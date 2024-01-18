@@ -1,5 +1,5 @@
 
-#include "primary/userConnection.hpp"
+#include "primary/clientConnection/userConnection.hpp"
 #include "serverMessageHandler.hpp"
 #include <filesystem/directory.hpp>
 #include <memory>

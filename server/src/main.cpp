@@ -34,7 +34,7 @@ void initializePrimary()
     // 1. Listen for backup server connections
 
     // 2. Manage backups, connections and disconnections (keep a list of them and update them with their pairs to cloase
-    // the ring for the election)
+    // the ring for the election) keeps pinging them with a ALIVE message
 
     // 3. After a change on a client data, send the new data to the backup servers (keep a atomic fifo queue of the
     // changes)
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 
         initializePrimary();
 
-        return;
+        return 0;
     }
 
     std::cout << "Starting as backup" << std::endl;
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 
     // 1. Connect to primary server
 
-    common::ClientSocket networkSocket(primaryServerAddress, common::PRIMARY_SERVER_PORT);
+    common::ClientSocket networkSocket(primaryServerAddress, BACKUP_NETWORK_SOCKET_PORT);
 
     // 2. Receive data from primary server of next backup and data from clients
 

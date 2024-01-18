@@ -1,8 +1,8 @@
 #pragma once
 
-#include "clientMonitor/messageHandler.hpp"
-#include "command/messageHandler.hpp"
-#include "localMonitor/localMonitor.hpp"
+#include "primary/clientMonitor/messageHandler.hpp"
+#include "primary/command/messageHandler.hpp"
+#include "primary/localMonitor/localMonitor.hpp"
 #include "userConnection.hpp"
 #include <memory>
 #include <messages/messageHandler.hpp>
