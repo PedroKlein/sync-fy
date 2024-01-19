@@ -1,16 +1,18 @@
 
+#include "backupMessageHandler.hpp"
 #include "primary/backupConnection/backupConnection.hpp"
-#include "primary/userConnection.hpp"
-#include "serverMessageHandler.hpp"
 #include <filesystem/directory.hpp>
 #include <memory>
 #include <string>
+#include <thread>
 
+namespace backupConnection
+{
 class BackupDataMonitor
 {
   public:
     BackupDataMonitor(common::TCPSocket &socket, std::shared_ptr<UserFileChangesQueue> changeQueue)
-        : messageHandler(messageHandler), changeQueue(changeQueue), directory(messageHandler.getSyncFolder())
+        : changeQueue(changeQueue), socket(socket)
     {
     }
 
@@ -43,7 +45,7 @@ class BackupDataMonitor
 
     void initialSync()
     {
-        for (const auto &entry : std::filesystem::directory_iterator(DEFAULT_SERVER_SYNC_DIR))
+        for (const auto &entry : std::filesystem::directory_iterator(common::DEFAULT_SERVER_SYNC_DIR))
         {
             if (entry.is_directory())
             {
@@ -65,7 +67,9 @@ class BackupDataMonitor
 
     void sendFileChange(const common::FileChange &fileChange, std::string username) const
     {
-        ServerMessageHandler messageHandler(socket, username, true);
+        BackupMessageHandler messageHandler(socket, username);
+
+        messageHandler.sendInitBackupDataMessage(username);
 
         switch (fileChange.changeType)
         {
@@ -90,3 +94,4 @@ class BackupDataMonitor
         }
     };
 };
+} // namespace backupConnection

@@ -6,6 +6,7 @@ add_library(common_lib
     include/datetime/dateTime.hpp
     include/models/deleteFile.hpp
     include/models/initReceiveFile.hpp
+    include/models/initBackupData.hpp
     include/models/initSendFile.hpp
     include/models/listFiles.hpp
     include/models/login.hpp

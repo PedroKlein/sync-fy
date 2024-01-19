@@ -31,6 +31,9 @@ enum MessageType
     LOGIN,             // Header + JSON
     DELETE_FILE,       // Header + JSON
     LIST_FILES,        // Header + JSON
+
+    // for backup
+    INIT_BACKUP_DATA, // Header + JSON
 };
 
 /**

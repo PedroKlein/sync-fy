@@ -1,3 +1,4 @@
+#include "primary/backupConnection/connectionHandler.hpp"
 #include "primary/clientConnection/connectionHandler.hpp"
 #include <backup/bullyElection.hpp>
 #include <constants.hpp>
@@ -64,12 +65,11 @@ int main(int argc, char *argv[])
     // TODO: For backup server
 
     // 1. Connect to primary server
-
     common::ClientSocket networkSocket(primaryServerAddress, BACKUP_NETWORK_SOCKET_PORT);
 
     // 2. Receive data from primary server of next backup and data from clients
 
-    // 3. If primary fails, run ring election
+    // 3. If primary fails, run bully election
 
     // 4. If elected, run as primary (initializePrimary) and connect to all clients
 

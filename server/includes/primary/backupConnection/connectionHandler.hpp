@@ -4,14 +4,38 @@
 #include "backupDataMonitor.hpp"
 #include <memory>
 #include <messages/messageHandler.hpp>
+#include <mutex>
 #include <socket/tcpSocket.hpp>
 #include <thread>
 #include <type_traits>
 
+namespace backupConnection
+{
+
 class ConnectionHandler
 {
   public:
-    void ConnectionHandler::onNetworkBackupSocketConnection(int clientSocketId, const std::string &ip)
+    static void onNetworkBackupSocketConnection(int clientSocketId, const std::string &ip)
+    {
+        std::thread([clientSocketId, ip]() {
+            // common::TCPSocket clientSocket(clientSocketId);
+
+            // ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+            // BackupConnection &backupConnection = connectionHandler.addBackupConnection(ip);
+
+            // BackupDataMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip));
+
+            // clientSocket.setOnDisconnect([&ip, &connectionHandler, &backupMonitor]() {
+            //     std::cout << "Backup socket disconnected - " << ip << std::endl;
+            //     backupMonitor.stopMonitoring();
+            //     connectionHandler.removeBackupConnection(ip);
+            // });
+
+            // backupMonitor.monitorChanges();
+        }).detach();
+    }
+
+    static void onBackupDataSocketConnection(int clientSocketId, const std::string &ip)
     {
         std::thread([clientSocketId, ip]() {
             common::TCPSocket clientSocket(clientSocketId);
@@ -31,33 +55,14 @@ class ConnectionHandler
         }).detach();
     }
 
-    void ConnectionHandler::onBackupDataSocketConnection(int clientSocketId, const std::string &ip)
-    {
-        std::thread([clientSocketId, ip]() {
-            common::TCPSocket clientSocket(clientSocketId);
-
-            ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
-            BackupConnection &backupConnection = connectionHandler.addBackupConnection(ip);
-
-            BackupDataMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip));
-
-            clientSocket.setOnDisconnect([&ip, &connectionHandler, &backupMonitor]() {
-                std::cout << "Backup socket disconnected - " << ip << std::endl;
-                backupMonitor.stopMonitoring();
-                connectionHandler.removeBackupConnection(ip);
-            });
-
-            backupMonitor.monitorChanges();
-        }).detach();
-    }
-
-    ConnectionHandler &ConnectionHandler::getInstance()
+    static ConnectionHandler &getInstance()
     {
         static ConnectionHandler instance;
         return instance;
     }
 
-    ConnectionHandler &ConnectionHandler::getInstance(int serverId)
+    // TODO: THIS IS WRONG, FIX IT
+    static ConnectionHandler &getInstance(int serverId)
     {
         static ConnectionHandler instance(serverId);
         return instance;
@@ -122,7 +127,7 @@ class ConnectionHandler
 
         for (auto &backupConnection : backupConnections)
         {
-            backupConnections.second->fileChangesQueue->push(std::make_pair(username, fileChange));
+            backupConnection.second->fileChangesQueue->push(std::make_pair(username, fileChange));
         }
     }
 
@@ -143,9 +148,10 @@ class ConnectionHandler
      */
     ConnectionHandler() = default;
 
-    ConnectionHandler(int serverID) : serverId(serverId);
+    ConnectionHandler(int serverID) : serverId(serverId){};
     // ip -> backupConnection
     std::unordered_map<std::string, std::unique_ptr<BackupConnection>> backupConnections;
     std::mutex mtx;
     int serverId = 0;
 };
+} // namespace backupConnection

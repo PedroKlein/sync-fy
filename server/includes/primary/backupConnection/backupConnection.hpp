@@ -1,8 +1,12 @@
 #pragma once
 
+#include <atomic/atomicQueue.hpp>
+#include <filesystem/fileChange.hpp>
 #include <memory>
 
-using UserFileChange = std::pair<std::string, common::AtomicQueue<common::FileChange>>;
+namespace backupConnection
+{
+using UserFileChange = std::pair<std::string, common::FileChange>;
 using UserFileChangesQueue = common::AtomicQueue<UserFileChange>;
 
 struct BackupConnection
@@ -23,3 +27,4 @@ struct BackupConnection
         return serverId + (nextId++);
     }
 };
+} // namespace backupConnection

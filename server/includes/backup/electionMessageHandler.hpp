@@ -25,19 +25,19 @@ class ElectionMessageHandler : public common::MessageHandler
         electionCallback = callback;
     }
 
-    void sendAliveMessage()
+    void sendAliveMessage() const
     {
         common::Message message(common::MessageType::ALIVE);
         sendMessage(message);
     }
 
-    void sendCoordinatorMessage()
+    void sendCoordinatorMessage() const
     {
         common::Message message(common::MessageType::COORDINATOR);
         sendMessage(message);
     }
 
-    void sendElectionMessage()
+    void sendElectionMessage() const
     {
         common::Message message(common::MessageType::ELECTION);
         sendMessage(message);
@@ -48,6 +48,16 @@ class ElectionMessageHandler : public common::MessageHandler
         common::MessageHeader header = receiveHeader();
 
         if (header.messageType != common::MessageType::ALIVE)
+        {
+            throw std::runtime_error("Received wrong message type");
+        }
+    }
+
+    void receiveElectionMessage()
+    {
+        common::MessageHeader header = receiveHeader();
+
+        if (header.messageType != common::MessageType::ELECTION)
         {
             throw std::runtime_error("Received wrong message type");
         }

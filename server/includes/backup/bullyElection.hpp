@@ -6,6 +6,8 @@
 #include <future>
 #include <iostream>
 #include <socket/clientSocket.hpp>
+#include <socket/serverSocket.hpp>
+#include <socket/tcpSocket.hpp>
 #include <vector>
 
 #define ELECTION_SOCKET_PORT 8771
@@ -102,7 +104,7 @@ class BullyElection
 
         std::thread electionSocketThread(&common::ServerSocket::startListening, &electionSocket,
                                          [this](int socketId, std::string ip) {
-                                             common::ClientSocket electionSocket(socketId);
+                                             common::TCPSocket electionSocket(socketId);
                                              ElectionMessageHandler electionMessageHandler(electionSocket);
 
                                              electionMessageHandler.receiveElectionMessage();
@@ -128,11 +130,10 @@ class BullyElection
     }
 
   private:
-    ElectionEndCallback onElectionEndCallback;
-    ElectionMessageHandler &messageHandler;
+    const ElectionEndCallback onElectionEndCallback;
     int serverId;
     std::vector<ServerNode> connectedServers;
-    std ::atomic<bool> isElecting(false);
+    std::atomic<bool> isElecting{false};
 
     void onElectionSocketConnection(int clientSocketId, const std::string &ip)
     {
@@ -146,7 +147,8 @@ class BullyElection
             });
 
             handler.setCoordinatorCallback([handler, ip, this]() {
-                handler.stopMonitoringMessages();
+                // TODO: hnadle the permessive error here
+                //  handler.stopMonitoring();
                 onElectionEndCallback(ip);
             });
 
