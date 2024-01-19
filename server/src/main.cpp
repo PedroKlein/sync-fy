@@ -1,6 +1,7 @@
+#include "backup/bullyElection.hpp"
+#include "backup/data/primaryDataMonitor.hpp"
 #include "primary/backupConnection/connectionHandler.hpp"
 #include "primary/clientConnection/connectionHandler.hpp"
-#include <backup/bullyElection.hpp>
 #include <constants.hpp>
 #include <cstdlib>
 #include <iostream>
@@ -67,7 +68,15 @@ int main(int argc, char *argv[])
     // 1. Connect to primary server
     common::ClientSocket networkSocket(primaryServerAddress, BACKUP_NETWORK_SOCKET_PORT);
 
+    common::ClientSocket dataSocket(primaryServerAddress, BACKUP_DATA_SOCKET_PORT);
+    BackupMessageHandler dataMessageHandler(dataSocket);
+
     // 2. Receive data from primary server of next backup and data from clients
+    backup::PrimaryDataMonitor primaryDataMonitor(dataMessageHandler);
+    std::thread *primaryDataMonitorThread = primaryDataMonitor.start();
+
+    // add callback for disconnection
+    primaryDataMonitorThread->join();
 
     // 3. If primary fails, run bully election
 

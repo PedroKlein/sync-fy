@@ -45,7 +45,7 @@ class MessageHandler : public ServerMessageHandler
      *
      * @param message The common::Message received from the server.
      */
-    void handleOtherMessage(const common::Message &message) const override;
+    void handleOtherMessage(const common::Message &message) override;
 
     /**
      * @brief Handles messages with only a header received from the server.

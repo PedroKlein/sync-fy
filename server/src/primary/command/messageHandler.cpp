@@ -2,7 +2,7 @@
 
 namespace command
 {
-void MessageHandler::handleOtherMessage(const common::Message &message) const
+void MessageHandler::handleOtherMessage(const common::Message &message)
 {
 }
 
