@@ -4,21 +4,25 @@ namespace clientMonitor
 {
 void MessageHandler::onSendFileMessage(const common::InitSendFile &initSendFile) const
 {
-    ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+    ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
     UserConnection &userConnection = connectionHandler.getUserConnection(username);
 
     common::FileChange fileChange(initSendFile.filename, common::FileChangeType::FILE_CREATED);
     userConnection.addFileChange(ip, fileChange);
-    // TODO: add here the same thing but for the backups
+
+    BackupConnectionHandler &backupConnectionHandler = BackupConnectionHandler::getInstance();
+    backupConnectionHandler.addFileChange(username, fileChange)
 }
 
 void MessageHandler::onDeleteFileMessage(const common::DeleteFile &deletedFile) const
 {
-    ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+    ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
     UserConnection &userConnection = connectionHandler.getUserConnection(username);
 
     common::FileChange fileChange(deletedFile.filename, common::FileChangeType::FILE_DELETED);
     userConnection.addFileChange(ip, fileChange);
-    // TODO: add here the same thing but for the backups
+
+    BackupConnectionHandler &backupConnectionHandler = BackupConnectionHandler::getInstance();
+    backupConnectionHandler.addFileChange(username, fileChange)
 }
 } // namespace clientMonitor

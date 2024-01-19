@@ -18,7 +18,7 @@ void MessageHandler::handlePureHeaderMessage(const common::MessageHeader &header
 
 void MessageHandler::onSendFileMessage(const common::InitSendFile &initSendFile) const
 {
-    ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+    ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
     UserConnection &userConnection = connectionHandler.getUserConnection(username);
     common::FileChange fileChange(initSendFile.filename, common::FileChangeType::FILE_CREATED);
     userConnection.addFileChange(fileChange);
@@ -26,7 +26,7 @@ void MessageHandler::onSendFileMessage(const common::InitSendFile &initSendFile)
 
 void MessageHandler::onDeleteFileMessage(const common::DeleteFile &deletedFile) const
 {
-    ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+    ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
     UserConnection &userConnection = connectionHandler.getUserConnection(username);
     common::FileChange fileChange(deletedFile.filename, common::FileChangeType::FILE_DELETED);
     userConnection.addFileChange(fileChange);

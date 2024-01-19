@@ -1,6 +1,7 @@
 #pragma once
 
-#include "primary/clientConnection/connectionHandler.hpp"
+#include "primary/backupConnection/backupConnectionHandler.hpp"
+#include "primary/clientConnection/clientConnectionHandler.hpp"
 #include "serverMessageHandler.hpp"
 #include <filesystem/file.hpp>
 #include <filesystem/fileChange.hpp>

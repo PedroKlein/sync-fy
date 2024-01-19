@@ -4,8 +4,6 @@
 #include <filesystem/fileChange.hpp>
 #include <memory>
 
-namespace backupConnection
-{
 using UserFileChange = std::pair<std::string, common::FileChange>;
 using UserFileChangesQueue = common::AtomicQueue<UserFileChange>;
 
@@ -27,4 +25,3 @@ struct BackupConnection
         return serverId + (nextId++);
     }
 };
-} // namespace backupConnection

@@ -9,10 +9,7 @@
 #include <thread>
 #include <type_traits>
 
-namespace backupConnection
-{
-
-class ConnectionHandler
+class BackupConnectionHandler
 {
   public:
     static void onNetworkBackupSocketConnection(int clientSocketId, const std::string &ip)
@@ -20,7 +17,7 @@ class ConnectionHandler
         std::thread([clientSocketId, ip]() {
             // common::TCPSocket clientSocket(clientSocketId);
 
-            // ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+            // BackupConnectionHandler &connectionHandler = BackupConnectionHandler::getInstance();
             // BackupConnection &backupConnection = connectionHandler.addBackupConnection(ip);
 
             // BackupDataMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip));
@@ -40,7 +37,7 @@ class ConnectionHandler
         std::thread([clientSocketId, ip]() {
             common::TCPSocket clientSocket(clientSocketId);
 
-            ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+            BackupConnectionHandler &connectionHandler = BackupConnectionHandler::getInstance();
             BackupConnection &backupConnection = connectionHandler.addBackupConnection(ip);
 
             BackupDataMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip));
@@ -55,17 +52,15 @@ class ConnectionHandler
         }).detach();
     }
 
-    static ConnectionHandler &getInstance()
+    static BackupConnectionHandler &getInstance()
     {
-        static ConnectionHandler instance;
+        static BackupConnectionHandler instance;
         return instance;
     }
 
-    // TODO: THIS IS WRONG, FIX IT
-    static ConnectionHandler &getInstance(int serverId)
+    void setServerId(int id)
     {
-        static ConnectionHandler instance(serverId);
-        return instance;
+        serverId = id;
     }
 
     BackupConnection &addBackupConnection(const std::string &ip)
@@ -146,12 +141,10 @@ class ConnectionHandler
     /**
      * @brief Private constructor to enforce the singleton pattern.
      */
-    ConnectionHandler() = default;
+    BackupConnectionHandler() = default;
 
-    ConnectionHandler(int serverID) : serverId(serverId){};
     // ip -> backupConnection
     std::unordered_map<std::string, std::unique_ptr<BackupConnection>> backupConnections;
     std::mutex mtx;
     int serverId = 0;
 };
-} // namespace backupConnection

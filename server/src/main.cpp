@@ -1,7 +1,7 @@
 #include "backup/bullyElection.hpp"
 #include "backup/data/primaryDataMonitor.hpp"
-#include "primary/backupConnection/connectionHandler.hpp"
-#include "primary/clientConnection/connectionHandler.hpp"
+#include "primary/backupConnection/backupConnectionHandler.hpp"
+#include "primary/clientConnection/clientConnectionHandler.hpp"
 #include <constants.hpp>
 #include <cstdlib>
 #include <iostream>
@@ -17,9 +17,10 @@
 // this is a client on the backup server
 #define BACKUP_DATA_SOCKET_PORT 8770
 
-void initializePrimary()
+void initializePrimary(int serverId = 0)
 {
-    ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+    // Handle client connections
+    ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
 
     common::ServerSocket commandSocket(common::COMMAND_PORT);
     common::ServerSocket serverDataSocket(common::SERVER_DATA_PORT);
@@ -27,11 +28,15 @@ void initializePrimary()
 
     // start listening inside a thread
     std::thread commandSocketThread(&common::ServerSocket::startListening, &commandSocket,
-                                    ConnectionHandler::onCommandSocketConnection);
+                                    ClientConnectionHandler::onCommandSocketConnection);
     std::thread serverDataSocketThread(&common::ServerSocket::startListening, &serverDataSocket,
-                                       ConnectionHandler::onServerDataSocketConnection);
+                                       ClientConnectionHandler::onServerDataSocketConnection);
     std::thread clientDataSocketThread(&common::ServerSocket::startListening, &clientDataSocket,
-                                       ConnectionHandler::onClientDataSocketConnection);
+                                       ClientConnectionHandler::onClientDataSocketConnection);
+
+    // Handle backup connections
+    BackupConnectionHandler &backupConnectionHandler = BackupConnectionHandler::getInstance();
+    backupConnectionHandler.setServerId(serverId);
 
     // TODO: For primary server
     // 1. Listen for backup server connections

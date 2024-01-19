@@ -1,12 +1,12 @@
-#include "primary/clientConnection/connectionHandler.hpp"
+#include "primary/clientConnection/clientConnectionHandler.hpp"
 
-void ConnectionHandler::onCommandSocketConnection(int clientSocketId, const std::string &ip)
+void ClientConnectionHandler::onCommandSocketConnection(int clientSocketId, const std::string &ip)
 {
     std::thread([clientSocketId, ip]() {
         common::TCPSocket clientSocket(clientSocketId);
         command::MessageHandler handler(clientSocket, ip);
 
-        ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+        ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
         UserConnection &userConnection = connectionHandler.addUserConnection(handler.getUsername());
         ClientConnection &clientConnection = userConnection.addClientConnection(ip);
 
@@ -22,13 +22,13 @@ void ConnectionHandler::onCommandSocketConnection(int clientSocketId, const std:
     }).detach();
 }
 
-void ConnectionHandler::onClientDataSocketConnection(int clientSocketId, const std::string &ip)
+void ClientConnectionHandler::onClientDataSocketConnection(int clientSocketId, const std::string &ip)
 {
     std::thread([clientSocketId, ip]() {
         common::TCPSocket clientSocket(clientSocketId);
         clientMonitor::MessageHandler handler(clientSocket, ip);
 
-        ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+        ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
         UserConnection &userConnection = connectionHandler.addUserConnection(handler.getUsername());
         ClientConnection &clientConnection = userConnection.addClientConnection(ip);
 
@@ -44,13 +44,13 @@ void ConnectionHandler::onClientDataSocketConnection(int clientSocketId, const s
     }).detach();
 }
 
-void ConnectionHandler::onServerDataSocketConnection(int clientSocketId, const std::string &ip)
+void ClientConnectionHandler::onServerDataSocketConnection(int clientSocketId, const std::string &ip)
 {
     std::thread([clientSocketId, ip]() {
         common::TCPSocket clientSocket(clientSocketId);
         ServerMessageHandler handler(clientSocket, ip);
 
-        ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+        ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
         UserConnection &userConnection = connectionHandler.addUserConnection(handler.getUsername());
         ClientConnection &clientConnection = userConnection.addClientConnection(ip);
 
@@ -68,13 +68,13 @@ void ConnectionHandler::onServerDataSocketConnection(int clientSocketId, const s
     }).detach();
 }
 
-ConnectionHandler &ConnectionHandler::getInstance()
+ClientConnectionHandler &ClientConnectionHandler::getInstance()
 {
-    static ConnectionHandler instance;
+    static ClientConnectionHandler instance;
     return instance;
 }
 
-UserConnection &ConnectionHandler::addUserConnection(const std::string &username)
+UserConnection &ClientConnectionHandler::addUserConnection(const std::string &username)
 {
     std::lock_guard<std::mutex> lock(mtx);
     auto it = userConnections.find(username);
@@ -95,7 +95,7 @@ UserConnection &ConnectionHandler::addUserConnection(const std::string &username
     return connectionRef;
 }
 
-UserConnection &ConnectionHandler::getUserConnection(const std::string &username)
+UserConnection &ClientConnectionHandler::getUserConnection(const std::string &username)
 {
     std::lock_guard<std::mutex> lock(mtx);
     auto it = userConnections.find(username);
@@ -106,7 +106,7 @@ UserConnection &ConnectionHandler::getUserConnection(const std::string &username
     return *(it->second);
 }
 
-void ConnectionHandler::removeUserConnection(const std::string &username, const std::string &ip)
+void ClientConnectionHandler::removeUserConnection(const std::string &username, const std::string &ip)
 {
     std::lock_guard<std::mutex> lock(mtx);
     auto it = userConnections.find(username);

@@ -6,8 +6,6 @@
 #include <string>
 #include <thread>
 
-namespace backupConnection
-{
 class BackupDataMonitor
 {
   public:
@@ -94,4 +92,3 @@ class BackupDataMonitor
         }
     };
 };
-} // namespace backupConnection
