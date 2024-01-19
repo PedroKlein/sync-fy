@@ -9,6 +9,7 @@ struct BackupConnection
 {
     std::string ip;
     int id;
+    int connections = 0;
     std::shared_ptr<UserFileChangesQueue> fileChangesQueue;
 
     BackupConnection(const std::string &ip, int serverId, std::shared_ptr<UserFileChangesQueue> queue)

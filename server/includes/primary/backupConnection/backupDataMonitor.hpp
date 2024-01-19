@@ -6,10 +6,10 @@
 #include <memory>
 #include <string>
 
-class BackupMonitor
+class BackupDataMonitor
 {
   public:
-    BackupMonitor(common::TCPSocket &socket, std::shared_ptr<UserFileChangesQueue> changeQueue)
+    BackupDataMonitor(common::TCPSocket &socket, std::shared_ptr<UserFileChangesQueue> changeQueue)
         : messageHandler(messageHandler), changeQueue(changeQueue), directory(messageHandler.getSyncFolder())
     {
     }

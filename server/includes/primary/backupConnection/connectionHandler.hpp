@@ -1,7 +1,7 @@
 #pragma once
 
 #include "backupConnection.hpp"
-#include "backupMonitor.hpp"
+#include "backupDataMonitor.hpp"
 #include <memory>
 #include <messages/messageHandler.hpp>
 #include <socket/tcpSocket.hpp>
@@ -13,6 +13,22 @@ class ConnectionHandler
   public:
     void ConnectionHandler::onNetworkBackupSocketConnection(int clientSocketId, const std::string &ip)
     {
+        std::thread([clientSocketId, ip]() {
+            common::TCPSocket clientSocket(clientSocketId);
+
+            ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
+            BackupConnection &backupConnection = connectionHandler.addBackupConnection(ip);
+
+            BackupDataMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip));
+
+            clientSocket.setOnDisconnect([&ip, &connectionHandler, &backupMonitor]() {
+                std::cout << "Backup socket disconnected - " << ip << std::endl;
+                backupMonitor.stopMonitoring();
+                connectionHandler.removeBackupConnection(ip);
+            });
+
+            backupMonitor.monitorChanges();
+        }).detach();
     }
 
     void ConnectionHandler::onBackupDataSocketConnection(int clientSocketId, const std::string &ip)
@@ -23,7 +39,7 @@ class ConnectionHandler
             ConnectionHandler &connectionHandler = ConnectionHandler::getInstance();
             BackupConnection &backupConnection = connectionHandler.addBackupConnection(ip);
 
-            BackupMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip));
+            BackupDataMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip));
 
             clientSocket.setOnDisconnect([&ip, &connectionHandler, &backupMonitor]() {
                 std::cout << "Backup socket disconnected - " << ip << std::endl;
@@ -55,6 +71,7 @@ class ConnectionHandler
         // backup connection already exists
         if (it != backupConnections.end())
         {
+            it->second->connections++;
             return *(it->second);
         }
 
@@ -87,6 +104,12 @@ class ConnectionHandler
 
         if (it == backupConnections.end())
         {
+            return;
+        }
+
+        if (it->second->connections > 0)
+        {
+            it->second->connections--;
             return;
         }
 
