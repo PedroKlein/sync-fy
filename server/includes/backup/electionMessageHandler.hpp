@@ -1,4 +1,6 @@
-#include "common/messageHandler.hpp"
+#pragma once
+
+#include <messages/messageHandler.hpp>
 
 namespace backup
 {
@@ -9,9 +11,8 @@ using Callback = std::function<void()>;
 class ElectionMessageHandler : public common::MessageHandler
 {
   public:
-    void setAliveCallback(const Callback &callback)
+    ElectionMessageHandler(common::TCPSocket &socket) : common::MessageHandler(socket)
     {
-        aliveCallback = callback;
     }
 
     void setCoordinatorCallback(const Callback &callback)
@@ -42,13 +43,29 @@ class ElectionMessageHandler : public common::MessageHandler
         sendMessage(message);
     }
 
-    void handlePureHeaderMessage(const MessageHeader &header) const
+    void receiveAliveMessage()
+    {
+        common::MessageHeader header = receiveHeader();
+
+        if (header.messageType != common::MessageType::ALIVE)
+        {
+            throw std::runtime_error("Received wrong message type");
+        }
+    }
+
+  private:
+    Callback coordinatorCallback;
+    Callback electionCallback;
+
+    void handleMessage(const common::Message &message) override
+    {
+    }
+
+    void handlePureHeaderMessage(const common::MessageHeader &header) const override
     {
         switch (header.messageType)
         {
         case common::MessageType::ALIVE:
-            if (aliveCallback)
-                aliveCallback();
             break;
         case common::MessageType::COORDINATOR:
             if (coordinatorCallback)
@@ -63,11 +80,6 @@ class ElectionMessageHandler : public common::MessageHandler
             break;
         }
     }
-
-  private:
-    Callback aliveCallback;
-    Callback coordinatorCallback;
-    Callback electionCallback;
 };
 
 } // namespace backup
