@@ -1,5 +1,6 @@
 #pragma once
 
+#include "backupState.hpp"
 #include "electionMessageHandler.hpp"
 #include <atomic>
 #include <chrono>
@@ -24,7 +25,7 @@ using ElectionEndCallback = std::function<void(const std::string &)>;
 class BullyElection
 {
   public:
-    BullyElection(BackupState &backupState) : backupState(backupState)
+    BullyElection()
     {
     }
 
@@ -39,10 +40,11 @@ class BullyElection
 
         std::vector<std::future<void>> futures;
         std::atomic<bool> anyThreadEnded(false);
+        BackupState &backupState = BackupState::getInstance();
 
-        for (common::Node node : backupState.connectedBackupNodes)
+        for (common::Node node : backupState.getConnectedBackupNodes())
         {
-            if (node.id <= backupState.serverId)
+            if (node.id <= backupState.getServerId())
             {
                 continue;
             }
@@ -82,9 +84,11 @@ class BullyElection
 
     void declareVictory()
     {
-        for (common::Node node : backupState.connectedBackupNodes)
+        BackupState &backupState = BackupState::getInstance();
+
+        for (common::Node node : backupState.getConnectedBackupNodes())
         {
-            if (node.id == backupState.serverId)
+            if (node.id == backupState.getServerId())
             {
                 continue;
             }
@@ -95,7 +99,7 @@ class BullyElection
             electionMessageHandler.sendCoordinatorMessage();
         }
 
-        // onElectionEndCallback(SELF_WIN_IP);
+        onElectionEndCallback(SELF_WIN_IP);
     }
 
     std::thread *listenElections()
@@ -114,10 +118,15 @@ class BullyElection
         return &electionSocketThread;
     }
 
+    void setElectionEndCallback(ElectionEndCallback callback)
+    {
+        onElectionEndCallback = callback;
+    }
+
   private:
     std::thread electionSocketThread;
-    BackupState &backupState;
     std::atomic<bool> isElecting{false};
+    ElectionEndCallback onElectionEndCallback;
 
     void onElectionSocketConnection(int clientSocketId, const std::string &ip)
     {
@@ -133,7 +142,7 @@ class BullyElection
             handler.setCoordinatorCallback([handler, ip, this]() {
                 // TODO: hnadle the permessive error here
                 //  handler.stopMonitoring();
-                // onElectionEndCallback(ip);
+                onElectionEndCallback(ip);
             });
 
             handler.monitorMessages();

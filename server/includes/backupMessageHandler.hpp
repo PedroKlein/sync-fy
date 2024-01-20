@@ -39,14 +39,16 @@ class BackupMessageHandler : public common::FileMessageHandler
         sendModelMessage(initBackupData);
     }
 
-    void sendConnectedIpsMessage(const common::ConnectedIps &connectedIps) const
+    void sendConnectedIpsMessage(const std::vector<std::string> &connectedIps) const
     {
-        sendModelMessage(connectedIps);
+        common::ConnectedIps ips(connectedIps);
+        sendModelMessage(ips);
     }
 
-    void sendConnectedNodesMessage(const common::ConnectedNodes &connectedNodes) const
+    void sendConnectedNodesMessage(const std::vector<common::Node> &connectedNodes) const
     {
-        sendModelMessage(connectedNodes);
+        common::ConnectedNodes nodes(connectedNodes);
+        sendModelMessage(nodes);
     }
 
     void setConnectedIpsCallback(ConnectedIpsCallback connectedIpsCallback)

@@ -12,7 +12,7 @@ class BackupMonitor
 {
   public:
     BackupMonitor(common::TCPSocket &socket, std::shared_ptr<UserFileChangesQueue> changeQueue,
-                      std::shared_ptr<HasClientAndNodeIpsChange> hasClientAndNodeChanges)
+                  std::shared_ptr<HasClientAndNodeIpsChange> hasClientAndNodeChanges)
         : changeQueue(changeQueue), socket(socket), hasClientAndNodeChanges(hasClientAndNodeChanges)
     {
     }

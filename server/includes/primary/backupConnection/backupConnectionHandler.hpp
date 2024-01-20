@@ -1,9 +1,7 @@
 #pragma once
-
 #include "backupConnection.hpp"
 #include "backupMonitor.hpp"
 #include "backupState.hpp"
-#include <atomic/atomicVector.hpp>
 #include <memory>
 #include <messages/messageHandler.hpp>
 #include <models/connectedIps.hpp>

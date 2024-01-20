@@ -46,7 +46,7 @@ void ClientConnectionHandler::onClientDataSocketConnection(int clientSocketId, c
                 handler.stopMonitoring();
                 connectionHandler.removeUserConnection(handler.getUsername(), ip);
 
-                backupState.removeConectedClientIp(ip);
+                backupState.removeConnectedClientIp(ip);
             });
 
         handler.monitorMessages();
