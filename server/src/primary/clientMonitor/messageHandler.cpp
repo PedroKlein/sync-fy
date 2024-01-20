@@ -11,7 +11,7 @@ void MessageHandler::onSendFileMessage(const common::InitSendFile &initSendFile)
     userConnection.addFileChange(ip, fileChange);
 
     BackupConnectionHandler &backupConnectionHandler = BackupConnectionHandler::getInstance();
-    backupConnectionHandler.addFileChange(username, fileChange)
+    backupConnectionHandler.addFileChange(username, fileChange);
 }
 
 void MessageHandler::onDeleteFileMessage(const common::DeleteFile &deletedFile) const
@@ -23,6 +23,6 @@ void MessageHandler::onDeleteFileMessage(const common::DeleteFile &deletedFile) 
     userConnection.addFileChange(ip, fileChange);
 
     BackupConnectionHandler &backupConnectionHandler = BackupConnectionHandler::getInstance();
-    backupConnectionHandler.addFileChange(username, fileChange)
+    backupConnectionHandler.addFileChange(username, fileChange);
 }
 } // namespace clientMonitor

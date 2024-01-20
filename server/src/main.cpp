@@ -9,13 +9,9 @@
 #include <socket/serverSocket.hpp>
 #include <unistd.h>
 
-// for connecting with primary and receive updates on new nodes of network
-// this is a client on the backup server
-#define BACKUP_NETWORK_SOCKET_PORT 8769
-
 // for connecting with primary and receive updates on new clients data
-// this is a client on the backup server
-#define BACKUP_DATA_SOCKET_PORT 8770
+// connected clients, and connected backups
+#define BACKUP_SOCKET_PORT 8769
 
 void initializePrimary(int serverId = 0)
 {
@@ -44,12 +40,16 @@ void initializePrimary(int serverId = 0)
     // 2. Manage backups, connections and disconnections (keep a list of them and update them with their pairs to cloase
     // the ring for the election) keeps pinging them with a ALIVE message
 
-    // 3. After a change on a client data, send the new data to the backup servers (keep a atomic fifo queue of the
-    // changes)
+    // 3. After a change on a client data, send the new data to the backup servers
+    common::ServerSocket backupData(BACKUP_DATA_SOCKET_PORT);
+    std::thread backupDataSocketThread(&common::ServerSocket::startListening, &backupData,
+                                       BackupConnectionHandler::onBackupDataSocketConnection);
 
     commandSocketThread.join();
     serverDataSocketThread.join();
     clientDataSocketThread.join();
+
+    backupDataSocketThread.join();
 }
 
 int main(int argc, char *argv[])
@@ -71,10 +71,8 @@ int main(int argc, char *argv[])
     // TODO: For backup server
 
     // 1. Connect to primary server
-    common::ClientSocket networkSocket(primaryServerAddress, BACKUP_NETWORK_SOCKET_PORT);
-
-    common::ClientSocket dataSocket(primaryServerAddress, BACKUP_DATA_SOCKET_PORT);
-    BackupMessageHandler dataMessageHandler(dataSocket);
+    common::ClientSocket backupSocket(primaryServerAddress, BACKUP_SOCKET_PORT);
+    BackupMessageHandler dataMessageHandler(backupSocket);
 
     // 2. Receive data from primary server of next backup and data from clients
     backup::PrimaryDataMonitor primaryDataMonitor(dataMessageHandler);

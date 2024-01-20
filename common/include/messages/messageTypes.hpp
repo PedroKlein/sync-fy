@@ -34,6 +34,7 @@ enum MessageType
 
     // for backup
     INIT_BACKUP_DATA, // Header + JSON
+    CONNECTED_IPS,    // Header + JSON
 };
 
 /**

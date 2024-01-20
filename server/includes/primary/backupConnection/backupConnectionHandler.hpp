@@ -2,8 +2,10 @@
 
 #include "backupConnection.hpp"
 #include "backupDataMonitor.hpp"
+#include <atomic/atomicVector.hpp>
 #include <memory>
 #include <messages/messageHandler.hpp>
+#include <models/connectedIps.hpp>
 #include <mutex>
 #include <socket/tcpSocket.hpp>
 #include <thread>
@@ -126,6 +128,23 @@ class BackupConnectionHandler
         }
     }
 
+    void addConectedClientIp(const std::string &ip)
+    {
+        connectedClientIps.emplaceBack(ip);
+    }
+
+    void removeConectedClientIp(const std::string &ip)
+    {
+        connectedClientIps.remove(ip);
+    }
+
+    common::ConnectedIps getConnectedIps()
+    {
+        common::ConnectedIps connectedIps;
+        connectedClientIps.forEach([&connectedIps](const std::string &ip) { connectedIps.ips.push_back(ip); });
+        return connectedIps;
+    }
+
     std::shared_ptr<UserFileChangesQueue> getFileChangesQueue(const std::string &ip)
     {
         std::lock_guard<std::mutex> lock(mtx);
@@ -145,6 +164,7 @@ class BackupConnectionHandler
 
     // ip -> backupConnection
     std::unordered_map<std::string, std::unique_ptr<BackupConnection>> backupConnections;
+    common::AtomicVector<std::string> connectedClientIps;
     std::mutex mtx;
     int serverId = 0;
 };

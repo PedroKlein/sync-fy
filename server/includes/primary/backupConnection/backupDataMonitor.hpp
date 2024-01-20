@@ -23,11 +23,11 @@ class BackupDataMonitor
 
         do
         {
-            if (changeQueue->tryPop(userFileChange))
+            while (changeQueue->tryPop(userFileChange))
             {
                 sendFileChange(userFileChange.second, userFileChange.first);
             }
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::microseconds(200));
         } while (isMonitoring && changeQueue.use_count() > 1);
     }
 
