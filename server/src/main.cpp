@@ -1,19 +1,19 @@
+#include "backup/backupState.hpp"
 #include "backup/bullyElection.hpp"
-#include "backup/data/primaryDataMonitor.hpp"
+#include "backup/primaryMonitor.hpp"
+
 #include "primary/backupConnection/backupConnectionHandler.hpp"
 #include "primary/clientConnection/clientConnectionHandler.hpp"
 #include <constants.hpp>
-#include <cstdlib>
 #include <iostream>
 #include <socket/clientSocket.hpp>
 #include <socket/serverSocket.hpp>
-#include <unistd.h>
 
 // for connecting with primary and receive updates on new clients data
 // connected clients, and connected backups
 #define BACKUP_SOCKET_PORT 8769
 
-void initializePrimary(int serverId = 0)
+void initializePrimary(int serverId = 0, bool wasBackup = false)
 {
     // Handle client connections
     ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
@@ -41,22 +41,15 @@ void initializePrimary(int serverId = 0)
     backupState.setUpdatedConnectedBackupNodesCallback(
         std::bind(&BackupConnectionHandler::hasUpdatedConnectedBackupNodes, &backupConnectionHandler));
 
-    // TODO: For primary server
-    // 1. Listen for backup server connections
-
-    // 2. Manage backups, connections and disconnections (keep a list of them and update them with their pairs to
-    // cloase the ring for the election) keeps pinging them with a ALIVE message
-
-    // 3. After a change on a client data, send the new data to the backup servers
-    common::ServerSocket backupData(BACKUP_SOCKET_PORT);
-    std::thread backupDataSocketThread(&common::ServerSocket::startListening, &backupData,
-                                       BackupConnectionHandler::onBackupDataSocketConnection);
+    common::ServerSocket backupSocket(BACKUP_SOCKET_PORT);
+    std::thread backupSocketThread(&common::ServerSocket::startListening, &backupSocket,
+                                   BackupConnectionHandler::onBackupSocketConnection);
 
     commandSocketThread.join();
     serverDataSocketThread.join();
     clientDataSocketThread.join();
 
-    backupDataSocketThread.join();
+    backupSocketThread.join();
 }
 
 int main(int argc, char *argv[])
@@ -72,29 +65,41 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    // Backup section
+    int serverId; // TODO: get server id from primary
     std::cout << "Starting as backup" << std::endl;
     std::string primaryServerAddress = argv[1];
 
-    // TODO: For backup server
+    backup::BackupState backupState;
+    backupState.primaryServerAddress = primaryServerAddress;
 
     // 1. Connect to primary server
     common::ClientSocket backupSocket(primaryServerAddress, BACKUP_SOCKET_PORT);
-    BackupMessageHandler dataMessageHandler(backupSocket);
+    BackupMessageHandler backupMessageHandler(backupSocket);
+
+    backupMessageHandler.setConnectedIpsCallback([&backupState](const std::vector<std::string> &connectedIps) {
+        backupState.connectedClientIps = connectedIps;
+    });
+
+    backupMessageHandler.setConnectedNodesCallback([&backupState](const std::vector<common::Node> &connectedNodes) {
+        backupState.connectedBackupNodes = connectedNodes;
+    });
+
+    // Election section
+    backup::BullyElection bullyElection(backupState);
 
     // 2. Receive data from primary server of next backup and data from clients
-    backup::PrimaryDataMonitor primaryDataMonitor(dataMessageHandler);
-    std::thread *primaryDataMonitorThread = primaryDataMonitor.start();
+    backup::PrimaryMonitor primaryMonitor(backupMessageHandler);
+    std::thread *primaryMonitorThread = primaryMonitor.start();
 
-    // add callback for disconnection
-    primaryDataMonitorThread->join();
+    backupSocket.setOnDisconnect([&primaryMonitor]() {
+        std::cout << "Primary disconnected" << std::endl;
+        primaryMonitor.stop();
 
-    // 3. If primary fails, run bully election
+        bullyElection.startElection();
+    });
 
-    // 4. If elected, run as primary (initializePrimary) and connect to all clients
-
-    // 5. If not elected, repeat from step 1
-
-    common::ClientSocket recoverySocket("localhost", common::CLIENT_RECOVERY_PORT);
+    primaryMonitorThread->join();
 
     return 0;
 }

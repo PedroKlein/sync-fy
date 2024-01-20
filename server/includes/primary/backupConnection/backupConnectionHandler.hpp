@@ -1,7 +1,7 @@
 #pragma once
 
 #include "backupConnection.hpp"
-#include "backupDataMonitor.hpp"
+#include "backupMonitor.hpp"
 #include "backupState.hpp"
 #include <atomic/atomicVector.hpp>
 #include <memory>
@@ -16,27 +16,7 @@
 class BackupConnectionHandler
 {
   public:
-    static void onNetworkBackupSocketConnection(int clientSocketId, const std::string &ip)
-    {
-        std::thread([clientSocketId, ip]() {
-            // common::TCPSocket clientSocket(clientSocketId);
-
-            // BackupConnectionHandler &connectionHandler = BackupConnectionHandler::getInstance();
-            // BackupConnection &backupConnection = connectionHandler.addBackupConnection(ip);
-
-            // BackupDataMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip));
-
-            // clientSocket.setOnDisconnect([&ip, &connectionHandler, &backupMonitor]() {
-            //     std::cout << "Backup socket disconnected - " << ip << std::endl;
-            //     backupMonitor.stopMonitoring();
-            //     connectionHandler.removeBackupConnection(ip);
-            // });
-
-            // backupMonitor.monitorChanges();
-        }).detach();
-    }
-
-    static void onBackupDataSocketConnection(int clientSocketId, const std::string &ip)
+    static void onBackupSocketConnection(int clientSocketId, const std::string &ip)
     {
         std::thread([clientSocketId, ip]() {
             common::TCPSocket clientSocket(clientSocketId);
@@ -44,8 +24,8 @@ class BackupConnectionHandler
             BackupConnectionHandler &connectionHandler = BackupConnectionHandler::getInstance();
             BackupConnection &backupConnection = connectionHandler.addBackupConnection(ip);
 
-            BackupDataMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip),
-                                            connectionHandler.getClientAndNodeChanges(ip));
+            BackupMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip),
+                                        connectionHandler.getClientAndNodeChanges(ip));
 
             clientSocket.setOnDisconnect([&ip, &connectionHandler, &backupMonitor]() {
                 std::cout << "Backup socket disconnected - " << ip << std::endl;

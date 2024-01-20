@@ -8,10 +8,10 @@
 #include <string>
 #include <thread>
 
-class BackupDataMonitor
+class BackupMonitor
 {
   public:
-    BackupDataMonitor(common::TCPSocket &socket, std::shared_ptr<UserFileChangesQueue> changeQueue,
+    BackupMonitor(common::TCPSocket &socket, std::shared_ptr<UserFileChangesQueue> changeQueue,
                       std::shared_ptr<HasClientAndNodeIpsChange> hasClientAndNodeChanges)
         : changeQueue(changeQueue), socket(socket), hasClientAndNodeChanges(hasClientAndNodeChanges)
     {

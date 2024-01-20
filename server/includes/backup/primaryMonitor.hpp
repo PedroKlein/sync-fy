@@ -7,17 +7,17 @@
 
 namespace backup
 {
-class PrimaryDataMonitor
+class PrimaryMonitor
 {
   public:
-    PrimaryDataMonitor(BackupMessageHandler &messageHandler) : messageHandler(messageHandler)
+    PrimaryMonitor(BackupMessageHandler &messageHandler) : messageHandler(messageHandler)
     {
     }
 
-    ~PrimaryDataMonitor()
+    ~PrimaryMonitor()
     {
         stop();
-        std::cout << "PrimaryDataMonitor stopped" << std::endl;
+        std::cout << "PrimaryMonitor stopped" << std::endl;
     }
 
     std::thread *start()

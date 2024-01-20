@@ -5,6 +5,7 @@
 #include <chrono>
 #include <future>
 #include <iostream>
+#include <models/connectedNodes.hpp>
 #include <socket/clientSocket.hpp>
 #include <socket/serverSocket.hpp>
 #include <socket/tcpSocket.hpp>
@@ -18,18 +19,12 @@ namespace backup
 {
 
 using ElectionEndCallback = std::function<void(const std::string &)>;
-struct ServerNode
-{
-    int id;
-    std::string ip;
-};
 
 // This class has high risk of concurrency access problems, it would be good to better separate concerns
 class BullyElection
 {
   public:
-    BullyElection(int serverid, ElectionEndCallback onElectionEndCallback)
-        : serverId(serverid), onElectionEndCallback(onElectionEndCallback)
+    BullyElection(BackupState &backupState) : backupState(backupState)
     {
     }
 
@@ -45,9 +40,9 @@ class BullyElection
         std::vector<std::future<void>> futures;
         std::atomic<bool> anyThreadEnded(false);
 
-        for (ServerNode node : connectedServers)
+        for (common::Node node : backupState.connectedBackupNodes)
         {
-            if (node.id < serverId)
+            if (node.id <= backupState.serverId)
             {
                 continue;
             }
@@ -87,52 +82,41 @@ class BullyElection
 
     void declareVictory()
     {
-        for (ServerNode node : connectedServers)
+        for (common::Node node : backupState.connectedBackupNodes)
         {
+            if (node.id == backupState.serverId)
+            {
+                continue;
+            }
+
             common::ClientSocket electionSocket(node.ip, ELECTION_SOCKET_PORT);
             ElectionMessageHandler electionMessageHandler(electionSocket);
 
             electionMessageHandler.sendCoordinatorMessage();
         }
 
-        onElectionEndCallback(SELF_WIN_IP);
+        // onElectionEndCallback(SELF_WIN_IP);
     }
 
-    void listenElections()
+    std::thread *listenElections()
     {
         common::ServerSocket electionSocket(ELECTION_SOCKET_PORT);
 
-        std::thread electionSocketThread(&common::ServerSocket::startListening, &electionSocket,
-                                         [this](int socketId, std::string ip) {
-                                             common::TCPSocket electionSocket(socketId);
-                                             ElectionMessageHandler electionMessageHandler(electionSocket);
+        electionSocketThread =
+            std::thread(&common::ServerSocket::startListening, &electionSocket, [this](int socketId, std::string ip) {
+                common::TCPSocket electionSocket(socketId);
+                ElectionMessageHandler electionMessageHandler(electionSocket);
 
-                                             electionMessageHandler.receiveElectionMessage();
-                                             electionMessageHandler.sendAliveMessage();
+                electionMessageHandler.receiveElectionMessage();
+                electionMessageHandler.sendAliveMessage();
+            });
 
-                                             addConnectedServer({socketId, ip});
-                                         });
-
-        electionSocketThread.join();
-    }
-
-    void addConnectedServer(ServerNode node)
-    {
-        connectedServers.push_back(node);
-    }
-
-    void removeConnectedServer(ServerNode node)
-    {
-        // remove by the id
-        connectedServers.erase(std::remove_if(connectedServers.begin(), connectedServers.end(),
-                                              [node](ServerNode &server) { return server.id == node.id; }),
-                               connectedServers.end());
+        return &electionSocketThread;
     }
 
   private:
-    const ElectionEndCallback onElectionEndCallback;
-    int serverId;
-    std::vector<ServerNode> connectedServers;
+    std::thread electionSocketThread;
+    BackupState &backupState;
     std::atomic<bool> isElecting{false};
 
     void onElectionSocketConnection(int clientSocketId, const std::string &ip)
@@ -149,7 +133,7 @@ class BullyElection
             handler.setCoordinatorCallback([handler, ip, this]() {
                 // TODO: hnadle the permessive error here
                 //  handler.stopMonitoring();
-                onElectionEndCallback(ip);
+                // onElectionEndCallback(ip);
             });
 
             handler.monitorMessages();

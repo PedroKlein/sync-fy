@@ -8,8 +8,8 @@
 #include <models/initBackupData.hpp>
 
 // callbacks types for clientConnectedIps and connectedNodes
-using ConnectedIpsCallback = std::function<void(const common::ConnectedIps &)>;
-using ConnectedNodesCallback = std::function<void(const common::ConnectedNodes &)>;
+using ConnectedIpsCallback = std::function<void(const std::vector<std::string> &)>;
+using ConnectedNodesCallback = std::function<void(const std::vector<common::Node> &)>;
 
 class BackupMessageHandler : public common::FileMessageHandler
 {
@@ -47,6 +47,16 @@ class BackupMessageHandler : public common::FileMessageHandler
     void sendConnectedNodesMessage(const common::ConnectedNodes &connectedNodes) const
     {
         sendModelMessage(connectedNodes);
+    }
+
+    void setConnectedIpsCallback(ConnectedIpsCallback connectedIpsCallback)
+    {
+        this->connectedIpsCallback = connectedIpsCallback;
+    }
+
+    void setConnectedNodesCallback(ConnectedNodesCallback connectedNodesCallback)
+    {
+        this->connectedNodesCallback = connectedNodesCallback;
     }
 
   private:
@@ -105,7 +115,7 @@ class BackupMessageHandler : public common::FileMessageHandler
 
         if (connectedIpsCallback)
         {
-            connectedIpsCallback(connectedIps);
+            connectedIpsCallback(connectedIps.ips);
         }
     };
 
@@ -118,7 +128,7 @@ class BackupMessageHandler : public common::FileMessageHandler
 
         if (connectedNodesCallback)
         {
-            connectedNodesCallback(connectedNodes);
+            connectedNodesCallback(connectedNodes.nodes);
         }
     };
 };

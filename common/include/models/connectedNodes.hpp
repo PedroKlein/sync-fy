@@ -1,5 +1,9 @@
 #pragma once
 
+#include <models/baseModel.hpp>
+#include <string>
+#include <vector>
+
 namespace common
 {
 
