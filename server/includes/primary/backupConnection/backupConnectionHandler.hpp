@@ -2,10 +2,12 @@
 
 #include "backupConnection.hpp"
 #include "backupDataMonitor.hpp"
+#include "backupState.hpp"
 #include <atomic/atomicVector.hpp>
 #include <memory>
 #include <messages/messageHandler.hpp>
 #include <models/connectedIps.hpp>
+#include <models/connectedNodes.hpp>
 #include <mutex>
 #include <socket/tcpSocket.hpp>
 #include <thread>
@@ -42,7 +44,8 @@ class BackupConnectionHandler
             BackupConnectionHandler &connectionHandler = BackupConnectionHandler::getInstance();
             BackupConnection &backupConnection = connectionHandler.addBackupConnection(ip);
 
-            BackupDataMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip));
+            BackupDataMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip),
+                                            connectionHandler.getClientAndNodeChanges(ip));
 
             clientSocket.setOnDisconnect([&ip, &connectionHandler, &backupMonitor]() {
                 std::cout << "Backup socket disconnected - " << ip << std::endl;
@@ -78,12 +81,16 @@ class BackupConnectionHandler
         }
 
         std::unique_ptr<BackupConnection> backupConnection =
-            std::make_unique<BackupConnection>(ip, serverId, std::make_shared<UserFileChangesQueue>());
+            std::make_unique<BackupConnection>(ip, serverId, std::make_shared<UserFileChangesQueue>(),
+                                               std::make_shared<HasClientAndNodeIpsChange>(true, true));
 
         // Get a reference before moving the unique_ptr into the map
         BackupConnection &connectionRef = *backupConnection;
 
         backupConnections[ip] = std::move(backupConnection);
+
+        BackupState &backupState = BackupState::getInstance();
+        backupState.addConnectedBackupNode(common::Node(ip, connectionRef.id));
 
         return connectionRef;
     }
@@ -115,6 +122,9 @@ class BackupConnectionHandler
             return;
         }
 
+        BackupState &backupState = BackupState::getInstance();
+        backupState.removeConnectedBackupNode(common::Node(ip, it->second->id));
+
         backupConnections.erase(ip);
     }
 
@@ -128,23 +138,6 @@ class BackupConnectionHandler
         }
     }
 
-    void addConectedClientIp(const std::string &ip)
-    {
-        connectedClientIps.emplaceBack(ip);
-    }
-
-    void removeConectedClientIp(const std::string &ip)
-    {
-        connectedClientIps.remove(ip);
-    }
-
-    common::ConnectedIps getConnectedIps()
-    {
-        common::ConnectedIps connectedIps;
-        connectedClientIps.forEach([&connectedIps](const std::string &ip) { connectedIps.ips.push_back(ip); });
-        return connectedIps;
-    }
-
     std::shared_ptr<UserFileChangesQueue> getFileChangesQueue(const std::string &ip)
     {
         std::lock_guard<std::mutex> lock(mtx);
@@ -156,15 +149,43 @@ class BackupConnectionHandler
         return (it->second->fileChangesQueue);
     }
 
+    std::shared_ptr<HasClientAndNodeIpsChange> getClientAndNodeChanges(const std::string &ip)
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        auto it = backupConnections.find(ip);
+        if (it == backupConnections.end())
+        {
+            throw std::out_of_range("IP not found");
+        }
+        return (it->second->clientAndNodeChanges);
+    }
+
+    void hasUpdatedConnectedClientIps()
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        for (auto &connections : backupConnections)
+        {
+            connections.second->clientAndNodeChanges->first = true;
+        }
+    }
+
+    void hasUpdatedConnectedBackupNodes()
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        for (auto &connections : backupConnections)
+        {
+            connections.second->clientAndNodeChanges->second = true;
+        }
+    }
+
   private:
+    // ip -> backupConnection
+    std::unordered_map<std::string, std::unique_ptr<BackupConnection>> backupConnections;
+    std::mutex mtx;
+    int serverId = 0;
+
     /**
      * @brief Private constructor to enforce the singleton pattern.
      */
     BackupConnectionHandler() = default;
-
-    // ip -> backupConnection
-    std::unordered_map<std::string, std::unique_ptr<BackupConnection>> backupConnections;
-    common::AtomicVector<std::string> connectedClientIps;
-    std::mutex mtx;
-    int serverId = 0;
 };

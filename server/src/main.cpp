@@ -34,14 +34,21 @@ void initializePrimary(int serverId = 0)
     BackupConnectionHandler &backupConnectionHandler = BackupConnectionHandler::getInstance();
     backupConnectionHandler.setServerId(serverId);
 
+    // Ungly gambiarra to solve circular dependency
+    BackupState &backupState = BackupState::getInstance();
+    backupState.setUpdatedConnectedClientIpsCallback(
+        std::bind(&BackupConnectionHandler::hasUpdatedConnectedClientIps, &backupConnectionHandler));
+    backupState.setUpdatedConnectedBackupNodesCallback(
+        std::bind(&BackupConnectionHandler::hasUpdatedConnectedBackupNodes, &backupConnectionHandler));
+
     // TODO: For primary server
     // 1. Listen for backup server connections
 
-    // 2. Manage backups, connections and disconnections (keep a list of them and update them with their pairs to cloase
-    // the ring for the election) keeps pinging them with a ALIVE message
+    // 2. Manage backups, connections and disconnections (keep a list of them and update them with their pairs to
+    // cloase the ring for the election) keeps pinging them with a ALIVE message
 
     // 3. After a change on a client data, send the new data to the backup servers
-    common::ServerSocket backupData(BACKUP_DATA_SOCKET_PORT);
+    common::ServerSocket backupData(BACKUP_SOCKET_PORT);
     std::thread backupDataSocketThread(&common::ServerSocket::startListening, &backupData,
                                        BackupConnectionHandler::onBackupDataSocketConnection);
 

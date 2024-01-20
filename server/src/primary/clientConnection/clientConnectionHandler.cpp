@@ -36,15 +36,18 @@ void ClientConnectionHandler::onClientDataSocketConnection(int clientSocketId, c
 
         // No specific reason for this socket to have this, but one of the three should have it
         BackupConnectionHandler &backupConnectionHandler = BackupConnectionHandler::getInstance();
-        backupConnectionHandler.addConectedClientIp(ip);
+        BackupState &backupState = BackupState::getInstance();
 
-        clientSocket.setOnDisconnect([&ip, &userConnection, &connectionHandler, &handler, &backupConnectionHandler]() {
-            std::cout << "Client data socket disconnected - " << handler.getUsername() << ":" << ip << std::endl;
-            handler.stopMonitoring();
-            connectionHandler.removeUserConnection(handler.getUsername(), ip);
+        backupState.addConectedClientIp(ip);
 
-            backupConnectionHandler.removeConectedClientIp(ip);
-        });
+        clientSocket.setOnDisconnect(
+            [&ip, &userConnection, &connectionHandler, &handler, &backupConnectionHandler, &backupState]() {
+                std::cout << "Client data socket disconnected - " << handler.getUsername() << ":" << ip << std::endl;
+                handler.stopMonitoring();
+                connectionHandler.removeUserConnection(handler.getUsername(), ip);
+
+                backupState.removeConectedClientIp(ip);
+            });
 
         handler.monitorMessages();
     }).detach();

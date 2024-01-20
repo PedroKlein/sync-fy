@@ -1,5 +1,7 @@
+#pragma once
 
 #include "backupMessageHandler.hpp"
+#include "backupState.hpp"
 #include "primary/backupConnection/backupConnection.hpp"
 #include <filesystem/directory.hpp>
 #include <memory>
@@ -9,8 +11,9 @@
 class BackupDataMonitor
 {
   public:
-    BackupDataMonitor(common::TCPSocket &socket, std::shared_ptr<UserFileChangesQueue> changeQueue)
-        : changeQueue(changeQueue), socket(socket)
+    BackupDataMonitor(common::TCPSocket &socket, std::shared_ptr<UserFileChangesQueue> changeQueue,
+                      std::shared_ptr<HasClientAndNodeIpsChange> hasClientAndNodeChanges)
+        : changeQueue(changeQueue), socket(socket), hasClientAndNodeChanges(hasClientAndNodeChanges)
     {
     }
 
@@ -23,12 +26,28 @@ class BackupDataMonitor
 
         do
         {
+            // empty file changes queue
             while (changeQueue->tryPop(userFileChange))
             {
                 sendFileChange(userFileChange.second, userFileChange.first);
             }
-            std::this_thread::sleep_for(std::chrono::microseconds(200));
-        } while (isMonitoring && changeQueue.use_count() > 1);
+
+            // send connected client ips, if any changed
+            if (hasClientAndNodeChanges->first)
+            {
+                sendClientIps();
+                hasClientAndNodeChanges->first = false;
+            }
+
+            // send connected backup nodes, if any changed
+            if (hasClientAndNodeChanges->second)
+            {
+                sendConnectedNodes();
+                hasClientAndNodeChanges->second = false;
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        } while (isMonitoring && changeQueue.use_count() > 1 && hasClientAndNodeChanges.use_count() > 1);
     }
 
     void stopMonitoring()
@@ -39,6 +58,7 @@ class BackupDataMonitor
   private:
     common::TCPSocket &socket;
     std::shared_ptr<UserFileChangesQueue> changeQueue;
+    std::shared_ptr<HasClientAndNodeIpsChange> hasClientAndNodeChanges;
     bool isMonitoring;
 
     void initialSync()
@@ -91,4 +111,18 @@ class BackupDataMonitor
             break;
         }
     };
+
+    void sendClientIps() const
+    {
+        BackupMessageHandler messageHandler(socket);
+        BackupState &backupState = BackupState::getInstance();
+        messageHandler.sendConnectedIpsMessage(backupState.getConnectedIps());
+    }
+
+    void sendConnectedNodes() const
+    {
+        BackupMessageHandler messageHandler(socket);
+        BackupState &backupState = BackupState::getInstance();
+        messageHandler.sendConnectedNodesMessage(backupState.getConnectedBackupNodes());
+    }
 };

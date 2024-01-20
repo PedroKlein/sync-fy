@@ -13,7 +13,7 @@ class ConnectedIps : public BaseModel
     {
     }
 
-    ConnectedIps(const std::vector<std::string> &ips) : BaseModel(MessageType::DELETE_FILE), ips(ips)
+    ConnectedIps(const std::vector<std::string> &ips) : BaseModel(MessageType::CONNECTED_IPS), ips(ips)
     {
     }
 
