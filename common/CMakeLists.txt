@@ -10,6 +10,7 @@ add_library(common_lib
     include/models/initSendFile.hpp
     include/models/listFiles.hpp
     include/models/login.hpp
+    include/models/serverId.hpp
     include/socket/tcpSocket.hpp
     include/socket/serverSocket.hpp
     include/socket/clientSocket.hpp

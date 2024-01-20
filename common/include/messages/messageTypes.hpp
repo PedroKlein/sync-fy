@@ -36,6 +36,7 @@ enum MessageType
     INIT_BACKUP_DATA, // Header + JSON
     CONNECTED_IPS,    // Header + JSON
     CONNECTED_NODES,  // Header + JSON
+    SERVER_ID,        // Header + JSON
 };
 
 /**

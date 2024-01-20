@@ -13,7 +13,7 @@
 // connected clients, and connected backups
 #define BACKUP_SOCKET_PORT 8769
 
-void initializePrimary()
+void initializePrimary(bool wasBackup = false)
 {
     // Handle client connections
     ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
@@ -44,6 +44,20 @@ void initializePrimary()
     std::thread backupSocketThread(&common::ServerSocket::startListening, &backupSocket,
                                    BackupConnectionHandler::onBackupSocketConnection);
 
+    if (wasBackup)
+    {
+        std::vector<std::string> copyClientIps = backupState.getConnectedIps();
+
+        backupState.setConnectedBackupNodes({});
+        backupState.setConnectedClientIps({});
+
+        // This assumes that all clients are still connected, add a tiemeout otherwise
+        for (auto &connectedClientIp : copyClientIps)
+        {
+            common::ClientSocket recoverySocket(connectedClientIp, common::CLIENT_RECOVERY_PORT);
+        }
+    }
+
     commandSocketThread.join();
     serverDataSocketThread.join();
     clientDataSocketThread.join();
@@ -51,30 +65,12 @@ void initializePrimary()
     backupSocketThread.join();
 }
 
-int main(int argc, char *argv[])
+void initializeBackup()
 {
-    const bool isPrimary = argc == 1;
-
     BackupState &backupState = BackupState::getInstance();
 
-    if (isPrimary)
-    {
-        std::cout << "Starting as primary" << std::endl;
-
-        initializePrimary();
-
-        return 0;
-    }
-
     // Backup section
-    // TODO: get server id from primary
-    std::cout << "Starting as backup" << std::endl;
-    std::string primaryServerAddress = argv[1];
-
-    backupState.setPrimaryServerAddress(primaryServerAddress);
-
-    // 1. Connect to primary server
-    common::ClientSocket backupSocket(primaryServerAddress, BACKUP_SOCKET_PORT);
+    common::ClientSocket backupSocket(backupState.getPrimaryServerAddress(), BACKUP_SOCKET_PORT);
     BackupMessageHandler backupMessageHandler(backupSocket);
 
     backupMessageHandler.setConnectedIpsCallback([&backupState](const std::vector<std::string> &connectedIps) {
@@ -100,14 +96,45 @@ int main(int argc, char *argv[])
         bullyElection.startElection();
     });
 
-    bullyElection.setElectionEndCallback([&primaryMonitor](const std::string &ip) {
+    bullyElection.setElectionEndCallback([&primaryMonitor, &backupState](const std::string &ip) {
         std::cout << "Election ended, new primary is " << ip << std::endl;
+        backupState.setPrimaryServerAddress(ip);
+
         primaryMonitor.stop();
-        // bullyElection.stopMonitoring();
+
+        if (ip == SELF_WIN_IP)
+        {
+            initializePrimary(true);
+        }
     });
 
     primaryMonitorThread->join();
     electionMonitorThread->join();
+}
+
+int main(int argc, char *argv[])
+{
+    const bool isPrimary = argc == 1;
+
+    BackupState &backupState = BackupState::getInstance();
+
+    if (isPrimary)
+    {
+        std::cout << "Starting as primary" << std::endl;
+        initializePrimary();
+        return 0;
+    }
+
+    // TODO: get server id from primary
+    std::cout << "Starting as backup" << std::endl;
+    std::string primaryServerAddress = argv[1];
+
+    backupState.setPrimaryServerAddress(primaryServerAddress);
+
+    while (true)
+    {
+        initializeBackup();
+    }
 
     return 0;
 }

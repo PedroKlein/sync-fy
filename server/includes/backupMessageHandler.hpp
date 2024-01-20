@@ -1,11 +1,13 @@
 #pragma once
 
+#include "backupState.hpp"
 #include <filesystem/file.hpp>
 #include <messages/fileMessageHandler.hpp>
 #include <messages/message.hpp>
 #include <models/connectedIps.hpp>
 #include <models/connectedNodes.hpp>
 #include <models/initBackupData.hpp>
+#include <models/serverId.hpp>
 
 // callbacks types for clientConnectedIps and connectedNodes
 using ConnectedIpsCallback = std::function<void(const std::vector<std::string> &)>;
@@ -51,6 +53,12 @@ class BackupMessageHandler : public common::FileMessageHandler
         sendModelMessage(nodes);
     }
 
+    void sendServerIdMessage(int id) const
+    {
+        common::ServerId serverId(id);
+        sendModelMessage(serverId);
+    }
+
     void setConnectedIpsCallback(ConnectedIpsCallback connectedIpsCallback)
     {
         this->connectedIpsCallback = connectedIpsCallback;
@@ -93,6 +101,9 @@ class BackupMessageHandler : public common::FileMessageHandler
         case common::MessageType::CONNECTED_NODES:
             handleConnectedNodesMessage(message);
             break;
+        case common::MessageType::SERVER_ID:
+            handleServerIdMessage(message);
+            break;
         default:
             throw std::runtime_error("Invalid message type");
         }
@@ -132,5 +143,18 @@ class BackupMessageHandler : public common::FileMessageHandler
         {
             connectedNodesCallback(connectedNodes.nodes);
         }
+    };
+
+    void handleServerIdMessage(const common::Message &message)
+    {
+        std::string data(message.getData().begin(), message.getData().end());
+
+        common::ServerId serverId;
+        serverId.fromJson(data);
+
+        // separation of concerns was long dead in this codebase before this atrocity
+        BackupState &backupState = BackupState::getInstance();
+
+        backupState.setServerId(serverId.serverId);
     };
 };

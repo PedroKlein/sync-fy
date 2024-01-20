@@ -22,6 +22,9 @@ class BackupConnectionHandler
             BackupConnectionHandler &connectionHandler = BackupConnectionHandler::getInstance();
             BackupConnection &backupConnection = connectionHandler.addBackupConnection(ip);
 
+            BackupMessageHandler messageHandler(clientSocket);
+            messageHandler.sendServerIdMessage(backupConnection.id);
+
             BackupMonitor backupMonitor(clientSocket, connectionHandler.getFileChangesQueue(ip),
                                         connectionHandler.getClientAndNodeChanges(ip));
 

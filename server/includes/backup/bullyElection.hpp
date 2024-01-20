@@ -12,7 +12,7 @@
 #include <socket/tcpSocket.hpp>
 #include <vector>
 
-#define ELECTION_SOCKET_PORT 8771
+#define ELECTION_SOCKET_PORT 8770
 #define TIMEOUT_SECONDS 1
 #define SELF_WIN_IP "localhost"
 
@@ -106,14 +106,9 @@ class BullyElection
     {
         common::ServerSocket electionSocket(ELECTION_SOCKET_PORT);
 
-        electionSocketThread =
-            std::thread(&common::ServerSocket::startListening, &electionSocket, [this](int socketId, std::string ip) {
-                common::TCPSocket electionSocket(socketId);
-                ElectionMessageHandler electionMessageHandler(electionSocket);
-
-                electionMessageHandler.receiveElectionMessage();
-                electionMessageHandler.sendAliveMessage();
-            });
+        electionSocketThread = std::thread(
+            &common::ServerSocket::startListening, &electionSocket,
+            [this](int clientSocketId, std::string ip) { this->onElectionSocketConnection(clientSocketId, ip); });
 
         return &electionSocketThread;
     }
@@ -139,9 +134,9 @@ class BullyElection
                 this->startElection();
             });
 
-            handler.setCoordinatorCallback([handler, ip, this]() {
-                // TODO: hnadle the permessive error here
-                //  handler.stopMonitoring();
+            handler.setCoordinatorCallback([clientSocket, ip, this]() {
+                // TODO: handle the permessive error here
+                // clientSocket.closeConnection();
                 onElectionEndCallback(ip);
             });
 
