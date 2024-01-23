@@ -13,7 +13,7 @@
 #include <vector>
 
 #define ELECTION_SOCKET_PORT 8770
-#define TIMEOUT_SECONDS 1000
+#define TIMEOUT_SECONDS 1
 #define SELF_WIN_IP "localhost"
 
 namespace backup

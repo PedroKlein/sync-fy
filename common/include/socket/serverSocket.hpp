@@ -46,7 +46,7 @@ class ServerSocket : public TCPSocket
             if (newSocket < 0)
             {
                 std::cerr << "Error on accept." << std::endl;
-                exit(EXIT_FAILURE);
+                this->stopListening();
             }
 
             // Get the client IP

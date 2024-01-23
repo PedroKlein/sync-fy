@@ -102,16 +102,12 @@ void initializeBackup()
         bullyElection.startElection();
     });
 
-    bullyElection.setElectionEndCallback([&primaryMonitor, &backupState](const std::string &ip) {
+    bullyElection.setElectionEndCallback([&primaryMonitor, &backupState, &electionSocket](const std::string &ip) {
         std::cout << "Election ended, new primary is " << ip << std::endl;
         backupState.setPrimaryServerAddress(ip);
 
+        electionSocket.stopListening();
         primaryMonitor.stop();
-
-        if (ip == SELF_WIN_IP)
-        {
-            initializePrimary(true);
-        }
     });
 
     primaryMonitorThread->join();
@@ -138,10 +134,12 @@ int main(int argc, char *argv[])
 
     backupState.setPrimaryServerAddress(primaryServerAddress);
 
-    while (true)
+    while (backupState.getPrimaryServerAddress() != SELF_WIN_IP)
     {
         initializeBackup();
     }
+
+    initializePrimary(true);
 
     return 0;
 }
