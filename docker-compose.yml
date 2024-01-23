@@ -1,6 +1,6 @@
 version: "3"
 services:
-  server:
+  primary-server:
     build:
       context: .
       dockerfile: Dockerfile
@@ -12,6 +12,36 @@ services:
       - "8766:8766"
       - "8767:8767"
 
+  backup-server-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILD_TYPE=Release
+    command: sh -c "./build/Release/server/server primary-server"
+    ports:
+      - "8765:8765"
+      - "8766:8766"
+      - "8767:8767"
+      - "8768:8768"
+      - "8769:8769"
+      - "8770:8770"
+
+  backup-server-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILD_TYPE=Release
+    command: sh -c "./build/Release/server/server primary-server"
+    ports:
+      - "8765:8765"
+      - "8766:8766"
+      - "8767:8767"
+      - "8768:8768"
+      - "8769:8769"
+      - "8770:8770"
+
   client:
     build:
       context: .
@@ -19,7 +49,9 @@ services:
       args:
         - BUILD_TYPE=Release
     depends_on:
-      - server
+      - primary-server
+      - backup-server-1
+      - backup-server-2
     stdin_open: true
     tty: true
     working_dir: /workspaces/sync-fy/tests/files

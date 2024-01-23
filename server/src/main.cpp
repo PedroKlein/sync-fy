@@ -115,8 +115,8 @@ void initializeBackup()
 
 int main(int argc, char *argv[])
 {
-    // const bool isPrimary = argc == 1;
-    const bool isPrimary = false;
+    const bool isPrimary = argc == 1;
+    // const bool isPrimary = false;
 
     BackupState &backupState = BackupState::getInstance();
 
@@ -128,8 +128,8 @@ int main(int argc, char *argv[])
     }
 
     std::cout << "Starting as backup" << std::endl;
-    // std::string primaryServerAddress = argv[1];
-    std::string primaryServerAddress = "192.168.0.16";
+    std::string primaryServerAddress = argv[1];
+    // std::string primaryServerAddress = "192.168.0.16";
 
     backupState.setPrimaryServerAddress(primaryServerAddress);
 

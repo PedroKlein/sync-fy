@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
     serverAddress = argv[2];
 #else
     username = "user1";
-    // serverAddress = "localhost";
-    serverAddress = "192.168.0.16";
+    serverAddress = "localhost";
+    // serverAddress = "192.168.0.16";
 #endif
 
     common::ClientSocket commandSocket(serverAddress, common::COMMAND_PORT);
