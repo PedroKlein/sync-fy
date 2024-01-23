@@ -111,7 +111,8 @@ class BackupMessageHandler : public common::FileMessageHandler
 
     void handleInitBackupDataMessage(const common::Message &message)
     {
-        std::string data(message.getData().begin(), message.getData().end());
+        auto raw = message.getData();
+        std::string data(raw.begin(), raw.end());
 
         common::InitBackupData initBackupData;
         initBackupData.fromJson(data);
@@ -121,7 +122,8 @@ class BackupMessageHandler : public common::FileMessageHandler
 
     void handleConnectedIpsMessage(const common::Message &message)
     {
-        std::string data(message.getData().begin(), message.getData().end());
+        auto raw = message.getData();
+        std::string data(raw.begin(), raw.end());
 
         common::ConnectedIps connectedIps;
         connectedIps.fromJson(data);
@@ -134,7 +136,8 @@ class BackupMessageHandler : public common::FileMessageHandler
 
     void handleConnectedNodesMessage(const common::Message &message)
     {
-        std::string data(message.getData().begin(), message.getData().end());
+        auto raw = message.getData();
+        std::string data(raw.begin(), raw.end());
 
         common::ConnectedNodes connectedNodes;
         connectedNodes.fromJson(data);
@@ -147,7 +150,8 @@ class BackupMessageHandler : public common::FileMessageHandler
 
     void handleServerIdMessage(const common::Message &message)
     {
-        std::string data(message.getData().begin(), message.getData().end());
+        auto raw = message.getData();
+        std::string data(raw.begin(), raw.end());
 
         common::ServerId serverId;
         serverId.fromJson(data);

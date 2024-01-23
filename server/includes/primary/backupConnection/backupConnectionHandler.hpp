@@ -19,6 +19,8 @@ class BackupConnectionHandler
         std::thread([clientSocketId, ip]() {
             common::TCPSocket clientSocket(clientSocketId);
 
+            std::cout << "Backup socket connected - " << ip << std::endl;
+
             BackupConnectionHandler &connectionHandler = BackupConnectionHandler::getInstance();
             BackupConnection &backupConnection = connectionHandler.addBackupConnection(ip);
 

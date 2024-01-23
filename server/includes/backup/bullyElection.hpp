@@ -118,15 +118,12 @@ class BullyElection
         onElectionEndCallback = callback;
     }
 
-  private:
-    std::thread electionSocketThread;
-    std::atomic<bool> isElecting{false};
-    ElectionEndCallback onElectionEndCallback;
-
     void onElectionSocketConnection(int clientSocketId, const std::string &ip)
     {
         std::thread([clientSocketId, ip, this]() {
             common::TCPSocket clientSocket(clientSocketId);
+            std::cout << "Election socket connected to " << ip << std::endl;
+
             ElectionMessageHandler handler(clientSocket);
 
             handler.setElectionCallback([handler, this]() {
@@ -143,6 +140,11 @@ class BullyElection
             handler.monitorMessages();
         }).detach();
     }
+
+  private:
+    std::thread electionSocketThread;
+    std::atomic<bool> isElecting{false};
+    ElectionEndCallback onElectionEndCallback;
 };
 
 } // namespace backup
