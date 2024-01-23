@@ -13,7 +13,7 @@
 #include <vector>
 
 #define ELECTION_SOCKET_PORT 8770
-#define TIMEOUT_SECONDS 10
+#define TIMEOUT_SECONDS 1000
 #define SELF_WIN_IP "localhost"
 
 namespace backup
@@ -127,6 +127,8 @@ class BullyElection
             std::cout << "Election socket connected to " << ip << std::endl;
 
             ElectionMessageHandler handler(clientSocket);
+
+            clientSocket.setOnDisconnect([&handler]() { handler.stopMonitoring(); });
 
             handler.setElectionCallback([handler, this]() {
                 handler.sendAliveMessage();
