@@ -73,7 +73,7 @@ class ClientSocket : public TCPSocket
             exit(errno);
         }
 
-        std::clog << "LOG: successfully connected to server " << serverAddress.sin_addr.s_addr << ":"
+        std::cout << "LOG: successfully connected to server " << serverAddress.sin_addr.s_addr << ":"
                   << serverAddress.sin_port << std::endl;
     }
 

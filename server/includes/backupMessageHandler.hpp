@@ -104,6 +104,8 @@ class BackupMessageHandler : public common::FileMessageHandler
         case common::MessageType::SERVER_ID:
             handleServerIdMessage(message);
             break;
+        case common::MessageType::ALIVE:
+            break;
         default:
             throw std::runtime_error("Invalid message type");
         }

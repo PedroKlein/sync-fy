@@ -13,7 +13,7 @@
 #include <vector>
 
 #define ELECTION_SOCKET_PORT 8770
-#define TIMEOUT_SECONDS 1
+#define TIMEOUT_SECONDS 10
 #define SELF_WIN_IP "localhost"
 
 namespace backup
@@ -31,8 +31,10 @@ class BullyElection
 
     void startElection()
     {
+        std::cout << "Starting election" << std::endl;
         if (isElecting.load())
         {
+            std::cout << "Already electing" << std::endl;
             return;
         }
 
