@@ -26,6 +26,6 @@ struct BackupConnection
     static int getNextId(int primaryServerId)
     {
         static int nextId = 0;
-        return primaryServerId + (nextId++);
+        return primaryServerId + (++nextId);
     }
 };

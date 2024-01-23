@@ -46,6 +46,12 @@ class BackupMonitor
                 hasClientAndNodeChanges->second = false;
             }
 
+            if (!socket.isSocketAlive())
+            {
+                socket.closeConnection();
+                break;
+            }
+
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
         } while (isMonitoring && changeQueue.use_count() > 1 && hasClientAndNodeChanges.use_count() > 1);
     }
