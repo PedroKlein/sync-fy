@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # List of ports to check
-PORTS=("8765" "8766" "8767")
+PORTS=("8765" "8766" "8767" "8768" "8769" "8770")
 
 # Check each port
 for port in "${PORTS[@]}"

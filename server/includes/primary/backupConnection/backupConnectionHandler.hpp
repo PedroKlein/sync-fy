@@ -44,11 +44,6 @@ class BackupConnectionHandler
         return instance;
     }
 
-    void setServerId(int id)
-    {
-        serverId = id;
-    }
-
     BackupConnection &addBackupConnection(const std::string &ip)
     {
         std::lock_guard<std::mutex> lock(mtx);
@@ -61,8 +56,10 @@ class BackupConnectionHandler
             return *(it->second);
         }
 
+        BackupState &backupState = BackupState::getInstance();
+
         std::unique_ptr<BackupConnection> backupConnection =
-            std::make_unique<BackupConnection>(ip, serverId, std::make_shared<UserFileChangesQueue>(),
+            std::make_unique<BackupConnection>(ip, backupState.getServerId(), std::make_shared<UserFileChangesQueue>(),
                                                std::make_shared<HasClientAndNodeIpsChange>(true, true));
 
         // Get a reference before moving the unique_ptr into the map
@@ -70,7 +67,6 @@ class BackupConnectionHandler
 
         backupConnections[ip] = std::move(backupConnection);
 
-        BackupState &backupState = BackupState::getInstance();
         backupState.addConnectedBackupNode(common::Node(ip, connectionRef.id));
 
         return connectionRef;
@@ -163,7 +159,6 @@ class BackupConnectionHandler
     // ip -> backupConnection
     std::unordered_map<std::string, std::unique_ptr<BackupConnection>> backupConnections;
     std::mutex mtx;
-    int serverId = 0;
 
     /**
      * @brief Private constructor to enforce the singleton pattern.
