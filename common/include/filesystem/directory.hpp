@@ -48,6 +48,10 @@ class Directory
 
         for (const auto &entry : std::filesystem::directory_iterator(path_))
         {
+            if (entry.is_directory())
+            {
+                continue;
+            }
             FileInfo fileInfo = getMACtimes(entry.path().string());
             files.push_back(fileInfo);
         }

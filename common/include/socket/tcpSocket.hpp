@@ -5,9 +5,11 @@
 #include <vector>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <functional>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +34,7 @@ class TCPSocket
      */
     TCPSocket(int socketId) : socketId(socketId)
     {
+        enableTCPKeepAlive();
     }
 
      /**
@@ -49,6 +52,7 @@ class TCPSocket
             std::cerr << "ERR: failed to create a socket\n\t|=> " << strerror(errno) << std::endl;
             exit(errno);
         }
+        enableTCPKeepAlive();
     }
 
      /**
@@ -74,10 +78,16 @@ class TCPSocket
         {
             try
             {
+                if (!isSocketAlive())
+                {
+                    closeConnection();
+                    break;
+                }
                 const int l = ::send(socketId, &buffer[i], std::min(chunkSize, size - i), 0);
                 if (l < 0 || l == 0)
                 {
                     closeConnection();
+                    break;
                 }
                 i += l;
             }
@@ -114,6 +124,7 @@ class TCPSocket
             catch (const std::exception &e)
             {
                 std::cerr << "Exception during receive: " << e.what() << std::endl;
+                closeConnection();
                 break;
             }
         }
@@ -140,8 +151,75 @@ class TCPSocket
         onDisconnect = callback;
     }
 
+    bool isSocketAlive()
+    {
+        char buffer;
+        int flags = fcntl(socketId, F_GETFL, 0);
+        fcntl(socketId, F_SETFL, flags | O_NONBLOCK);
+
+        ssize_t result = recv(socketId, &buffer, 1, MSG_PEEK);
+
+        fcntl(socketId, F_SETFL, flags);
+
+        if (result > 0)
+        {
+            return true;
+        }
+        else if (result == 0)
+        {
+            return false;
+        }
+        else
+        {
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
   protected:
     int socketId;
     std::function<void()> onDisconnect;
+
+  private:
+    void enableTCPKeepAlive()
+    {
+        int yes = 1;
+        if (setsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(int)) == -1)
+        {
+            std::cerr << "ERR: failed to set SO_KEEPALIVE on the socket\n\t|=> " << strerror(errno) << std::endl;
+            closeConnection();
+            return;
+        }
+
+        int keepIdle = 60; // seconds before starting to send keepalive probes
+        if (setsockopt(socketId, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, sizeof(int)) == -1)
+        {
+            std::cerr << "ERR: failed to set TCP_KEEPIDLE on the socket\n\t|=> " << strerror(errno) << std::endl;
+            closeConnection();
+            return;
+        }
+
+        int keepInterval = 10; // interval between keepalive probes
+        if (setsockopt(socketId, IPPROTO_TCP, TCP_KEEPINTVL, &keepInterval, sizeof(int)) == -1)
+        {
+            std::cerr << "ERR: failed to set TCP_KEEPINTVL on the socket\n\t|=> " << strerror(errno) << std::endl;
+            closeConnection();
+            return;
+        }
+
+        int keepCount = 3; // number of unacknowledged probes to consider connection dead
+        if (setsockopt(socketId, IPPROTO_TCP, TCP_KEEPCNT, &keepCount, sizeof(int)) == -1)
+        {
+            std::cerr << "ERR: failed to set TCP_KEEPCNT on the socket\n\t|=> " << strerror(errno) << std::endl;
+            closeConnection();
+            return;
+        }
+    }
 };
 } // namespace common

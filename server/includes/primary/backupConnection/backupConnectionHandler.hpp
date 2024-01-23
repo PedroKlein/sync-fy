@@ -143,7 +143,7 @@ class BackupConnectionHandler
 
     void hasUpdatedConnectedClientIps()
     {
-        std::lock_guard<std::mutex> lock(mtx);
+        // std::lock_guard<std::mutex> lock(mtx);
         for (auto &connections : backupConnections)
         {
             connections.second->clientAndNodeChanges->first = true;
@@ -152,7 +152,7 @@ class BackupConnectionHandler
 
     void hasUpdatedConnectedBackupNodes()
     {
-        std::lock_guard<std::mutex> lock(mtx);
+        // std::lock_guard<std::mutex> lock(mtx);
         for (auto &connections : backupConnections)
         {
             connections.second->clientAndNodeChanges->second = true;
