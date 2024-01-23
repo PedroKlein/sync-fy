@@ -125,6 +125,7 @@ class TCPSocket
     void closeConnection()
     {
         std::cout << "Closing connection" << std::endl;
+        close(socketId);
         if (onDisconnect)
         {
             onDisconnect();

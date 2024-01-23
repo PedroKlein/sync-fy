@@ -104,17 +104,6 @@ class BullyElection
         onElectionEndCallback(SELF_WIN_IP);
     }
 
-    std::thread *listenElections()
-    {
-        common::ServerSocket electionSocket(ELECTION_SOCKET_PORT);
-
-        electionSocketThread = std::thread(
-            &common::ServerSocket::startListening, &electionSocket,
-            [this](int clientSocketId, std::string ip) { this->onElectionSocketConnection(clientSocketId, ip); });
-
-        return &electionSocketThread;
-    }
-
     void setElectionEndCallback(ElectionEndCallback callback)
     {
         onElectionEndCallback = callback;

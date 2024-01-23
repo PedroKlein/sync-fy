@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <models/connectedNodes.hpp>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -29,6 +30,7 @@ class BackupState
 
     void addConectedClientIp(const std::string &ip)
     {
+        std::lock_guard<std::mutex> lock(mtx);
         connectedClientIps.emplace_back(ip);
         if (updatedConnectedClientIpsCallback)
         {
@@ -38,6 +40,7 @@ class BackupState
 
     void addConnectedBackupNode(const common::Node &node)
     {
+        std::lock_guard<std::mutex> lock(mtx);
         connectedBackupNodes.emplace_back(node);
         if (updatedConnectedBackupNodesCallback)
         {
@@ -47,6 +50,7 @@ class BackupState
 
     void removeConnectedClientIp(const std::string &ip)
     {
+        std::lock_guard<std::mutex> lock(mtx);
         connectedClientIps.erase(std::remove(connectedClientIps.begin(), connectedClientIps.end(), ip),
                                  connectedClientIps.end());
         if (updatedConnectedClientIpsCallback)
@@ -57,6 +61,7 @@ class BackupState
 
     void removeConnectedBackupNode(const common::Node &node)
     {
+        std::lock_guard<std::mutex> lock(mtx);
         connectedBackupNodes.erase(std::remove(connectedBackupNodes.begin(), connectedBackupNodes.end(), node),
                                    connectedBackupNodes.end());
         if (updatedConnectedBackupNodesCallback)
@@ -67,45 +72,54 @@ class BackupState
 
     std::vector<common::Node> &getConnectedBackupNodes()
     {
+        std::lock_guard<std::mutex> lock(mtx);
         return connectedBackupNodes;
     }
 
     std::vector<std::string> &getConnectedIps()
     {
+        std::lock_guard<std::mutex> lock(mtx);
         return connectedClientIps;
     }
 
     int getServerId()
     {
+        std::lock_guard<std::mutex> lock(mtx);
         return serverId;
     }
 
     void setServerId(int id)
     {
+        std::lock_guard<std::mutex> lock(mtx);
         serverId = id;
     }
 
     std::string getPrimaryServerAddress()
     {
+        std::lock_guard<std::mutex> lock(mtx);
         return primaryServerAddress;
     }
 
     void setPrimaryServerAddress(const std::string &address)
     {
+        std::lock_guard<std::mutex> lock(mtx);
         primaryServerAddress = address;
     }
 
     void setConnectedClientIps(const std::vector<std::string> &ips)
     {
+        std::lock_guard<std::mutex> lock(mtx);
         connectedClientIps = ips;
     }
 
     void setConnectedBackupNodes(const std::vector<common::Node> &nodes)
     {
+        std::lock_guard<std::mutex> lock(mtx);
         connectedBackupNodes = nodes;
     }
 
   private:
+    std::mutex mtx;
     int serverId = 0;
     std::string primaryServerAddress = "localhost";
     std::vector<std::string> connectedClientIps;

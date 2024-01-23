@@ -98,7 +98,6 @@ void initializeBackup()
     backupSocket.setOnDisconnect([&primaryMonitor, &bullyElection]() {
         std::cout << "Primary disconnected" << std::endl;
         primaryMonitor.stop();
-
         bullyElection.startElection();
     });
 
