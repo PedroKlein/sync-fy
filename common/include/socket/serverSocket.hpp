@@ -24,6 +24,12 @@ class ServerSocket : public TCPSocket
         // Setting up server address
         serverAddress = newSocketAddress(port);
 
+        int yes = 1;
+        if (setsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
+        {
+            perror("setsockopt");
+        }
+
         // Binding create socket
         if (bind(socketId, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) != 0)
         {
