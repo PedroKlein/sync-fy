@@ -22,7 +22,7 @@ class PrimaryMonitor
 
     std::thread *start()
     {
-        monitorThread = std::thread([this]() { run(); });
+        monitorThread = std::thread(&PrimaryMonitor::run, this);
         return &monitorThread;
     }
 

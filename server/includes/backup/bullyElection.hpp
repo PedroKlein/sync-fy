@@ -31,8 +31,10 @@ class BullyElection
 
     void startElection()
     {
+        std::cout << "Starting election" << std::endl;
         if (isElecting.load())
         {
+            std::cout << "Already electing" << std::endl;
             return;
         }
 
@@ -97,20 +99,10 @@ class BullyElection
             ElectionMessageHandler electionMessageHandler(electionSocket);
 
             electionMessageHandler.sendCoordinatorMessage();
+            electionMessageHandler.receiveAliveMessage();
         }
 
         onElectionEndCallback(SELF_WIN_IP);
-    }
-
-    std::thread *listenElections()
-    {
-        common::ServerSocket electionSocket(ELECTION_SOCKET_PORT);
-
-        electionSocketThread = std::thread(
-            &common::ServerSocket::startListening, &electionSocket,
-            [this](int clientSocketId, std::string ip) { this->onElectionSocketConnection(clientSocketId, ip); });
-
-        return &electionSocketThread;
     }
 
     void setElectionEndCallback(ElectionEndCallback callback)
@@ -118,31 +110,35 @@ class BullyElection
         onElectionEndCallback = callback;
     }
 
-  private:
-    std::thread electionSocketThread;
-    std::atomic<bool> isElecting{false};
-    ElectionEndCallback onElectionEndCallback;
-
     void onElectionSocketConnection(int clientSocketId, const std::string &ip)
     {
         std::thread([clientSocketId, ip, this]() {
             common::TCPSocket clientSocket(clientSocketId);
+
             ElectionMessageHandler handler(clientSocket);
 
-            handler.setElectionCallback([handler, this]() {
+            clientSocket.setOnDisconnect([&handler]() { handler.stopMonitoring(); });
+
+            handler.setElectionCallback([&handler, this]() {
+                std::cout << "Received election message" << std::endl;
                 handler.sendAliveMessage();
                 this->startElection();
             });
 
-            handler.setCoordinatorCallback([clientSocket, ip, this]() {
-                // TODO: handle the permessive error here
-                // clientSocket.closeConnection();
+            handler.setCoordinatorCallback([&clientSocket, &ip, &handler, this]() {
+                std::cout << "Received coordinator message" << std::endl;
+                handler.sendAliveMessage();
                 onElectionEndCallback(ip);
             });
 
             handler.monitorMessages();
         }).detach();
     }
+
+  private:
+    std::thread electionSocketThread;
+    std::atomic<bool> isElecting{false};
+    ElectionEndCallback onElectionEndCallback;
 };
 
 } // namespace backup

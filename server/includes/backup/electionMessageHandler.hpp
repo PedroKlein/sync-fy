@@ -53,16 +53,6 @@ class ElectionMessageHandler : public common::MessageHandler
         }
     }
 
-    void receiveElectionMessage()
-    {
-        common::MessageHeader header = receiveHeader();
-
-        if (header.messageType != common::MessageType::ELECTION)
-        {
-            throw std::runtime_error("Received wrong message type");
-        }
-    }
-
   private:
     Callback coordinatorCallback;
     Callback electionCallback;

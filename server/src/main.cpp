@@ -71,6 +71,8 @@ void initializeBackup()
 
     // Backup section
     common::ClientSocket backupSocket(backupState.getPrimaryServerAddress(), BACKUP_SOCKET_PORT);
+    std::cout << "Connected to primary" << std::endl;
+
     BackupMessageHandler backupMessageHandler(backupSocket);
 
     backupMessageHandler.setConnectedIpsCallback([&backupState](const std::vector<std::string> &connectedIps) {
@@ -83,38 +85,38 @@ void initializeBackup()
 
     // Election section
     backup::BullyElection bullyElection;
+    common::ServerSocket electionSocket(ELECTION_SOCKET_PORT);
 
     backup::PrimaryMonitor primaryMonitor(backupMessageHandler);
     std::thread *primaryMonitorThread = primaryMonitor.start();
 
-    std::thread *electionMonitorThread = bullyElection.listenElections();
+    std::thread electionMonitorThread(&common::ServerSocket::startListening, &electionSocket,
+                                      [&bullyElection](int clientSocketId, std::string ip) {
+                                          bullyElection.onElectionSocketConnection(clientSocketId, ip);
+                                      });
 
     backupSocket.setOnDisconnect([&primaryMonitor, &bullyElection]() {
         std::cout << "Primary disconnected" << std::endl;
         primaryMonitor.stop();
-
         bullyElection.startElection();
     });
 
-    bullyElection.setElectionEndCallback([&primaryMonitor, &backupState](const std::string &ip) {
+    bullyElection.setElectionEndCallback([&primaryMonitor, &backupState, &electionSocket](const std::string &ip) {
         std::cout << "Election ended, new primary is " << ip << std::endl;
         backupState.setPrimaryServerAddress(ip);
 
-        primaryMonitor.stop();
-
-        if (ip == SELF_WIN_IP)
-        {
-            initializePrimary(true);
-        }
+        electionSocket.stopListening();
+        // primaryMonitor.stop();
     });
 
     primaryMonitorThread->join();
-    electionMonitorThread->join();
+    electionMonitorThread.join();
 }
 
 int main(int argc, char *argv[])
 {
-    const bool isPrimary = argc == 1;
+    // const bool isPrimary = argc == 1;
+    const bool isPrimary = false;
 
     BackupState &backupState = BackupState::getInstance();
 
@@ -125,16 +127,18 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    // TODO: get server id from primary
     std::cout << "Starting as backup" << std::endl;
-    std::string primaryServerAddress = argv[1];
+    // std::string primaryServerAddress = argv[1];
+    std::string primaryServerAddress = "192.168.0.16";
 
     backupState.setPrimaryServerAddress(primaryServerAddress);
 
-    while (true)
+    while (backupState.getPrimaryServerAddress() != SELF_WIN_IP)
     {
         initializeBackup();
     }
+
+    initializePrimary(true);
 
     return 0;
 }

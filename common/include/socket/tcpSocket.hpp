@@ -58,6 +58,7 @@ class TCPSocket
     virtual ~TCPSocket()
     {
         std::cout << "Connection closed" << std::endl;
+        shutdown(socketId, SHUT_RDWR);
         close(socketId);
     }
 
@@ -125,6 +126,7 @@ class TCPSocket
     void closeConnection()
     {
         std::cout << "Closing connection" << std::endl;
+        close(socketId);
         if (onDisconnect)
         {
             onDisconnect();
