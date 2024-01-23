@@ -99,6 +99,7 @@ class BullyElection
             ElectionMessageHandler electionMessageHandler(electionSocket);
 
             electionMessageHandler.sendCoordinatorMessage();
+            electionMessageHandler.receiveAliveMessage();
         }
 
         onElectionEndCallback(SELF_WIN_IP);
@@ -113,20 +114,20 @@ class BullyElection
     {
         std::thread([clientSocketId, ip, this]() {
             common::TCPSocket clientSocket(clientSocketId);
-            std::cout << "Election socket connected to " << ip << std::endl;
 
             ElectionMessageHandler handler(clientSocket);
 
             clientSocket.setOnDisconnect([&handler]() { handler.stopMonitoring(); });
 
-            handler.setElectionCallback([handler, this]() {
+            handler.setElectionCallback([&handler, this]() {
+                std::cout << "Received election message" << std::endl;
                 handler.sendAliveMessage();
                 this->startElection();
             });
 
-            handler.setCoordinatorCallback([clientSocket, ip, this]() {
-                // TODO: handle the permessive error here
-                // clientSocket.closeConnection();
+            handler.setCoordinatorCallback([&clientSocket, &ip, &handler, this]() {
+                std::cout << "Received coordinator message" << std::endl;
+                handler.sendAliveMessage();
                 onElectionEndCallback(ip);
             });
 

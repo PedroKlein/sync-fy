@@ -106,7 +106,7 @@ void initializeBackup()
         backupState.setPrimaryServerAddress(ip);
 
         electionSocket.stopListening();
-        primaryMonitor.stop();
+        // primaryMonitor.stop();
     });
 
     primaryMonitorThread->join();
