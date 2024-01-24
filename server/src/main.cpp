@@ -5,6 +5,7 @@
 #include "primary/backupConnection/backupConnectionHandler.hpp"
 #include "primary/clientConnection/clientConnectionHandler.hpp"
 #include <constants.hpp>
+#include <filesystem>
 #include <iostream>
 #include <socket/clientSocket.hpp>
 #include <socket/serverSocket.hpp>
@@ -117,6 +118,16 @@ int main(int argc, char *argv[])
 {
     const bool isPrimary = argc == 1;
     // const bool isPrimary = false;
+
+    try
+    {
+        std::filesystem::create_directory(common::DEFAULT_SERVER_SYNC_DIR);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Failed to create folder: " << e.what() << std::endl;
+        exit(1);
+    }
 
     BackupState &backupState = BackupState::getInstance();
 
