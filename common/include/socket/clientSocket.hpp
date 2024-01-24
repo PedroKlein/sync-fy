@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tcpSocket.hpp"
+#include <thread>
 
 #define DEFAULT_PORT 4000
 
@@ -66,10 +67,24 @@ class ClientSocket : public TCPSocket
 
     void connectToServer()
     {
-        int err = connect(socketId, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+        int maxAttempts = 3;
+        int attempt = 0;
+        int err = -1;
+
+        while (attempt < maxAttempts && err == -1)
+        {
+            err = connect(socketId, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+            if (err == -1)
+            {
+                std::cerr << "ERR: failed to connect to socket server\n\t|=> " << strerror(errno) << std::endl;
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                attempt++;
+            }
+        }
+
         if (err == -1)
         {
-            std::cerr << "ERR: failed to connect to socket server\n\t|=> " << strerror(errno) << std::endl;
+            std::cerr << "ERR: failed to connect after " << maxAttempts << " attempts" << std::endl;
             exit(errno);
         }
 
