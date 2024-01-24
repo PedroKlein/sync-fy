@@ -70,6 +70,8 @@ void initializeBackup()
 {
     BackupState &backupState = BackupState::getInstance();
 
+    std::cout << "Trying to connect to primary - " << backupState.getPrimaryServerAddress() << std::endl;
+
     // Backup section
     common::ClientSocket backupSocket(backupState.getPrimaryServerAddress(), BACKUP_SOCKET_PORT);
     std::cout << "Connected to primary" << std::endl;
@@ -140,13 +142,14 @@ int main(int argc, char *argv[])
 
     std::cout << "Starting as backup" << std::endl;
     std::string primaryServerAddress = argv[1];
-    // std::string primaryServerAddress = "192.168.0.16";
+    // std::string primaryServerAddress = "192.168.0.20";
 
     backupState.setPrimaryServerAddress(primaryServerAddress);
 
     while (backupState.getPrimaryServerAddress() != SELF_WIN_IP)
     {
         initializeBackup();
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     initializePrimary(true);

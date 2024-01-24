@@ -34,7 +34,7 @@ class TCPSocket
      */
     TCPSocket(int socketId) : socketId(socketId)
     {
-        enableTCPKeepAlive();
+        // enableTCPKeepAlive();
     }
 
      /**
@@ -52,7 +52,7 @@ class TCPSocket
             std::cerr << "ERR: failed to create a socket\n\t|=> " << strerror(errno) << std::endl;
             exit(errno);
         }
-        enableTCPKeepAlive();
+        // enableTCPKeepAlive();
     }
 
      /**
