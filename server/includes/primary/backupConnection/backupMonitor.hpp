@@ -48,6 +48,7 @@ class BackupMonitor
 
             if (!socket.isSocketAlive())
             {
+                std::cout << "Backup socket is not alive, closing connection" << std::endl;
                 socket.closeConnection();
                 break;
             }

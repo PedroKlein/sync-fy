@@ -81,12 +81,14 @@ class TCPSocket
             {
                 if (!isSocketAlive())
                 {
+                    std::cout << "Socket is dead" << std::endl;
                     closeConnection();
                     break;
                 }
                 const int l = ::send(socketId, &buffer[i], std::min(chunkSize, size - i), 0);
                 if (l < 0 || l == 0)
                 {
+                    std::cout << "Socket is dead - after send" << std::endl;
                     closeConnection();
                     break;
                 }
@@ -117,6 +119,7 @@ class TCPSocket
 
                 if (l < 0 || l == 0)
                 {
+                    std::cout << "Socket is dead - after read" << std::endl;
                     closeConnection();
                     break;
                 }
