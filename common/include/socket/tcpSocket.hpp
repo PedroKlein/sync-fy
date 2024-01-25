@@ -120,6 +120,7 @@ class TCPSocket
                 if (l < 0 || l == 0)
                 {
                     std::cout << "Socket is dead - after read" << std::endl;
+                    perror("Read failed");
                     closeConnection();
                     break;
                 }
@@ -185,6 +186,11 @@ class TCPSocket
                 return false;
             }
         }
+    }
+
+    int getSockId()
+    {
+        return socketId;
     }
 
   protected:

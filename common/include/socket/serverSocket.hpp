@@ -104,7 +104,11 @@ class ServerSocket : public TCPSocket
     {
         isListening = false;
 
-        write(stopPipe[1], "stop", 4);
+        ssize_t bytesWritten = write(stopPipe[1], "stop", 4);
+        if (bytesWritten == -1)
+        {
+            std::cerr << "Error writing to pipe." << std::endl;
+        }
 
         close(socketId);
     }
@@ -127,6 +131,6 @@ class ServerSocket : public TCPSocket
         serverAddress.sin_port = htons(port);
 
         return serverAddress;
-    }
+        }
 };
 } // namespace common

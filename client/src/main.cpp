@@ -8,6 +8,7 @@
 #include "localMonitor/localMonitor.hpp"
 #include "serverMonitor/messageHandler.hpp"
 #include "serverMonitor/serverMonitor.hpp"
+#include <atomic>
 #include <constants.hpp>
 #include <mutex>
 #include <signal.h>
@@ -30,9 +31,9 @@ int main(int argc, char *argv[])
     username = argv[1];
     serverAddress = argv[2];
 #else
-    username = "user1";
+    username = "chico";
     serverAddress = "localhost";
-    // serverAddress = "192.168.0.16";
+    // serverAddress = "192.168.0.20";
 #endif
 
     common::ClientSocket commandSocket(serverAddress, common::COMMAND_PORT);
@@ -58,29 +59,35 @@ int main(int argc, char *argv[])
     serverMonitor::ServerMonitor serverMonitor(serverMonitorMessageHandler);
     std::thread *serverMonitorThread = serverMonitor.start();
 
-    // mutex for handle disconections
-    std::mutex mtx;
+    std::atomic<bool> disconnectHandled(false);
 
     // TODO: refactor this callback, too much code duplication
     auto handleDisconnection = [&]() {
-        std::cout << "ERR: connection to server lost" << std::endl;
-        std::lock_guard<std::mutex> lock(mtx);
+        if (disconnectHandled.exchange(true))
+        {
+            // The handler has already been executed, return immediately
+            return;
+        }
 
-        commandSocket.closeConnection();
-        serverMonitorSocket.closeConnection();
-        localMonitorSocket.closeConnection();
+        std::cout << "ERR: connection to server lost" << std::endl;
+
+        // commandSocket.closeConnection();
+        // serverMonitorSocket.closeConnection();
+        // localMonitorSocket.closeConnection();
 
         recoverySocket.startListening([&](int socketId, std::string newServerAddress) {
             commandSocket.changeServerAndReconnect(newServerAddress);
             serverMonitorSocket.changeServerAndReconnect(newServerAddress);
             localMonitorSocket.changeServerAndReconnect(newServerAddress);
 
+            serverMonitorMessageHandler.sendLoginMessage(username);
             commandMessager.sendLoginMessage(username);
             localMonitorMessageHandler.sendLoginMessage(username);
-            serverMonitorMessageHandler.sendLoginMessage(username);
+
+            // std::this_thread::sleep_for(std::chrono::seconds(10));
 
             std::cout << "New server address: " << newServerAddress << std::endl;
-            recoverySocket.stopListening();
+            // recoverySocket.stopListening();
         });
     };
 
