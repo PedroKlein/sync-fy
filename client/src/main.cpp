@@ -15,6 +15,55 @@
 #include <socket/clientSocket.hpp>
 #include <socket/serverSocket.hpp>
 
+void startClient(std::string &username, std::string &serverAddress)
+{
+    common::ClientSocket commandSocket(serverAddress, common::COMMAND_PORT);
+    common::ClientSocket serverMonitorSocket(serverAddress, common::SERVER_DATA_PORT);
+    common::ClientSocket localMonitorSocket(serverAddress, common::CLIENT_DATA_PORT);
+
+    // CLI
+    cli::MessageHandler commandMessager(commandSocket, username);
+    cli::CommandHandler commandHandler(commandMessager);
+    cli::CLI cli(commandHandler);
+    std::thread *cliThread = cli.start();
+
+    // LocalMonitor
+    ClientMessageHandler localMonitorMessageHandler(localMonitorSocket, username);
+    localMonitor::FileWatcher &fileWatcher = localMonitor::FileWatcher::getInstance(common::DEFAULT_CLIENT_SYNC_DIR);
+    localMonitor::LocalMonitor localMonitor(fileWatcher, localMonitorMessageHandler);
+    std::thread *localMonitorThread = localMonitor.start();
+
+    // ServerMonitor
+    serverMonitor::MessageHandler serverMonitorMessageHandler(serverMonitorSocket, username);
+    serverMonitor::ServerMonitor serverMonitor(serverMonitorMessageHandler);
+    std::thread *serverMonitorThread = serverMonitor.start();
+
+    std::atomic<bool> disconnectHandled(false);
+
+    auto handleDisconnection = [&]() {
+        if (disconnectHandled.exchange(true))
+        {
+            // The handler has already been executed, return immediately
+            return;
+        }
+        std::cout << "ERR: connection to server lost" << std::endl;
+
+        localMonitor.stop();
+        serverMonitor.stop();
+        cli.stop();
+    };
+
+    // Handler exit/disconnect
+    commandSocket.setOnDisconnect(handleDisconnection);
+    localMonitorSocket.setOnDisconnect(handleDisconnection);
+    serverMonitorSocket.setOnDisconnect(handleDisconnection);
+
+    // Finalization
+    cliThread->join();
+    localMonitorThread->join();
+    serverMonitorThread->join();
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -36,70 +85,18 @@ int main(int argc, char *argv[])
     // serverAddress = "192.168.0.20";
 #endif
 
-    common::ClientSocket commandSocket(serverAddress, common::COMMAND_PORT);
-    common::ClientSocket serverMonitorSocket(serverAddress, common::SERVER_DATA_PORT);
-    common::ClientSocket localMonitorSocket(serverAddress, common::CLIENT_DATA_PORT);
+    while (true)
+    {
+        startClient(username, serverAddress);
 
-    common::ServerSocket recoverySocket(common::CLIENT_RECOVERY_PORT);
+        std::cout << "Waiting for new server..." << std::endl;
 
-    // CLI
-    cli::MessageHandler commandMessager(commandSocket, username);
-    cli::CommandHandler commandHandler(commandMessager);
-    cli::CLI cli(commandHandler);
-    std::thread *cliThread = cli.start();
-
-    // LocalMonitor
-    ClientMessageHandler localMonitorMessageHandler(localMonitorSocket, username);
-    localMonitor::FileWatcher &fileWatcher = localMonitor::FileWatcher::getInstance(common::DEFAULT_CLIENT_SYNC_DIR);
-    localMonitor::LocalMonitor localMonitor(fileWatcher, localMonitorMessageHandler);
-    std::thread *localMonitorThread = localMonitor.start();
-
-    // ServerMonitor
-    serverMonitor::MessageHandler serverMonitorMessageHandler(serverMonitorSocket, username);
-    serverMonitor::ServerMonitor serverMonitor(serverMonitorMessageHandler);
-    std::thread *serverMonitorThread = serverMonitor.start();
-
-    std::atomic<bool> disconnectHandled(false);
-
-    // TODO: refactor this callback, too much code duplication
-    auto handleDisconnection = [&]() {
-        if (disconnectHandled.exchange(true))
-        {
-            // The handler has already been executed, return immediately
-            return;
-        }
-
-        std::cout << "ERR: connection to server lost" << std::endl;
-
-        // commandSocket.closeConnection();
-        // serverMonitorSocket.closeConnection();
-        // localMonitorSocket.closeConnection();
-
+        common::ServerSocket recoverySocket(common::CLIENT_RECOVERY_PORT);
         recoverySocket.startListening([&](int socketId, std::string newServerAddress) {
-            commandSocket.changeServerAndReconnect(newServerAddress);
-            serverMonitorSocket.changeServerAndReconnect(newServerAddress);
-            localMonitorSocket.changeServerAndReconnect(newServerAddress);
-
-            serverMonitorMessageHandler.sendLoginMessage(username);
-            commandMessager.sendLoginMessage(username);
-            localMonitorMessageHandler.sendLoginMessage(username);
-
-            // std::this_thread::sleep_for(std::chrono::seconds(10));
-
-            std::cout << "New server address: " << newServerAddress << std::endl;
-            // recoverySocket.stopListening();
+            serverAddress = newServerAddress;
+            recoverySocket.stopListening();
         });
-    };
-
-    // Handler exit/disconnect
-    commandSocket.setOnDisconnect(handleDisconnection);
-    localMonitorSocket.setOnDisconnect(handleDisconnection);
-    serverMonitorSocket.setOnDisconnect(handleDisconnection);
-
-    // Finalization
-    cliThread->join();
-    localMonitorThread->join();
-    serverMonitorThread->join();
+    }
 
     return 0;
 }

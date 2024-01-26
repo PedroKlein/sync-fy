@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstring>
+#include <fcntl.h>
 #include <filesystem/file.hpp>
 #include <filesystem>
 #include <functional>

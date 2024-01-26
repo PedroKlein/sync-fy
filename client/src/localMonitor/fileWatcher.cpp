@@ -81,12 +81,25 @@ namespace localMonitor
     void FileWatcher::processEvents()
     {
         char buffer[EVENT_BUF_LEN];
+
+        // Set the file descriptor to non-blocking
+        int flags = fcntl(inotifyFd, F_GETFL, 0);
+        fcntl(inotifyFd, F_SETFL, flags | O_NONBLOCK);
+
         int length = read(inotifyFd, buffer, EVENT_BUF_LEN);
 
         if (length < 0)
         {
-            perror("read");
-            exit(EXIT_FAILURE);
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                // The read would have blocked, so there's no data available
+                return;
+            }
+            else
+            {
+                perror("read");
+                exit(EXIT_FAILURE);
+            }
         }
 
         for (int i = 0; i < length;)
