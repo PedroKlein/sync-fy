@@ -47,15 +47,20 @@ void initializePrimary(bool wasBackup = false)
 
     if (wasBackup)
     {
+        // std::this_thread::sleep_for(std::chrono::seconds(5));
         std::vector<std::string> copyClientIps = backupState.getConnectedIps();
+
+        // std::vector<std::string> copyClientIps = {"192.168.0.16"};
 
         backupState.setConnectedBackupNodes({});
         backupState.setConnectedClientIps({});
 
-        // This assumes that all clients are still connected, add a tiemeout otherwise
+        // This assumes that all clients are still connected, try run it in parallel
         for (auto &connectedClientIp : copyClientIps)
         {
+            std::cout << "Trying to connect to client " << connectedClientIp << std::endl;
             common::ClientSocket recoverySocket(connectedClientIp, common::CLIENT_RECOVERY_PORT);
+            // std::this_thread::sleep_for(std::chrono::seconds(2));
         }
     }
 
@@ -137,6 +142,7 @@ int main(int argc, char *argv[])
     {
         std::cout << "Starting as primary" << std::endl;
         initializePrimary();
+        // initializePrimary(true);
         return 0;
     }
 

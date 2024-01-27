@@ -15,7 +15,7 @@
 #include <socket/clientSocket.hpp>
 #include <socket/serverSocket.hpp>
 
-void startClient(std::string &username, std::string &serverAddress)
+void startClient(std::string &username, std::string serverAddress)
 {
     common::ClientSocket commandSocket(serverAddress, common::COMMAND_PORT);
     common::ClientSocket serverMonitorSocket(serverAddress, common::SERVER_DATA_PORT);
@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
     serverAddress = argv[2];
 #else
     username = "chico";
-    serverAddress = "localhost";
-    // serverAddress = "192.168.0.20";
+    // serverAddress = "localhost";
+    serverAddress = "192.168.0.20";
 #endif
 
     while (true)
@@ -94,8 +94,11 @@ int main(int argc, char *argv[])
         common::ServerSocket recoverySocket(common::CLIENT_RECOVERY_PORT);
         recoverySocket.startListening([&](int socketId, std::string newServerAddress) {
             serverAddress = newServerAddress;
+            // serverAddress = "localhost";
             recoverySocket.stopListening();
         });
+
+        // startClient(username, serverAddress);
     }
 
     return 0;
