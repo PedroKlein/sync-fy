@@ -8,11 +8,9 @@ void ClientConnectionHandler::onCommandSocketConnection(int clientSocketId, cons
 
         ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
         UserConnection &userConnection = connectionHandler.addUserConnection(handler.getUsername());
-        ClientConnection &clientConnection = userConnection.addClientConnection(ip);
+        userConnection.addClientConnection(ip);
 
-        userConnection.setCommandConnection(clientConnection, clientSocketId);
-
-        clientSocket.setOnDisconnect([&ip, &userConnection, &connectionHandler, &handler]() {
+        clientSocket.setOnDisconnect([&ip, &connectionHandler, &handler]() {
             std::cout << "Command socket disconnected - " << handler.getUsername() << ":" << ip << std::endl;
             handler.stopMonitoring();
             connectionHandler.removeUserConnection(handler.getUsername(), ip);
@@ -30,24 +28,20 @@ void ClientConnectionHandler::onClientDataSocketConnection(int clientSocketId, c
 
         ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
         UserConnection &userConnection = connectionHandler.addUserConnection(handler.getUsername());
-        ClientConnection &clientConnection = userConnection.addClientConnection(ip);
-
-        userConnection.setClientDataConnection(clientConnection, clientSocketId);
+        userConnection.addClientConnection(ip);
 
         // No specific reason for this socket to have this, but one of the three should have it
-        BackupConnectionHandler &backupConnectionHandler = BackupConnectionHandler::getInstance();
         BackupState &backupState = BackupState::getInstance();
 
         backupState.addConectedClientIp(ip);
 
-        clientSocket.setOnDisconnect(
-            [&ip, &userConnection, &connectionHandler, &handler, &backupConnectionHandler, &backupState]() {
-                std::cout << "Client data socket disconnected - " << handler.getUsername() << ":" << ip << std::endl;
-                handler.stopMonitoring();
-                connectionHandler.removeUserConnection(handler.getUsername(), ip);
+        clientSocket.setOnDisconnect([&ip, &connectionHandler, &handler, &backupState]() {
+            std::cout << "Client data socket disconnected - " << handler.getUsername() << ":" << ip << std::endl;
+            handler.stopMonitoring();
+            connectionHandler.removeUserConnection(handler.getUsername(), ip);
 
-                backupState.removeConnectedClientIp(ip);
-            });
+            backupState.removeConnectedClientIp(ip);
+        });
 
         handler.monitorMessages();
     }).detach();
@@ -61,13 +55,11 @@ void ClientConnectionHandler::onServerDataSocketConnection(int clientSocketId, c
 
         ClientConnectionHandler &connectionHandler = ClientConnectionHandler::getInstance();
         UserConnection &userConnection = connectionHandler.addUserConnection(handler.getUsername());
-        ClientConnection &clientConnection = userConnection.addClientConnection(ip);
-
-        userConnection.setServerDataConnection(clientConnection, clientSocketId);
+        userConnection.addClientConnection(ip);
 
         localMonitor::LocalMonitor localMonitor(handler, userConnection.getFileChangesQueue(ip));
 
-        clientSocket.setOnDisconnect([&ip, &userConnection, &connectionHandler, &handler, &localMonitor]() {
+        clientSocket.setOnDisconnect([&ip, &connectionHandler, &handler, &localMonitor]() {
             std::cout << "Server data socket disconnected - " << handler.getUsername() << ":" << ip << std::endl;
             localMonitor.stopMonitoring();
             connectionHandler.removeUserConnection(handler.getUsername(), ip);

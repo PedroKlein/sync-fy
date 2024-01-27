@@ -2,6 +2,7 @@
 
 #include <atomic/atomicQueue.hpp>
 #include <filesystem/fileChange.hpp>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -10,24 +11,8 @@
 
 using FileChangesQueue = common::AtomicQueue<common::FileChange>;
 
-/**
- *  @struct Connection
- *  @brief Structure representing a network connection.
- */
-struct Connection
-{
-    int socketId;
-};
-
-/**
- * @struct ClientConnection
- * @brief Structure representing various connections for a client.
- */
 struct ClientConnection
 {
-    std::unique_ptr<Connection> commandConnection;
-    std::unique_ptr<Connection> serverDataConnection;
-    std::unique_ptr<Connection> clientDataConnection;
     std::shared_ptr<FileChangesQueue> fileChangesQueue;
 };
 
@@ -100,39 +85,6 @@ class UserConnection
     {
         std::lock_guard<std::mutex> lock(mtx);
         return clientConnections.size() > 0;
-    }
-
-    /**
-     * @brief Sets the command connection for a client.
-     * @param clientConnection The client connection to set the command connection for.
-     * @param socketId The socket identifier for the command connection.
-     */
-    void setCommandConnection(ClientConnection &clientConnection, int socketId)
-    {
-        clientConnection.commandConnection = std::make_unique<Connection>();
-        clientConnection.commandConnection->socketId = socketId;
-    }
-
-    /**
-     * @brief Sets the client data connection for a client.
-     * @param clientConnection The client connection to set the client data connection for.
-     * @param socketId The socket identifier for the client data connection.
-     */
-    void setClientDataConnection(ClientConnection &clientConnection, int socketId)
-    {
-        clientConnection.clientDataConnection = std::make_unique<Connection>();
-        clientConnection.clientDataConnection->socketId = socketId;
-    }
-
-    /**
-     * @brief Sets the server data connection for a client.
-     * @param clientConnection The client connection to set the server data connection for.
-     * @param socketId The socket identifier for the server data connection.
-     */
-    void setServerDataConnection(ClientConnection &clientConnection, int socketId)
-    {
-        clientConnection.serverDataConnection = std::make_unique<Connection>();
-        clientConnection.serverDataConnection->socketId = socketId;
     }
 
     /**
