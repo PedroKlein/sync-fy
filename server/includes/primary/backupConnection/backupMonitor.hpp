@@ -27,7 +27,7 @@ class BackupMonitor
         do
         {
             // empty file changes queue
-            while (changeQueue->tryPop(userFileChange))
+            if (changeQueue->tryPop(userFileChange))
             {
                 sendFileChange(userFileChange.second, userFileChange.first);
             }
@@ -53,7 +53,7 @@ class BackupMonitor
                 break;
             }
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         } while (isMonitoring && changeQueue.use_count() > 1 && hasClientAndNodeChanges.use_count() > 1);
     }
 

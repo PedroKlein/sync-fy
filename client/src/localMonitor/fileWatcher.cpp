@@ -109,8 +109,8 @@ namespace localMonitor
             std::string fileName = event->name ? event->name : "";
             std::string fileExtension = common::File::getFileExtension(fileName);
 
-            bool isSwap = (fileExtension == ".swx" || fileExtension == ".swp"); 
-            
+            bool isSwap = (fileExtension == ".swx" || fileExtension == ".swp" || fileName[0] == '.'); 
+
             // Check if the file extension matches ".swx" or ".swp"
             if (!fileExtension.empty() && isSwap)
             {
