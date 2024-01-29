@@ -109,11 +109,14 @@ namespace localMonitor
             std::string fileName = event->name ? event->name : "";
             std::string fileExtension = common::File::getFileExtension(fileName);
 
+            bool isSwap = (fileExtension == ".swx" || fileExtension == ".swp"); 
+            
             // Check if the file extension matches ".swx" or ".swp"
-            if (!fileExtension.empty() && (fileExtension == "swx" || fileExtension == "swp"))
+            if (!fileExtension.empty() && isSwap)
             {
                 // Ignore this file and move to the next event
                 i += EVENT_SIZE + event->len;
+                std::cout << "Ignoring file: " << fileName << std::endl;
                 continue;
             }
 

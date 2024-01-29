@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
     serverAddress = argv[2];
 #else
     username = "chico";
-    // serverAddress = "localhost";
-    serverAddress = "192.168.0.20";
+    serverAddress = "localhost";
+    // serverAddress = "192.168.0.20";
 #endif
 
     while (true)
