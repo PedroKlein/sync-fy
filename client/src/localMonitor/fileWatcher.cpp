@@ -86,6 +86,11 @@ namespace localMonitor
         int flags = fcntl(inotifyFd, F_GETFL, 0);
         fcntl(inotifyFd, F_SETFL, flags | O_NONBLOCK);
 
+        if (isPaused)
+        {
+            return;
+        }
+
         int length = read(inotifyFd, buffer, EVENT_BUF_LEN);
 
         if (length < 0)
