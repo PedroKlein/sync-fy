@@ -6,10 +6,14 @@ add_library(common_lib
     include/datetime/dateTime.hpp
     include/models/deleteFile.hpp
     include/models/initReceiveFile.hpp
+    include/models/initBackupData.hpp
     include/models/initSendFile.hpp
     include/models/listFiles.hpp
     include/models/login.hpp
+    include/models/serverId.hpp
     include/socket/tcpSocket.hpp
+    include/socket/serverSocket.hpp
+    include/socket/clientSocket.hpp
     include/constants.hpp
 )
 

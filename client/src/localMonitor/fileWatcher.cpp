@@ -81,12 +81,30 @@ namespace localMonitor
     void FileWatcher::processEvents()
     {
         char buffer[EVENT_BUF_LEN];
+
+        // Set the file descriptor to non-blocking
+        int flags = fcntl(inotifyFd, F_GETFL, 0);
+        fcntl(inotifyFd, F_SETFL, flags | O_NONBLOCK);
+
+        if (isPaused)
+        {
+            return;
+        }
+
         int length = read(inotifyFd, buffer, EVENT_BUF_LEN);
 
         if (length < 0)
         {
-            perror("read");
-            exit(EXIT_FAILURE);
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                // The read would have blocked, so there's no data available
+                return;
+            }
+            else
+            {
+                perror("read");
+                exit(EXIT_FAILURE);
+            }
         }
 
         for (int i = 0; i < length;)
@@ -96,11 +114,14 @@ namespace localMonitor
             std::string fileName = event->name ? event->name : "";
             std::string fileExtension = common::File::getFileExtension(fileName);
 
+            bool isSwap = (fileExtension == ".swx" || fileExtension == ".swp" || fileName[0] == '.'); 
+
             // Check if the file extension matches ".swx" or ".swp"
-            if (!fileExtension.empty() && (fileExtension == "swx" || fileExtension == "swp"))
+            if (!fileExtension.empty() && isSwap)
             {
                 // Ignore this file and move to the next event
                 i += EVENT_SIZE + event->len;
+                std::cout << "Ignoring file: " << fileName << std::endl;
                 continue;
             }
 

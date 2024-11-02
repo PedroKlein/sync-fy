@@ -10,6 +10,7 @@ ServerMonitor::ServerMonitor(MessageHandler &messageHandler) : messageHandler(me
 ServerMonitor::~ServerMonitor()
 {
     stop();
+    std::cout << "ServerMonitor stopped" << std::endl;
 }
 
 std::thread *ServerMonitor::start()

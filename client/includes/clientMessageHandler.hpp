@@ -30,13 +30,6 @@ class ClientMessageHandler : public common::FileMessageHandler
         onLogin();
     }
 
-  protected:
-    /**
-     * @brief Callback function invoked after a successful login.
-     */
-    virtual void onLogin(){};
-
-  private:
     /**
      * @brief Sends a login message to the server.
      * @param username The username for the login message.
@@ -46,4 +39,10 @@ class ClientMessageHandler : public common::FileMessageHandler
         common::Login login(username);
         sendModelMessage(login);
     }
+
+  protected:
+    /**
+     * @brief Callback function invoked after a successful login.
+     */
+    virtual void onLogin(){};
 };

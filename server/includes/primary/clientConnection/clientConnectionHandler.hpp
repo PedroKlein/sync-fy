@@ -1,8 +1,8 @@
 #pragma once
 
-#include "clientMonitor/messageHandler.hpp"
-#include "command/messageHandler.hpp"
-#include "localMonitor/localMonitor.hpp"
+#include "primary/clientMonitor/messageHandler.hpp"
+#include "primary/command/messageHandler.hpp"
+#include "primary/localMonitor/localMonitor.hpp"
 #include "userConnection.hpp"
 #include <memory>
 #include <messages/messageHandler.hpp>
@@ -11,10 +11,10 @@
 #include <type_traits>
 
 /**
- * @class ConnectionHandler
+ * @class ClientConnectionHandler
  * @brief Singleton class managing user connections and socket connections.
  */
-class ConnectionHandler
+class ClientConnectionHandler
 {
   public:
     /**
@@ -40,10 +40,10 @@ class ConnectionHandler
     void removeUserConnection(const std::string &username, const std::string &ip);
 
     /**
-     * @brief Gets the instance of the ConnectionHandler singleton.
-     * @return Reference to the ConnectionHandler instance.
+     * @brief Gets the instance of the ClientConnectionHandler singleton.
+     * @return Reference to the ClientConnectionHandler instance.
      */
-    static ConnectionHandler &getInstance();
+    static ClientConnectionHandler &getInstance();
 
     /**
      * @brief Handles a connection on the command socket.
@@ -70,7 +70,7 @@ class ConnectionHandler
     /**
      * @brief Private constructor to enforce the singleton pattern.
      */
-    ConnectionHandler() = default;
+    ClientConnectionHandler() = default;
 
     // username -> userConnection
     std::unordered_map<std::string, std::unique_ptr<UserConnection>> userConnections;

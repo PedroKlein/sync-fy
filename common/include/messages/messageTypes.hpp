@@ -18,6 +18,11 @@ constexpr size_t MESSAGE_HEADER_SIZE =
  */
 enum MessageType
 {
+    // for election
+    ALIVE,       // Header only
+    COORDINATOR, // Header only
+    ELECTION,    // Header only
+
     ERROR,             // Header only
     INIT_LIST_FILES,   // Header only
     INIT_SEND_FILE,    // Header + JSON
@@ -26,6 +31,12 @@ enum MessageType
     LOGIN,             // Header + JSON
     DELETE_FILE,       // Header + JSON
     LIST_FILES,        // Header + JSON
+
+    // for backup
+    INIT_BACKUP_DATA, // Header + JSON
+    CONNECTED_IPS,    // Header + JSON
+    CONNECTED_NODES,  // Header + JSON
+    SERVER_ID,        // Header + JSON
 };
 
 /**
@@ -38,7 +49,6 @@ enum HeaderType
     RAW_DATA_HEADER = 'R',
     PURE_HEADER = 'H',
 };
-
 
 /**
  * @struct MessageHeader
@@ -53,13 +63,13 @@ struct MessageHeader
     uint32_t totalPackets;
 
     /**
-    * @brief Constructor for MessageHeader.
-    * @param headerType Type of the message header.
-    * @param messageType Type of the message.
-    * @param dataSize Size of the message data.
-    * @param packet Packet number.
-    * @param totalPackets Total number of packets.
-    */
+     * @brief Constructor for MessageHeader.
+     * @param headerType Type of the message header.
+     * @param messageType Type of the message.
+     * @param dataSize Size of the message data.
+     * @param packet Packet number.
+     * @param totalPackets Total number of packets.
+     */
     MessageHeader(HeaderType headerType, MessageType messageType, uint32_t dataSize, uint32_t packet,
                   uint32_t totalPackets)
         : headerType(headerType), messageType(messageType), dataSize(dataSize), packet(packet),
@@ -68,9 +78,9 @@ struct MessageHeader
     }
 
     /**
-    * @brief Serializes the MessageHeader into a byte vector.
-    * @return The byte vector representing the serialized MessageHeader.
-    */
+     * @brief Serializes the MessageHeader into a byte vector.
+     * @return The byte vector representing the serialized MessageHeader.
+     */
     std::vector<char> serialize() const
     {
         std::vector<char> bytes;
@@ -103,10 +113,10 @@ struct MessageHeader
     }
 
     /**
-    * @brief Deserializes a byte vector into a MessageHeader.
-    * @param bytes The byte vector to deserialize.
-    * @return The deserialized MessageHeader.
-    */
+     * @brief Deserializes a byte vector into a MessageHeader.
+     * @param bytes The byte vector to deserialize.
+     * @return The deserialized MessageHeader.
+     */
     static MessageHeader deserialize(std::vector<char> bytes)
     {
         size_t offset = 0;

@@ -49,8 +49,8 @@ After ensuring that the requirements are met, follow these steps:
 To test the application you can use the provided docker-compose:
 
 1. Run `docker-compose up` to start the containers (1 server and 3 clients).
-2. Attach a shel to the desired client with `docker exec -it {container-id} bash `
-3. Run the client with `../scripts/run-client.sh {username} server` on the attached container.
+2. Attach a shell to the desired client with `docker exec -it {container-id} bash `
+3. Run the client with `../scripts/run-client.sh {username} primary-server` on the attached container.
 4. The tests/files folder is binded to the container, so you can add files there to test the commands.
 
 ## Recommended Tools

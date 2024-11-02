@@ -12,7 +12,9 @@
 #include "socket/tcpSocket.hpp"
 #include <filesystem>
 #include <iostream>
+#include <poll.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 namespace common
 {
@@ -86,12 +88,43 @@ class MessageHandler
     */
     void monitorMessages()
     {
+        if (pipe(stopPipe) < 0)
+        {
+            std::cerr << "Error creating pipe." << std::endl;
+            return;
+        }
+
         isMonitoring = true;
 
-        do
+        while (isMonitoring)
         {
-            receiveMessage();
-        } while (isMonitoring);
+            struct pollfd fds[2];
+            fds[0].fd = socket.getSockId(); // Assuming socketId is the socket you're monitoring
+            fds[0].events = POLLIN;
+            fds[1].fd = stopPipe[0];
+            fds[1].events = POLLIN;
+
+            if (poll(fds, 2, -1) < 0)
+            {
+                std::cerr << "Error on poll." << std::endl;
+                break;
+            }
+
+            if (fds[1].revents & POLLIN)
+            {
+                // Stop signal received
+                break;
+            }
+
+            if (fds[0].revents & POLLIN)
+            {
+                // Receive a message
+                receiveMessage();
+            }
+        }
+
+        close(stopPipe[0]);
+        close(stopPipe[1]);
     }
 
     /**
@@ -100,10 +133,17 @@ class MessageHandler
     void stopMonitoring()
     {
         isMonitoring = false;
+
+        ssize_t bytesWritten = write(stopPipe[1], "stop", 4);
+        if (bytesWritten == -1)
+        {
+            std::cerr << "Error writing to pipe." << std::endl;
+        }
     }
 
   protected:
     TCPSocket &socket;
+    int stopPipe[2];
     bool isMonitoring = false;
     
     /**

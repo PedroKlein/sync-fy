@@ -3,8 +3,10 @@
 #include "commandHandler.hpp"
 #include <functional>
 #include <iostream>
+#include <poll.h>
 #include <string>
 #include <thread>
+#include <unistd.h>
 
 namespace cli
 {

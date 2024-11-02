@@ -4,38 +4,22 @@
 #include "cli/commandHandler.hpp"
 #include "cli/messageHandler.hpp"
 #include "clientMessageHandler.hpp"
-#include "clientSocket.hpp"
 #include "localMonitor/fileWatcher.hpp"
 #include "localMonitor/localMonitor.hpp"
 #include "serverMonitor/messageHandler.hpp"
 #include "serverMonitor/serverMonitor.hpp"
+#include <atomic>
 #include <constants.hpp>
 #include <mutex>
 #include <signal.h>
+#include <socket/clientSocket.hpp>
+#include <socket/serverSocket.hpp>
 
-int main(int argc, char *argv[])
+void startClient(std::string &username, std::string serverAddress)
 {
-
-    std::string username, serverAddress;
-
-#ifdef RELEASE_BUILD
-    if (argc < 3)
-    {
-        std::cerr << "ERR: not enough arguments were provided\n\t";
-        std::cerr << "|=> " << argv[0] << " <username> <server_address>" << std::endl;
-        exit(errno);
-    }
-
-    username = argv[1];
-    serverAddress = argv[2];
-#else
-    username = "test";
-    serverAddress = "localhost";
-#endif
-
-    ClientSocket commandSocket(serverAddress, common::COMMAND_PORT);
-    ClientSocket serverMonitorSocket(serverAddress, common::SERVER_DATA_PORT);
-    ClientSocket localMonitorSocket(serverAddress, common::CLIENT_DATA_PORT);
+    common::ClientSocket commandSocket(serverAddress, common::COMMAND_PORT);
+    common::ClientSocket serverMonitorSocket(serverAddress, common::SERVER_DATA_PORT);
+    common::ClientSocket localMonitorSocket(serverAddress, common::CLIENT_DATA_PORT);
 
     // CLI
     cli::MessageHandler commandMessager(commandSocket, username);
@@ -54,14 +38,19 @@ int main(int argc, char *argv[])
     serverMonitor::ServerMonitor serverMonitor(serverMonitorMessageHandler);
     std::thread *serverMonitorThread = serverMonitor.start();
 
-    // mutex for handle disconections
-    std::mutex mtx;
+    std::atomic<bool> disconnectHandled(false);
 
-    auto handleDisconnection = [&cli, &localMonitor, &serverMonitor, &mtx]() {
-        std::lock_guard<std::mutex> lock(mtx);
-        cli.stop();
+    auto handleDisconnection = [&]() {
+        if (disconnectHandled.exchange(true))
+        {
+            // The handler has already been executed, return immediately
+            return;
+        }
+        std::cout << "ERR: connection to server lost" << std::endl;
+
         localMonitor.stop();
         serverMonitor.stop();
+        cli.stop();
     };
 
     // Handler exit/disconnect
@@ -73,6 +62,44 @@ int main(int argc, char *argv[])
     cliThread->join();
     localMonitorThread->join();
     serverMonitorThread->join();
+}
+
+int main(int argc, char *argv[])
+{
+
+    std::string username, serverAddress;
+
+#ifdef RELEASE_BUILD
+    if (argc < 3)
+    {
+        std::cerr << "ERR: not enough arguments were provided\n\t";
+        std::cerr << "|=> " << argv[0] << " <username> <server_address>" << std::endl;
+        exit(errno);
+    }
+
+    username = argv[1];
+    serverAddress = argv[2];
+#else
+    username = "chico";
+    serverAddress = "localhost";
+    // serverAddress = "192.168.0.20";
+#endif
+
+    while (true)
+    {
+        startClient(username, serverAddress);
+
+        std::cout << "Waiting for new server..." << std::endl;
+
+        common::ServerSocket recoverySocket(common::CLIENT_RECOVERY_PORT);
+        recoverySocket.startListening([&](int socketId, std::string newServerAddress) {
+            serverAddress = newServerAddress;
+            // serverAddress = "localhost";
+            recoverySocket.stopListening();
+        });
+
+        // startClient(username, serverAddress);
+    }
 
     return 0;
 }

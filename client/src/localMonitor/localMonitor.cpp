@@ -14,6 +14,7 @@ LocalMonitor::LocalMonitor(FileWatcher &fileWatcher, const ClientMessageHandler 
 LocalMonitor::~LocalMonitor()
 {
     stop();
+    std::cout << "LocalMonitor stopped" << std::endl;
 }
 
 std::thread *LocalMonitor::start()
@@ -33,6 +34,7 @@ void LocalMonitor::run()
     do
     {
         fileWatcher.processEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     } while (isRunning);
 }
 
